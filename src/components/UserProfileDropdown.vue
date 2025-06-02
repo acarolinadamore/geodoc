@@ -61,7 +61,7 @@ export default {
     },
     userImage: {
       type: String,
-      required: true,
+      default: () => require('@/assets/images/perfil.png'),
     },
   },
   data() {

@@ -36,9 +36,9 @@
 </template>
 
 <script>
-import SidebarMenu from '@/components/SidebarMenu.vue'
+import GdSidebar from '@/components/GdSidebar.vue'
 import UserProfileDropdown from '@/components/UserProfileDropdown.vue'
-import HeaderComponent from '@/components/HeaderComponent.vue'
+import GdHeader from '@/components/GdHeader.vue'
 import StatusCard from '@/components/StatusCard.vue'
 
 // Componente demo para Status Card (se quiser incluir)
@@ -82,9 +82,9 @@ const StatusCardsExample = {
 export default {
   name: 'ComponentesExemplo',
   components: {
-    SidebarMenu,
+    GdSidebar,
     UserProfileDropdown,
-    HeaderComponent,
+    GdHeader,
     StatusCard,
   },
   data() {
@@ -94,12 +94,12 @@ export default {
         {
           id: 'header',
           label: 'Header',
-          component: HeaderComponent,
+          component: GdHeader,
         },
         {
           id: 'sidebar',
           label: 'Sidebar',
-          component: SidebarMenu,
+          component: GdSidebar,
         },
         {
           id: 'dropdown-user',

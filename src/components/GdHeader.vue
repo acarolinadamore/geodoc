@@ -30,7 +30,7 @@
 
 <script>
 export default {
-  name: 'HeaderComponent',
+  name: 'GdHeader',
   props: {
     userName: {
       type: String,
@@ -38,8 +38,7 @@ export default {
     },
     userImage: {
       type: String,
-      default:
-        'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face',
+      default: () => require('@/assets/images/perfil.png'),
     },
   },
 }

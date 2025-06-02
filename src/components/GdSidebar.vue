@@ -136,7 +136,7 @@
 
 <script>
 export default {
-  name: 'SidebarMenu',
+  name: 'GdSidebar',
   data() {
     return {
       isExpanded: true,

@@ -10,7 +10,7 @@
 
 <script>
 export default {
-  name: 'BaseButton',
+  name: 'GdBtn',
   props: {
     label: { type: String, required: true },
     icon: { type: String, default: '' },
