@@ -4,25 +4,7 @@
 
     <main class="flex-1 flex items-center justify-center px-6 py-12">
       <div class="max-w-2xl w-full text-center">
-        <!-- Usa underline por padrão -->
-        <GdHeading>Com underline azul</GdHeading>
-
-        <!-- Personaliza cor da linha -->
-        <GdHeading linhaClassName="bg-gdgreen-500 w-16"
-          >Com underline vermelho</GdHeading
-        >
-
-        <!-- Remove underline -->
-        <GdHeading :underline="false">Sem underline</GdHeading>
-
-        <!-- Alinhamento e underline -->
-        <GdHeading align="right">Alinhado à direita</GdHeading>
-
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">
-          Documento criado com sucesso!
-        </h1>
-
-        <div class="w-16 h-1 bg-blue-500 mx-auto mb-8"></div>
+        <gd-heading>Documento criado com sucesso!</gd-heading>
 
         <div class="flex justify-center mb-8">
           <img
@@ -61,9 +43,9 @@
 </template>
 
 <script>
-import GdHeader from '../components/GdHeader.vue'
-import GdBtn from '../components/GdBtn.vue'
-import GdHeading from '../components/GdHeading.vue'
+import GdHeader from '../components/ui/GdHeader.vue'
+import GdBtn from '../components/ui/GdBtn.vue'
+import GdHeading from '../components/ui/GdHeading.vue'
 
 export default {
   name: 'DocumentoSuccesso',

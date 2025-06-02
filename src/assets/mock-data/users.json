@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Ana Souza",
+    "image": "https://randomuser.me/api/portraits/women/44.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Carlos Silva",
+    "image": "https://randomuser.me/api/portraits/men/32.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Juliana Mendes",
+    "image": "https://randomuser.me/api/portraits/women/68.jpg"
+  }
+]

@@ -19,26 +19,32 @@
 export default {
   name: 'GdHeading',
   props: {
+    // Tamanho do titulo
     size: {
       type: String,
       default: 'text-3xl',
     },
+    // Alinhamento do titulo
     align: {
       type: String,
       default: 'center',
     },
+    // Cor do titulo
     color: {
       type: String,
       default: 'default',
     },
+    // Com underline ou sem
     underline: {
       type: [Boolean, String],
       default: true,
     },
+    // Classes para o container externo
     className: {
       type: String,
       default: '',
     },
+    // Classes para personalizar a underline
     linhaClassName: {
       type: String,
       default: '',
@@ -91,17 +97,26 @@ export default {
 
 <style scoped></style>
 
-<!-- Exemplo de uso -->
+<!-- 
+Exemplo de uso do componente GdHeading
 
-<!--
-<GdHeading>Com underline azul</GdHeading>
+1. Com underline padrão (verde)
+<GdHeading>Com underline padrão</GdHeading>
 
-Alinhamento e underline
+2. Alinhado à direita
 <GdHeading align="right">Alinhado à direita</GdHeading>
 
-Remover underline 
+3. Sem underline (explicitamente removido)
 <GdHeading :underline="false">Sem underline</GdHeading>
 
-Como mudar cor da linha 
-<GdHeading linhaClassName="bg-red-500 w-16">Com underline vermelho</GdHeading>
+4. Com underline customizado (vermelho e menor)
+<GdHeading underlineClass="bg-red-500 w-16">Underline customizado</GdHeading>
+
+ Props disponíveis:
+- size (string): classe do tamanho da fonte (ex: text-2xl)
+- align (string): left | center | right (default: center)
+- color (string): primary | secondary | default | text-black
+- underline (boolean ou string): true | false (default: true)
+- containerClass (string): classes para o container externo
+- underlineClass (string): classes para a personalizar underline
 -->

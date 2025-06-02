@@ -20,7 +20,7 @@
         ></path>
       </svg>
       <img
-        :src="userImage"
+        :src="computedUserImage"
         alt="Foto do usuário"
         class="w-8 h-8 rounded-full object-cover"
       />
@@ -61,13 +61,18 @@ export default {
     },
     userImage: {
       type: String,
-      default: () => require('@/assets/images/perfil.png'),
+      default: null,
     },
   },
   data() {
     return {
       dropdownOpen: false,
     }
+  },
+  computed: {
+    computedUserImage() {
+      return this.userImage || require('@/assets/images/perfil.png')
+    },
   },
   methods: {
     toggleDropdown() {
@@ -77,6 +82,19 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Nada específico ainda */
-</style>
+<style scoped></style>
+
+<!-- Exemplo de uso 
+    <UserProfileDropdown
+      :userName="user.name"
+      :userImage="user.image"
+    />
+
+    data() {
+    return {
+      user: {
+        name: 'Ana Carolina',
+        image: 'https://example.com/avatar.jpg',
+      },
+    }
+-->

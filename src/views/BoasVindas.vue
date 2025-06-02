@@ -8,7 +8,7 @@
       </p>
       <p>
         <strong>Tecnologias utilizadas:</strong><br />
-        Vue 2 · Vue Router · Vuex · Axios · SCSS · Componentes reutilizáveis
+        Vue 2 · Vue Router · Vuex · Tailwind · Componentes reutilizáveis
       </p>
       <p>
         Sinta-se à vontade para explorar os componentes, criar novas páginas e

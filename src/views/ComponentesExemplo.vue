@@ -29,23 +29,26 @@
     </div>
 
     <!-- Conteúdo da aba selecionada -->
-    <main class="flex-grow overflow-auto p-6 max-w-5xl mx-auto">
-      <component :is="activeTab.component" />
+    <main class="flex-grow overflow-auto p-0 bg-white w-full">
+      <!-- removido max-w-5xl e mx-auto -->
+      <component :is="activeTab.component" v-bind="activeTab.props || {}" />
     </main>
   </div>
 </template>
 
 <script>
-import GdSidebar from '@/components/GdSidebar.vue'
-import UserProfileDropdown from '@/components/UserProfileDropdown.vue'
-import GdHeader from '@/components/GdHeader.vue'
-import StatusCard from '@/components/StatusCard.vue'
+import GdSidebar from '@/components/ui/GdSidebar.vue'
+import UserProfileDropdown from '@/components/ui/UserProfileDropdown.vue'
+import GdHeader from '@/components/ui/GdHeader.vue'
+import StatusCard from '@/components/ui/StatusCard.vue'
+import GdHeadingExemplo from '@/views/exemplos/GdHeadingExemplo.vue'
+import GdHeaderExemplo from '@/views/exemplos/GdHeaderExemplo.vue'
+import userProfileImage from '@/assets/images/perfil.png'
 
-// Componente demo para Status Card (se quiser incluir)
 const StatusCardsExample = {
   components: { StatusCard },
   template: `
-    <div>
+    <div class="p-6">
       <p class="text-gray-600 mb-8">
         Lista de componentes de status disponíveis no sistema:
       </p>
@@ -86,28 +89,23 @@ export default {
     UserProfileDropdown,
     GdHeader,
     StatusCard,
+    GdHeadingExemplo,
+    GdHeaderExemplo,
   },
   data() {
     return {
       searchTerm: '',
       tabs: [
-        {
-          id: 'header',
-          label: 'Header',
-          component: GdHeader,
-        },
-        {
-          id: 'sidebar',
-          label: 'Sidebar',
-          component: GdSidebar,
-        },
+        { id: 'heading', label: 'Heading', component: GdHeadingExemplo },
+        { id: 'header', label: 'Header', component: GdHeaderExemplo },
+        { id: 'sidebar', label: 'Sidebar', component: GdSidebar },
         {
           id: 'dropdown-user',
-          label: 'Dropdown User',
+          label: 'User Profile Dropdown',
           component: UserProfileDropdown,
           props: {
-            'user-name': 'Maria Oliveira',
-            'user-image': '/assets/users/maria.jpg',
+            userImage: userProfileImage,
+            userName: 'Ana Carolina',
           },
         },
         {
@@ -131,16 +129,7 @@ export default {
       )
     },
     activeTab() {
-      // Se tiver props, passamos para o componente via extends
-      const tab = this.tabs.find(t => t.id === this.activeTabId) || this.tabs[0]
-      if (tab.props) {
-        return {
-          ...tab,
-          extends: tab.component,
-          propsData: tab.props,
-        }
-      }
-      return tab
+      return this.tabs.find(t => t.id === this.activeTabId) || this.tabs[0]
     },
   },
   methods: {
@@ -152,7 +141,6 @@ export default {
 </script>
 
 <style scoped>
-/* Barra de abas horizontal */
 nav::-webkit-scrollbar {
   height: 6px;
 }

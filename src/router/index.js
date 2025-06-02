@@ -8,6 +8,7 @@ import InicioDashboard from '../views/InicioDashboard.vue'
 import LoginView from '../views/LoginView.vue'
 import BoasVindas from '@/views/BoasVindas.vue'
 import ComponentesExemplo from '@/views/ComponentesExemplo.vue'
+import UsuarioSimulado from '@/views/exemplos/UsuarioSimulado.vue'
 
 Vue.use(VueRouter)
 
@@ -46,6 +47,11 @@ const routes = [
     path: '/exemplo',
     name: 'ComponentesExemplo',
     component: ComponentesExemplo,
+  },
+  {
+    path: '/exemplo-usuario',
+    name: 'ExemploUsuario',
+    component: UsuarioSimulado,
   },
 ]
 
