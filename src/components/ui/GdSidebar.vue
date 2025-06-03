@@ -32,93 +32,23 @@
 
       <!-- Menu -->
       <div class="menu">
-        <div class="section">
-          <h2 class="section-title" v-if="isExpanded">PRINCIPAL</h2>
+        <div v-for="section in menuConfig" :key="section.group" class="section">
+          <h2 class="section-title" v-if="isExpanded">{{ section.group }}</h2>
           <ul>
-            <li @click="navigate('caixa-entrada')">
+            <li
+              v-for="item in section.items"
+              :key="item.route"
+              @click="navigate(item.route)"
+            >
               <img
-                src="@/assets/icons/inbox.svg"
-                alt="Caixa de Entrada"
+                :src="getIconPath(item.icon)"
+                :alt="item.name"
                 class="icon"
               />
-              <span v-if="isExpanded">Caixa de Entrada</span>
-            </li>
-            <li @click="navigate('pendentes')" class="highlight">
-              <img
-                src="@/assets/icons/warning.svg"
-                alt="Pendentes"
-                class="icon icon-warning"
-              />
-              <span v-if="isExpanded">Pendentes</span>
-              <div class="notification" v-if="isExpanded">2</div>
-            </li>
-            <li @click="navigate('processos')">
-              <img
-                src="@/assets/icons/circle.svg"
-                alt="Processos"
-                class="icon"
-              />
-              <span v-if="isExpanded">Processos</span>
-            </li>
-            <li @click="navigate('documentos')">
-              <img
-                src="@/assets/icons/document.svg"
-                alt="Documentos"
-                class="icon"
-              />
-              <span v-if="isExpanded">Documentos</span>
-            </li>
-            <li @click="navigate('pasta-digital')">
-              <img
-                src="@/assets/icons/folder.svg"
-                alt="Pasta Digital"
-                class="icon"
-              />
-              <span v-if="isExpanded">Pasta Digital</span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section">
-          <h2 class="section-title" v-if="isExpanded">ANÁLISE</h2>
-          <ul>
-            <li @click="navigate('relatorios')">
-              <img
-                src="@/assets/icons/bar-chart.svg"
-                alt="Relatórios"
-                class="icon"
-              />
-              <span v-if="isExpanded">Relatórios</span>
-            </li>
-            <li @click="navigate('paineis-bi')">
-              <img
-                src="@/assets/icons/dashboard.svg"
-                alt="Painéis BI"
-                class="icon"
-              />
-              <span v-if="isExpanded">Painéis BI</span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section">
-          <h2 class="section-title" v-if="isExpanded">CONFIGURAÇÕES</h2>
-          <ul>
-            <li @click="navigate('cadastrar')">
-              <img src="@/assets/icons/plus.svg" alt="Cadastrar" class="icon" />
-              <span v-if="isExpanded">Cadastrar</span>
-            </li>
-            <li @click="navigate('impressora')">
-              <img
-                src="@/assets/icons/printer.svg"
-                alt="Impressora"
-                class="icon"
-              />
-              <span v-if="isExpanded">Impressora</span>
+              <span v-if="isExpanded">{{ item.name }}</span>
+              <div v-if="isExpanded && item.notification" class="notification">
+                {{ item.notification }}
+              </div>
             </li>
           </ul>
         </div>
@@ -139,10 +69,13 @@
 </template>
 
 <script>
+import menuConfig from '@/config/menuConfig'
+
 export default {
   name: 'GdSidebar',
   data() {
     return {
+      menuConfig,
       logoPath: require('@/assets/logos/logo.svg'),
       logoMiniPath: require('@/assets/logos/g.svg'),
       grupoImagetechPath: require('@/assets/logos/grupoimagetech.png'),
@@ -163,8 +96,16 @@ export default {
         this.expandSidebar()
       }
     },
-    navigate(page) {
-      this.$emit('navigate', page)
+    navigate(route) {
+      this.$router.push(route)
+    },
+    getIconPath(iconName) {
+      try {
+        return require(`@/assets/icons/${iconName}`)
+      } catch (e) {
+        console.error(`Icon not found: ${iconName}`)
+        return ''
+      }
     },
   },
 }
@@ -296,7 +237,7 @@ export default {
 }
 
 .menu::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
+  display: none;
 }
 
 .section {
@@ -340,7 +281,7 @@ ul {
 .icon-warning {
   width: 18px;
   height: 18px;
-  margin-left: -2px; /* pequeno ajuste de alinhamento lateral */
+  margin-left: -2px;
   margin-right: 12px;
   vertical-align: middle;
   flex-shrink: 0;
@@ -374,6 +315,7 @@ li span {
   position: relative;
   top: 1px;
 }
+
 .arrow {
   margin-left: auto;
   font-size: 14px;
