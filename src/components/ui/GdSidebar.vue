@@ -1,137 +1,141 @@
 <template>
-  <aside
-    class="sidebar-menu"
-    :class="{ expanded: isExpanded, collapsed: !isExpanded }"
+  <nav
+    class="sidebar"
+    :class="{ collapsed: !isExpanded }"
     @click="handleSidebarClick"
   >
-    <div class="logo-container" @click.stop>
-      <img v-if="isExpanded" :src="logoPath" alt="Logo" class="logo-full" />
-      <img v-else :src="logoMiniPath" alt="Logo Mini" class="logo-mini" />
-      <button
-        v-if="isExpanded"
-        class="collapse-btn"
-        @click.stop.prevent="toggleSidebar"
-        title="Colapsar menu"
-      >
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          class="icon icon-collapse"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fill="currentColor"
-            d="M10 0L8.59 1.41 16.17 9H0v2h16.17l-7.58 7.59L10 20l10-10z"
+    <div class="sidebar-container">
+      <!-- Header -->
+      <div class="header">
+        <div class="top-bar">
+          <div class="logo" :class="{ center: !isExpanded }">
+            <img
+              :src="isExpanded ? logoPath : logoMiniPath"
+              alt="GeoDoc Logo"
+              class="logo-image"
+            />
+          </div>
+          <button
+            v-if="isExpanded"
+            class="toggle-btn"
+            @click.stop="toggleSidebar"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </div>
+        <button class="new-doc-btn" :class="{ compact: !isExpanded }">
+          <i class="lni lni-pencil"></i>
+          <span v-if="isExpanded">Novo Documento</span>
+        </button>
+        <div class="divider special"></div>
+      </div>
+
+      <!-- Menu -->
+      <div class="menu">
+        <div class="section">
+          <h2 class="section-title" v-if="isExpanded">PRINCIPAL</h2>
+          <ul>
+            <li @click="navigate('caixa-entrada')">
+              <img
+                src="@/assets/icons/inbox.svg"
+                alt="Caixa de Entrada"
+                class="icon"
+              />
+              <span v-if="isExpanded">Caixa de Entrada</span>
+            </li>
+            <li @click="navigate('pendentes')" class="highlight">
+              <img
+                src="@/assets/icons/warning.svg"
+                alt="Pendentes"
+                class="icon icon-warning"
+              />
+              <span v-if="isExpanded">Pendentes</span>
+              <div class="notification" v-if="isExpanded">2</div>
+            </li>
+            <li @click="navigate('processos')">
+              <img
+                src="@/assets/icons/circle.svg"
+                alt="Processos"
+                class="icon"
+              />
+              <span v-if="isExpanded">Processos</span>
+            </li>
+            <li @click="navigate('documentos')">
+              <img
+                src="@/assets/icons/document.svg"
+                alt="Documentos"
+                class="icon"
+              />
+              <span v-if="isExpanded">Documentos</span>
+            </li>
+            <li @click="navigate('pasta-digital')">
+              <img
+                src="@/assets/icons/folder.svg"
+                alt="Pasta Digital"
+                class="icon"
+              />
+              <span v-if="isExpanded">Pasta Digital</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <h2 class="section-title" v-if="isExpanded">ANÁLISE</h2>
+          <ul>
+            <li @click="navigate('relatorios')">
+              <img
+                src="@/assets/icons/bar-chart.svg"
+                alt="Relatórios"
+                class="icon"
+              />
+              <span v-if="isExpanded">Relatórios</span>
+            </li>
+            <li @click="navigate('paineis-bi')">
+              <img
+                src="@/assets/icons/dashboard.svg"
+                alt="Painéis BI"
+                class="icon"
+              />
+              <span v-if="isExpanded">Painéis BI</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <h2 class="section-title" v-if="isExpanded">CONFIGURAÇÕES</h2>
+          <ul>
+            <li @click="navigate('cadastrar')">
+              <img src="@/assets/icons/plus.svg" alt="Cadastrar" class="icon" />
+              <span v-if="isExpanded">Cadastrar</span>
+            </li>
+            <li @click="navigate('impressora')">
+              <img
+                src="@/assets/icons/printer.svg"
+                alt="Impressora"
+                class="icon"
+              />
+              <span v-if="isExpanded">Impressora</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Rodapé -->
+      <div class="footer" v-if="isExpanded">
+        <div class="footer-logo">
+          <img
+            :src="grupoImagetechPath"
+            alt="Grupo Imagetech"
+            class="grupo-image"
           />
-        </svg>
-      </button>
+        </div>
+      </div>
     </div>
-
-    <nav class="menu-content">
-      <ul class="menu-list" ref="menuList">
-        <!-- Principal -->
-        <li class="menu-section-label">PRINCIPAL</li>
-        <li class="menu-item" @click.stop="navigate('dashboard')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-dashboard.svg"
-            alt="Dashboard"
-          />
-          <span v-if="isExpanded">Dashboard</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('caixa')">
-          <img class="menu-icon" src="/img/sidebar/ico-caixa.svg" alt="Caixa" />
-          <span v-if="isExpanded">Caixa</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('clientes')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-clientes.svg"
-            alt="Clientes"
-          />
-          <span v-if="isExpanded">Clientes</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('equipamentos')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-equipamentos.svg"
-            alt="Equipamentos"
-          />
-          <span v-if="isExpanded">Equipamentos</span>
-        </li>
-
-        <!-- Análise -->
-        <li class="menu-section-label">ANÁLISE</li>
-        <li class="menu-item" @click.stop="navigate('propostas')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-propostas.svg"
-            alt="Propostas"
-          />
-          <span v-if="isExpanded">Propostas</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('vendas')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-vendas.svg"
-            alt="Vendas"
-          />
-          <span v-if="isExpanded">Vendas</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('fat_vendedor')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-vendedor.svg"
-            alt="Faturamento por Vendedor"
-          />
-          <span v-if="isExpanded">Faturamento por Vendedor</span>
-        </li>
-
-        <!-- Configurações -->
-        <li class="menu-section-label">CONFIGURAÇÕES</li>
-        <li class="menu-item" @click.stop="navigate('categorias')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-categorias.svg"
-            alt="Categorias"
-          />
-          <span v-if="isExpanded">Categorias</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('usuarios')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-usuarios.svg"
-            alt="Usuários"
-          />
-          <span v-if="isExpanded">Usuários</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('grupo_usuarios')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-grupo-usuarios.svg"
-            alt="Grupos de Usuários"
-          />
-          <span v-if="isExpanded">Grupos de Usuários</span>
-        </li>
-        <li class="menu-item" @click.stop="navigate('produtos')">
-          <img
-            class="menu-icon"
-            src="/img/sidebar/ico-produtos.svg"
-            alt="Produtos"
-          />
-          <span v-if="isExpanded">Produtos</span>
-        </li>
-      </ul>
-    </nav>
-
-    <footer class="sidebar-footer" v-if="isExpanded">
-      <img
-        :src="grupoImagetechPath"
-        alt="Grupo Imagetech"
-        class="footer-logo"
-      />
-    </footer>
-  </aside>
+  </nav>
 </template>
 
 <script>
@@ -139,18 +143,20 @@ export default {
   name: 'GdSidebar',
   data() {
     return {
+      logoPath: require('@/assets/logos/logo.svg'),
+      logoMiniPath: require('@/assets/logos/g.svg'),
+      grupoImagetechPath: require('@/assets/logos/grupoimagetech.png'),
       isExpanded: true,
-      logoPath: '/img/logo-completo.svg',
-      logoMiniPath: '/img/logo-mini.svg',
-      grupoImagetechPath: '/img/grupo-imagetech.svg',
     }
   },
   methods: {
     toggleSidebar() {
-      this.isExpanded = false
+      this.isExpanded = !this.isExpanded
     },
     expandSidebar() {
-      this.isExpanded = true
+      if (!this.isExpanded) {
+        this.isExpanded = true
+      }
     },
     handleSidebarClick() {
       if (!this.isExpanded) {
@@ -165,108 +171,289 @@ export default {
 </script>
 
 <style scoped>
-.sidebar-menu {
-  background: linear-gradient(90deg, #0369a1 0%, #064e3b 100%);
-  color: white;
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(180deg, #004b9d 0%, #0078c8 100%);
+  color: #d7dadd;
+  font-family: 'Inter', sans-serif;
+  padding: 20px 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 280px;
   transition: width 0.3s ease;
   overflow: hidden;
-  user-select: none;
-  cursor: pointer;
-  position: relative;
 }
-.sidebar-menu.collapsed {
+
+.sidebar.collapsed {
   width: 60px;
 }
-.logo-container {
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 10px;
+}
+
+.header {
+  margin-bottom: 10px;
+  padding: 0 10px;
+}
+
+.top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  cursor: default;
-  position: relative;
 }
-.logo-full {
-  max-height: 45px;
-  user-select: none;
+
+.logo.center {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
-.logo-mini {
-  max-height: 30px;
-  margin-left: 15px;
-  user-select: none;
+
+.logo-image {
+  height: 30px;
+  width: auto;
 }
-.collapse-btn {
+
+.toggle-btn {
   background: transparent;
   border: none;
+  color: #fff;
+  font-size: 12px;
   cursor: pointer;
   padding: 0;
-  width: 30px;
-  height: 30px;
+}
+
+.divider.special {
+  background: rgba(146, 218, 255, 0.2);
+  margin-top: 24px;
+}
+
+.new-doc-btn {
+  background: #0470ae;
   color: white;
-}
-.collapse-btn:hover {
-  color: #d1d5db;
-}
-.icon-collapse {
-  width: 20px;
-  height: 20px;
-}
-.menu-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem 0;
-}
-.menu-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 0.5rem;
-}
-.menu-section-label {
-  font-weight: 600;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  padding: 0.5rem 1rem;
-  opacity: 0.75;
-  user-select: none;
-}
-.menu-item {
+  border: none;
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
+  padding: 0 20px;
+  height: 45px;
+  margin: 24px 0 0;
+  width: 100%;
 }
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+
+.new-doc-btn.compact {
+  width: 45px;
+  height: 45px;
+  padding: 0;
+  margin: 24px auto 0;
 }
-.menu-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 1rem;
-  user-select: none;
+
+.new-doc-btn.compact i {
+  font-size: 16px;
+  margin: 0;
 }
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+.sidebar.collapsed ul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar.collapsed li {
+  justify-content: center;
+  padding: 10px 0;
+  width: 100%;
+}
+
+.sidebar.collapsed li i {
+  margin: 0 auto;
   text-align: center;
 }
-.footer-logo {
-  max-width: 120px;
-  user-select: none;
-}
 
-/* Scrollbar invisível */
-.menu-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
-/* Ajusta o texto para esconder quando colapsado */
-.sidebar-menu.collapsed .menu-item span {
+.sidebar.collapsed li span,
+.sidebar.collapsed li .arrow,
+.sidebar.collapsed li .notification {
   display: none;
+}
+
+.menu {
+  flex-grow: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 10px;
+  scrollbar-width: none;
+}
+
+.menu::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.section {
+  margin-bottom: 25px;
+}
+
+.section-title {
+  display: flex;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 24px;
+  text-transform: uppercase;
+  color: #d7dadd;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(215, 218, 221, 0.2);
+  margin: 15px 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 12px;
+  vertical-align: middle;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.icon-warning {
+  width: 18px;
+  height: 18px;
+  margin-left: -2px; /* pequeno ajuste de alinhamento lateral */
+  margin-right: 12px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.sidebar.collapsed li {
+  justify-content: center;
+  padding-left: 0;
+}
+
+li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+li span {
+  display: inline-block;
+  line-height: 1;
+  position: relative;
+  top: 1px;
+}
+.arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: rgba(215, 218, 221, 0.5);
+}
+
+.lni-chevron-left {
+  font-size: 18px;
+}
+
+.highlight {
+  color: #ffc107;
+  font-weight: 700;
+}
+
+.highlight i {
+  color: #ffc107;
+}
+
+.notification {
+  background-color: #ffc107;
+  color: #004b9d;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: auto;
+}
+
+.footer {
+  margin-top: auto;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(215, 218, 221, 0.7);
+  padding: 20px 10px 0;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.sidebar.collapsed .footer {
+  display: none;
+}
+
+.sidebar.collapsed li {
+  justify-content: center;
+  padding-left: 0;
+}
+
+.sidebar.collapsed li i {
+  margin: 0;
+}
+
+.sidebar.collapsed li:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 70px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+
+.sidebar.collapsed .top-bar {
+  justify-content: center;
 }
 </style>
