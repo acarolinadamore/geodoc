@@ -2,13 +2,14 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 import NovoDocumento from '../views/NovoDocumento.vue'
-import CaixaEntrada from '../views/CaixaEntrada.vue'
 import DocumentoSucesso from '../views/DocumentoSucesso.vue'
 import InicioDashboard from '../views/InicioDashboard.vue'
 import LoginView from '../views/LoginView.vue'
 import BoasVindas from '@/views/BoasVindas.vue'
 import ComponentesExemplo from '@/views/ComponentesExemplo.vue'
 import UsuarioSimulado from '@/views/exemplos/UsuarioSimulado.vue'
+import GdCaixaEntrada from '@/views/GdCaixaEntrada.vue'
+import GdEnviados from '@/views/GdEnviados.vue'
 
 Vue.use(VueRouter)
 
@@ -30,8 +31,8 @@ const routes = [
   },
   {
     path: '/caixa-entrada',
-    name: 'CaixaEntrada',
-    component: CaixaEntrada,
+    name: 'GdCaixaEntrada',
+    component: GdCaixaEntrada,
   },
   {
     path: '/documento-sucesso',
@@ -42,6 +43,11 @@ const routes = [
     path: '/inicio',
     name: 'InicioDashboard',
     component: InicioDashboard,
+  },
+  {
+    path: '/enviados',
+    name: 'GdEnviados',
+    component: GdEnviados,
   },
   {
     path: '/exemplo',

@@ -162,6 +162,8 @@ export default {
   background-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
+  /* Ajuste se necessário para evitar overflow */
+  overflow: hidden;
 }
 
 .tabs {

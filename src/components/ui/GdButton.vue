@@ -1,24 +1,30 @@
 <template>
-  <button class="base-button" @click="$emit('click')" :style="buttonStyle">
+  <button
+    class="gd-button"
+    :class="computedClasses"
+    @click="$emit('click')"
+    :style="buttonStyle"
+  >
     <span class="button-content">
-      <i v-if="icon" :class="['lni', icon, 'btn-icon']"></i>
+      <i v-if="icon" :class="['fa', icon, 'btn-icon']"></i>
       <img v-else-if="iconSrc" :src="iconSrc" class="btn-icon-img" alt="icon" />
-      <span class="label">{{ label }}</span>
+      <span v-if="label" class="label">{{ label }}</span>
     </span>
   </button>
 </template>
 
 <script>
 export default {
-  name: 'GdBtn',
+  name: 'GdButton',
   props: {
-    label: { type: String, required: true },
+    label: { type: String, default: '' },
     icon: { type: String, default: '' },
     iconSrc: { type: String, default: '' },
     bgColor: { type: String, default: '' },
     textColor: { type: String, default: '' },
     borderColor: { type: String, default: '' },
     height: { type: String, default: '42px' },
+    width: { type: String, default: '180px' },
     variant: {
       type: String,
       default: 'filled',
@@ -26,12 +32,19 @@ export default {
     },
   },
   computed: {
+    computedClasses() {
+      return {
+        'bg-primary text-white': this.variant === 'filled' && !this.bgColor,
+        'border border-primary text-primary':
+          this.variant === 'outlined' && !this.borderColor,
+      }
+    },
     buttonStyle() {
       return {
-        minWidth: '180px',
+        width: this.width,
         height: this.height,
         backgroundColor:
-          this.variant === 'outlined' ? 'transparent' : this.bgColor,
+          this.variant === 'filled' ? this.bgColor : 'transparent',
         color: this.textColor,
         border:
           this.variant === 'outlined'
@@ -44,21 +57,12 @@ export default {
 </script>
 
 <style scoped>
-.base-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  font-weight: 400;
-  font-size: 14px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  padding: 0 20px;
-  min-width: 180px;
-  height: 42px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.gd-button {
+  @apply inline-flex items-center justify-center rounded-lg font-medium text-sm cursor-pointer;
+  padding: 0 12px;
   transition: transform 0.1s ease, background-color 0.2s ease,
     box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .button-content {
@@ -70,7 +74,7 @@ export default {
 }
 
 .btn-icon {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .btn-icon-img {
@@ -84,12 +88,12 @@ export default {
   text-overflow: ellipsis;
 }
 
-.base-button:hover {
+.gd-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-.base-button:active {
+.gd-button:active {
   transform: scale(0.97);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

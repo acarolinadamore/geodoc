@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <GdHeader />
+    <GdHeader :showDate="false" />
 
     <main class="flex-1 flex items-center justify-center px-6 py-12">
       <div class="max-w-2xl w-full text-center">
@@ -15,26 +15,24 @@
           />
         </div>
 
-        <p class="text-gdgreen-300">Texto verde</p>
-
         <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">
           Deseja configurar este documento para que ele se torne um processo?
         </p>
 
         <div class="space-y-4">
-          <GdBtn
+          <GdButton
             variant="primary"
             size="large"
             @click="configureDocument"
             class="w-full max-w-xs"
           >
             Configurar Documento
-          </GdBtn>
+          </GdButton>
 
           <div>
-            <GdBtn variant="link" @click="goToInbox">
+            <GdButton variant="link" @click="goToInbox">
               Ir para Caixa de Entrada
-            </GdBtn>
+            </GdButton>
           </div>
         </div>
       </div>
@@ -44,14 +42,14 @@
 
 <script>
 import GdHeader from '../components/ui/GdHeader.vue'
-import GdBtn from '../components/ui/GdBtn.vue'
+import GdButton from '../components/ui/GdButton.vue'
 import GdHeading from '../components/ui/GdHeading.vue'
 
 export default {
   name: 'DocumentoSuccesso',
   components: {
     GdHeader,
-    GdBtn,
+    GdButton,
     GdHeading,
   },
   methods: {

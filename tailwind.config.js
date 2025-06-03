@@ -7,8 +7,8 @@ module.exports = {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
-        primary: '#0b8e3f',
-        secondary: '#a8e6a1',
+        primary: '#37C989',
+        secondary: '#1A82D9',
 
         gdgreen: {
           300: '#6EE7B7',

@@ -1,35 +1,19 @@
 <template>
   <div class="dashboard-container">
     <div class="main-content">
-      <header class="header">
-        <div class="header-left">
-          <v-icon name="calendar" class="icon" />
-          <span>Quarta-feira, 15 Abril 2025</span>
-        </div>
-        <div class="header-right">
-          <div class="notification">
-            <v-icon name="bell" class="icon" />
-            <span class="badge">3</span>
-          </div>
-          <div class="user-profile">
-            <img
-              :src="require('@/assets/images/perfil.png')"
-              alt="Ana Carolina"
-              class="avatar"
-            />
-            <span>Ana Carolina</span>
-            <v-icon name="chevron-down" class="icon" />
-          </div>
-        </div>
-      </header>
+      <gd-header
+        :userName="selectedUser.name"
+        :userImage="selectedUser.image"
+        :showDate="true"
+        :showNotification="true"
+      />
       <div class="welcome-section">
         <div class="welcome-title">
           <span class="wave">👋</span>
           <h1>Bem-vindo, <strong>Melanie</strong></h1>
         </div>
-        <p class="welcome-subtitle">
-          Ao seu sistema de Gestão de Processos internos
-        </p>
+        <p class="welcome-subtitle"></p>
+        <p class="text-left">Ao seu sistema de Gestão de Processos internos</p>
       </div>
       <div class="cards-grid">
         <div class="card card-yellow">
@@ -125,12 +109,37 @@
 </template>
 
 <script>
+import GdHeader from '@/components/ui/GdHeader.vue'
+
 export default {
   name: 'InicioDashboard',
+  components: {
+    GdHeader,
+  },
   data() {
     return {
-      searchQuery: '',
+      users: [
+        {
+          id: 1,
+          name: 'Carlos Silva',
+          image: 'https://randomuser.me/api/portraits/men/32.jpg',
+        },
+        {
+          id: 2,
+          name: 'Ana Souza',
+          image: 'https://randomuser.me/api/portraits/woman/43.jpg',
+        },
+        {
+          id: 3,
+          name: 'Juliana Mendes',
+          image: 'https://randomuser.me/api/portraits/women/68.jpg',
+        },
+      ],
+      selectedUser: {},
     }
+  },
+  created() {
+    this.selectedUser = this.users.find(user => user.id === 1)
   },
   methods: {
     clearSearch() {

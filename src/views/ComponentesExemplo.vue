@@ -8,7 +8,8 @@
         v-model="searchTerm"
         type="text"
         placeholder="Buscar abas..."
-        class="flex-shrink-0 w-64 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
+        class="flex-shrink-0 w-64 px-3 py-2 border rounded focus:outline-none focus:ring-2"
+        style="--tw-ring-color: #42b983"
       />
 
       <nav class="flex space-x-4 overflow-x-auto">
@@ -19,8 +20,8 @@
           :class="[
             'whitespace-nowrap px-4 py-2 rounded-md text-sm font-medium cursor-pointer',
             activeTabId === tab.id
-              ? 'bg-indigo-600 text-white'
-              : 'text-gray-600 hover:bg-indigo-100 hover:text-indigo-700',
+              ? 'bg-green-500 text-white'
+              : 'text-gray-600 hover:bg-green-50 hover:text-green-500',
           ]"
         >
           {{ tab.label }}
@@ -41,9 +42,11 @@ import GdSidebar from '@/components/ui/GdSidebar.vue'
 import UserProfileDropdown from '@/components/ui/UserProfileDropdown.vue'
 import GdHeader from '@/components/ui/GdHeader.vue'
 import StatusCard from '@/components/ui/StatusCard.vue'
+import userProfileImage from '@/assets/images/perfil.png'
+import GdButton from '@/components/ui/GdButton.vue'
 import GdHeadingExemplo from '@/views/exemplos/GdHeadingExemplo.vue'
 import GdHeaderExemplo from '@/views/exemplos/GdHeaderExemplo.vue'
-import userProfileImage from '@/assets/images/perfil.png'
+import GdButtonExemplo from '@/views/exemplos/GdButtonExemplo.vue'
 
 const StatusCardsExample = {
   components: { StatusCard },
@@ -91,11 +94,14 @@ export default {
     StatusCard,
     GdHeadingExemplo,
     GdHeaderExemplo,
+    GdButton,
+    GdButtonExemplo,
   },
   data() {
     return {
       searchTerm: '',
       tabs: [
+        { id: 'button', label: 'Button', component: GdButtonExemplo },
         { id: 'heading', label: 'Heading', component: GdHeadingExemplo },
         { id: 'header', label: 'Header', component: GdHeaderExemplo },
         { id: 'sidebar', label: 'Sidebar', component: GdSidebar },
@@ -114,7 +120,7 @@ export default {
           component: StatusCardsExample,
         },
       ],
-      activeTabId: 'header',
+      activeTabId: 'button',
     }
   },
   computed: {
