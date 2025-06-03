@@ -3,7 +3,7 @@
     <div class="space-y-10 p-10 max-w-3xl mx-auto">
       <div class="flex items-center gap-4">
         <p class="text-left font-semibold">Selecione um usuário:</p>
-        <select id="user-select" v-model="selectedUserId" @change="updateUser">
+        <select id="user-select" v-model="selectedUserId">
           <option v-for="user in usuarios" :key="user.id" :value="user.id">
             {{ user.name }}
           </option>
@@ -27,7 +27,7 @@
         :userName="currentUser.name"
         :userImage="currentUser.image"
         :showDate="false"
-        :showNotifications="false"
+        :showNotification="false"
       />
     </div>
   </div>
@@ -50,13 +50,6 @@ export default {
   computed: {
     currentUser() {
       return this.usuarios.find(user => user.id === this.selectedUserId)
-    },
-  },
-  methods: {
-    updateUser() {
-      this.currentUser = this.usuarios.find(
-        user => user.id === this.selectedUserId
-      )
     },
   },
 }

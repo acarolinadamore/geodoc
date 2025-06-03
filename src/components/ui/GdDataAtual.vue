@@ -1,5 +1,10 @@
 <template>
   <div class="gd-data-atual">
+    <img
+      src="@/assets/images/calendario2.png"
+      alt="Calendário"
+      class="calendar-icon"
+    />
     {{ currentDate }}
   </div>
 </template>
@@ -14,13 +19,31 @@ export default {
       month: 'long',
       day: 'numeric',
     })
+
+    const capitalizeDate = string => {
+      return string
+        .replace(/^./, string[0].toUpperCase())
+        .replace(/ de /g, ' ')
+        .replace(/(?:^|\s)([a-z])/g, match => match.toUpperCase())
+    }
+
     return {
-      currentDate: date,
+      currentDate: capitalizeDate(date),
     }
   },
 }
 </script>
 
 <style scoped>
-/* Estilize conforme necessário */
+.gd-data-atual {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.calendar-icon {
+  margin-right: 8px;
+  margin-bottom: 2px;
+  width: 26px;
+}
 </style>

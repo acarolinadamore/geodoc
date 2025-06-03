@@ -5,7 +5,7 @@
     </div>
     <div class="right-section flex">
       <div class="border-l border-slate-200 h-full px-2 flex items-center">
-        <Notification v-if="showNotifications" />
+        <GdNotification :showNotification="showNotification" />
       </div>
       <div class="border-l border-slate-200 h-full px-2 flex items-center">
         <UserProfileDropdown :userName="userName" :userImage="userImage" />
@@ -16,22 +16,22 @@
 
 <script>
 import GdDataAtual from './GdDataAtual.vue'
-import Notification from './GdNotification.vue'
 import UserProfileDropdown from './UserProfileDropdown.vue'
+import GdNotification from '@/components/ui/GdNotification.vue'
 
 export default {
   name: 'GdHeader',
   components: {
     GdDataAtual,
-    Notification,
     UserProfileDropdown,
+    GdNotification,
   },
   props: {
     showDate: {
       type: Boolean,
       default: true,
     },
-    showNotifications: {
+    showNotification: {
       type: Boolean,
       default: true,
     },

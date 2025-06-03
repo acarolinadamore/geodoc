@@ -4,6 +4,11 @@
       @click="toggleDropdown"
       class="inline-flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none"
     >
+      <img
+        :src="computedUserImage"
+        alt="Foto do usuário"
+        class="w-8 h-8 rounded-full object-cover"
+      />
       <span>{{ userName }}</span>
       <svg
         class="w-4 h-4"
@@ -19,11 +24,6 @@
           d="M19 9l-7 7-7-7"
         ></path>
       </svg>
-      <img
-        :src="computedUserImage"
-        alt="Foto do usuário"
-        class="w-8 h-8 rounded-full object-cover"
-      />
     </button>
 
     <div
@@ -93,7 +93,7 @@ export default {
     data() {
     return {
       user: {
-        name: 'Ana Carolina',
+        name: 'Ana Souza',
         image: 'https://example.com/avatar.jpg',
       },
     }
