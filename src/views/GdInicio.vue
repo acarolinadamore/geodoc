@@ -112,7 +112,7 @@
 import GdHeader from '@/components/ui/GdHeader.vue'
 
 export default {
-  name: 'InicioDashboard',
+  name: 'GdInicio',
   components: {
     GdHeader,
   },

@@ -8,7 +8,8 @@
     <span class="button-content">
       <i v-if="icon" :class="['fa', icon, 'btn-icon']"></i>
       <img v-else-if="iconSrc" :src="iconSrc" class="btn-icon-img" alt="icon" />
-      <span v-if="label" class="label">{{ label }}</span>
+      <slot v-if="$slots.default" />
+      <span v-else-if="label" class="label">{{ label }}</span>
     </span>
   </button>
 </template>

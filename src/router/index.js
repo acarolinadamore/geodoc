@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 
 import NovoDocumento from '../views/NovoDocumento.vue'
 import DocumentoSucesso from '../views/DocumentoSucesso.vue'
-import InicioDashboard from '../views/InicioDashboard.vue'
+import GdInicio from '../views/GdInicio.vue'
 import LoginView from '../views/LoginView.vue'
 import BoasVindas from '@/views/BoasVindas.vue'
 import ComponentesExemplo from '@/views/ComponentesExemplo.vue'
@@ -41,8 +41,8 @@ const routes = [
   },
   {
     path: '/inicio',
-    name: 'InicioDashboard',
-    component: InicioDashboard,
+    name: 'GdInicio',
+    component: GdInicio,
   },
   {
     path: '/enviados',

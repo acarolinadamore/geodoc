@@ -48,6 +48,7 @@ import GdHeaderExemplo from '@/views/exemplos/GdHeaderExemplo.vue'
 import GdButtonExemplo from '@/views/exemplos/GdButtonExemplo.vue'
 import GdSidebar from '@/components/ui/GdSidebar.vue'
 import GdSidebarExemplo from './exemplos/GdSidebarExemplo.vue'
+import GdCardExemplo from './exemplos/GdCardExemplo.vue'
 
 const StatusCardsExample = {
   components: { StatusCard },
@@ -98,6 +99,7 @@ export default {
     GdButtonExemplo,
     GdSidebar,
     GdSidebarExemplo,
+    GdCardExemplo,
   },
   data() {
     return {
@@ -107,6 +109,7 @@ export default {
         { id: 'heading', label: 'Heading', component: GdHeadingExemplo },
         { id: 'header', label: 'Header', component: GdHeaderExemplo },
         { id: 'sidebar', label: 'Sidebar', component: GdSidebarExemplo },
+        { id: 'card', label: 'Card', component: GdCardExemplo },
         {
           id: 'dropdown-user',
           label: 'User Profile Dropdown',
@@ -122,7 +125,7 @@ export default {
           component: StatusCardsExample,
         },
       ],
-      activeTabId: 'button',
+      activeTabId: 'card',
     }
   },
   computed: {

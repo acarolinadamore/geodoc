@@ -1,6 +1,6 @@
 # geodoc
 
-## Project setup
+## projeto setup
 
 ```
 npm install

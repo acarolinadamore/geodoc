@@ -1,0 +1,34 @@
+{
+  "remetente": {
+    "nome": "Arthur Affonso de Barros Marinho",
+    "funcao": "Presidente - CONSELHO"
+  },
+  "documento": {
+    "id": "2354545/45222",
+    "data": "03/06/2025",
+    "tipo": "Solicitação à Fábrica de Software",
+    "fluxo": "Férias",
+    "etapas": [
+      { "nome": "Solicitação", "status": "completed" },
+      { "nome": "Triagem", "status": "completed" },
+      { "nome": "Etapa", "status": "current" },
+      { "nome": "Aprovação", "status": "pending" },
+      { "nome": "Execução", "status": "pending" },
+      { "nome": "Conclusão", "status": "pending" }
+    ],
+    "dirPath": "GRUPO IMAGETECH > DIRETORIA DE NEGÓCIOS > FÁBRICA DE SOFTWARE"
+  },
+  "ancora": {
+    "tipo": "Projeto",
+    "projeto": "Comunica Cidadão",
+    "prestadorServico": "Luciano Lopes",
+    "dataPagamento": "10/02/2025",
+    "unidade": "Fábrica de Software"
+  },
+  "vencimento": {
+    "status": "vencido",
+    "days": 5,
+    "unit": "dias"
+  },
+  "acoes": ["Visualizar", "Editar"]
+}

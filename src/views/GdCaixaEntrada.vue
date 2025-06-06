@@ -106,94 +106,24 @@
       </div>
     </div>
 
-    <GdTaskList :tasks="sampleTasks" />
+    <GdCardList :tasks="sampleTasks" />
   </div>
 </template>
 
 <script>
 import GdFilterBar from '@/components/ui/GdFilterBar.vue'
-import GdTaskList from '@/components/ui/GdTaskList.vue'
+import GdCardList from '@/components/ui/GdCardList.vue'
 import GdDropdown from '@/components/ui/GdDropdown.vue'
 
 export default {
   name: 'GdCaixaEntrada',
   components: {
     GdFilterBar,
-    GdTaskList,
+    GdCardList,
     GdDropdown,
   },
   data() {
-    return {
-      sampleTasks: [
-        {
-          id: '2354545/45222',
-          title: 'Solicitação à Fábrica de Software',
-          badgeText: 'FA',
-          badgeColor: 'blue',
-          sender: {
-            name: 'Arthur Affonso de Barros Marinho',
-            role: 'Presidente - CONSELHO',
-          },
-          type: 'Solicitação à Fábrica de Software',
-          flow: {
-            name: 'Férias',
-            steps: [
-              { name: 'Iniciado', completed: true },
-              { name: 'Em Análise', completed: true },
-              { name: 'Aguardando Aprovação', completed: false },
-              { name: 'Concluído', completed: false },
-            ],
-          },
-          digitalFolder:
-            'Grupo Imagetech > Diretoria de Negócios > Fábrica de Software',
-          project: 'Comunica Cidadão',
-          serviceProvidedBy: 'Luciano S Lopez',
-          paymentDate: '10/02/2025',
-          unit: 'Fábrica de Software',
-          dueDate: { text: 'Vencido faz 5 dias', status: 'overdue' },
-        },
-        {
-          id: '2354545/45223',
-          title: 'Aprovação de Documento Financeiro',
-          badgeText: 'FN',
-          badgeColor: 'green',
-          sender: { name: 'Maria Silva', role: 'Gerente Financeiro' },
-          type: 'Aprovação de Despesa',
-          flow: {
-            name: 'Aprovação de Gasto',
-            steps: [
-              { name: 'Envio', completed: true },
-              { name: 'Revisão', completed: true },
-              { name: 'Assinatura', completed: false },
-            ],
-          },
-          digitalFolder: 'Finanças > Contas a Pagar > 2025',
-          project: 'Orçamento Anual',
-          serviceProvidedBy: 'João Nogueira',
-          paymentDate: '20/06/2025',
-          unit: 'Contabilidade',
-          dueDate: { text: 'Vence em 2 dias', status: 'due_soon' },
-        },
-        {
-          id: '1234567/89012',
-          title: 'Indicadores Diretoria de Negócios',
-          badgeText: 'ID',
-          badgeColor: 'purple',
-          sender: { name: 'Carlos Santos', role: 'Diretor de Negócios' },
-          type: 'Relatório Mensal',
-          flow: {
-            name: 'Geração de Relatório',
-            steps: [
-              { name: 'Coleta de Dados', completed: true },
-              { name: 'Análise', completed: false },
-              { name: 'Publicação', completed: false },
-            ],
-          },
-          digitalFolder: 'Relatórios > Diretoria Negócios > Mensal',
-          dueDate: { text: 'Sem prazo', status: 'none' },
-        },
-      ],
-    }
+    return {}
   },
 }
 </script>
