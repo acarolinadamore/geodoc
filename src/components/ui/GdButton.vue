@@ -1,7 +1,7 @@
 <template>
   <button
     class="gd-button"
-    :class="computedClasses"
+    :class="[computedClasses, customClass]"
     @click="$emit('click')"
     :style="buttonStyle"
   >
@@ -25,12 +25,13 @@ export default {
     textColor: { type: String, default: '' },
     borderColor: { type: String, default: '' },
     height: { type: String, default: '42px' },
-    width: { type: String, default: '180px' },
+    width: { type: String, default: '' },
     variant: {
       type: String,
       default: 'filled',
       validator: val => ['filled', 'outlined'].includes(val),
     },
+    customClass: { type: String, default: '' },
   },
   computed: {
     computedClasses() {
@@ -41,8 +42,7 @@ export default {
       }
     },
     buttonStyle() {
-      return {
-        width: this.width,
+      const style = {
         height: this.height,
         backgroundColor:
           this.variant === 'filled' ? this.bgColor : 'transparent',
@@ -52,6 +52,12 @@ export default {
             ? `1px solid ${this.borderColor || this.textColor}`
             : 'none',
       }
+
+      if (this.width) {
+        style.width = this.width
+      }
+
+      return style
     },
   },
 }
@@ -61,9 +67,19 @@ export default {
 .gd-button {
   @apply inline-flex items-center justify-center rounded-lg font-medium text-sm cursor-pointer;
   padding: 0 12px;
+  width: 180px; /* Largura padrão via CSS */
   transition: transform 0.1s ease, background-color 0.2s ease,
     box-shadow 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Permitir que classes do Tailwind sobrescrevam a largura */
+.gd-button.w-full {
+  width: 100% !important;
+}
+
+.gd-button.w-auto {
+  width: auto !important;
 }
 
 .button-content {
@@ -97,5 +113,11 @@ export default {
 .gd-button:active {
   transform: scale(0.97);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1280px) {
+  .gd-button.xl\:w-auto {
+    width: 180px !important;
+  }
 }
 </style>

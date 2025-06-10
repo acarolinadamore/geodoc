@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-3 text-sm text-left bg-aqua p-4 rounded-lg">
+  <div class="mt-3 text-sm text-left bg-aqua rounded-lg">
     <div class="space-y-1">
       <div class="flex items-center">
         <span

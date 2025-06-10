@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-2 text-left flex flex-col gap-2">
+  <div class="mb-2 text-left flex flex-col gap-1">
     <p class="font-semibold gd-text-black">{{ remetente.nome }}</p>
     <p class="gd-text-gray">{{ remetente.funcao }}</p>
   </div>

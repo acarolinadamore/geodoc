@@ -1,26 +1,17 @@
 <template>
-  <div class="mt-0 md:mt-4 flex items-center justify-between w-full md:w-auto">
-    <div
-      :class="[
-        'card-vencimento',
-        'w-full md:w-auto',
-        dataVencimento.status === 'vencido' ? 'vencido' : '',
-        dataVencimento.status === 'vencendo' ? 'vencendo' : '',
-      ]"
-    >
-      <span v-if="dataVencimento.status === 'vencido'">
-        Vencido faz {{ dataVencimento.days }} {{ dataVencimento.unit }}
-      </span>
-      <span v-else-if="dataVencimento.status === 'vencendo'">
-        Vence em {{ dataVencimento.days }} {{ dataVencimento.unit }}
-      </span>
-    </div>
+  <div class="mt-0 xl:mt-4 flex items-center justify-between w-full xl:w-auto">
+    <GdTagVencimento :data-vencimento="dataVencimento" />
   </div>
 </template>
 
 <script>
+import GdTagVencimento from './GdTagVencimento.vue'
+
 export default {
   name: 'GdCardColunaVencimento',
+  components: {
+    GdTagVencimento,
+  },
   props: {
     dataVencimento: {
       type: Object,
@@ -36,18 +27,6 @@ export default {
 </script>
 
 <style scoped>
-.card-vencimento {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 16px;
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-  min-height: 38px;
-}
-
 /* Mobile: ocupa toda largura */
 @media (max-width: 767px) {
   .card-vencimento {
@@ -59,16 +38,8 @@ export default {
 /* Desktop: tamanho original */
 @media (min-width: 768px) {
   .card-vencimento {
-    min-width: 180px;
-    max-width: max-content;
+    min-width: 100%;
+    max-width: 100%;
   }
-}
-
-.card-vencimento.vencido {
-  background-color: #f05050;
-}
-
-.card-vencimento.vencendo {
-  background-color: #ffd856;
 }
 </style>
