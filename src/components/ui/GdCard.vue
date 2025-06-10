@@ -6,12 +6,9 @@
     ]"
     @click="toggleSelection"
   >
-    <!-- Tag de vencimento no mobile - fixada no topo -->
     <div class="w-full xl:hidden">
       <GdCardColunaVencimento :dataVencimento="dataVencimento" />
     </div>
-
-    <!-- Container das colunas principais -->
     <div class="flex flex-col xl:flex-row w-full p-4 xl:p-6 gap-6 xl:gap-4">
       <!-- Coluna 1 - Remetente -->
       <div
