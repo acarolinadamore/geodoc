@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 bg-gray-100 min-h-screen">
+  <div class="p-4 min-h-screen">
     <div class="space-y-6">
       <GdCard v-for="card in cards" :key="card.id" :cardData="card" />
     </div>

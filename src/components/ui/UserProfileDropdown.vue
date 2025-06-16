@@ -1,52 +1,39 @@
 <template>
-  <div class="relative inline-block text-left">
-    <button
-      @click="toggleDropdown"
-      class="inline-flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none"
-    >
+  <div class="user-profile-dropdown">
+    <button @click="toggleDropdown" class="profile-button">
+      <!-- Imagem OU inicial -->
       <img
+        v-if="computedUserImage"
         :src="computedUserImage"
-        alt="Foto do usuário"
-        class="w-8 h-8 rounded-full object-cover"
+        :alt="userName"
+        class="user-avatar"
       />
-      <span>{{ userName }}</span>
+      <div v-else class="user-avatar-placeholder">
+        {{ userInitial }}
+      </div>
+
+      <span class="user-name">{{ userName }}</span>
       <svg
-        class="w-4 h-4"
+        class="dropdown-icon"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
         viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
       >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
+          stroke-width="2"
           d="M19 9l-7 7-7-7"
         ></path>
       </svg>
     </button>
 
-    <div
-      v-if="dropdownOpen"
-      class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
-    >
-      <div class="py-1">
-        <a
-          href="#"
-          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >Perfil</a
-        >
-        <a
-          href="#"
-          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >Configurações</a
-        >
-        <a
-          href="#"
-          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >Sair</a
-        >
-      </div>
+    <!-- Resto do dropdown continua igual -->
+    <div v-if="dropdownOpen" class="dropdown-menu">
+      <a href="#" class="dropdown-item">Perfil</a>
+      <a href="#" class="dropdown-item">Configurações</a>
+      <hr class="dropdown-divider" />
+      <a href="#" class="dropdown-item">Sair</a>
     </div>
   </div>
 </template>
@@ -71,7 +58,10 @@ export default {
   },
   computed: {
     computedUserImage() {
-      return this.userImage || require('@/assets/images/perfil.png')
+      return this.userImage
+    },
+    userInitial() {
+      return this.userName ? this.userName.charAt(0).toUpperCase() : '?'
     },
   },
   methods: {
@@ -82,19 +72,87 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.user-profile-dropdown {
+  position: relative;
+}
 
-<!-- Exemplo de uso 
-    <UserProfileDropdown
-      :userName="user.name"
-      :userImage="user.image"
-    />
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
 
-    data() {
-    return {
-      user: {
-        name: 'Ana Souza',
-        image: 'https://example.com/avatar.jpg',
-      },
-    }
--->
+.profile-button:hover {
+  background-color: #f3f4f6;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  color: #6b7280;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
+  z-index: 50;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #ebf4fc;
+}
+
+.dropdown-divider {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+.user-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #1a82d9;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+</style>

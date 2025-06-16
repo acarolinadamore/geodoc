@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import notificationsData from '@/assets/mock-data/notifications.json'
+import notificationsData from '@/mocks/data/notifications.json'
 import notificationIcon from '@/assets/icons/notification.svg'
 import notificationIconWhite from '@/assets/icons/notification-branco.svg'
 

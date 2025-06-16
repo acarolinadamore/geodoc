@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import users from '@/assets/mock-data/users.json'
+import users from '@/mocks/data/users.json'
 import UserProfileDropdown from '@/components/ui/UserProfileDropdown.vue'
 
 export default {

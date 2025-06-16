@@ -1,15 +1,17 @@
 <template>
-  <header class="gd-header bg-white border-b border-slate-200">
-    <div class="left-section px-6">
-      <GdDataAtual v-if="showDate" />
+  <header class="gd-header">
+    <div class="left-section"></div>
+
+    <div class="middle-section">
+      <gd-data-atual v-if="showDate" />
     </div>
-    <div class="right-section flex">
-      <div class="border-l border-slate-200 h-full px-2 flex items-center">
-        <GdNotification :showNotification="showNotification" />
-      </div>
-      <div class="border-l border-slate-200 h-full px-2 flex items-center">
-        <UserProfileDropdown :userName="userName" :userImage="userImage" />
-      </div>
+
+    <div class="right-section">
+      <gd-notification v-if="showNotification" />
+      <user-profile-dropdown
+        :user-name="currentUser.name"
+        :user-image="currentUser.image"
+      />
     </div>
   </header>
 </template>
@@ -18,6 +20,7 @@
 import GdDataAtual from './GdDataAtual.vue'
 import UserProfileDropdown from './UserProfileDropdown.vue'
 import GdNotification from '@/components/ui/GdNotification.vue'
+import { UserService } from '@/services/index.js'
 
 export default {
   name: 'GdHeader',
@@ -35,17 +38,34 @@ export default {
       type: Boolean,
       default: true,
     },
-    userName: {
-      type: String,
-      required: true,
-    },
-    userImage: {
-      type: String,
-      required: true,
-    },
   },
   data() {
-    return {}
+    return {
+      users: [],
+      selectedUser: null,
+      loading: false,
+    }
+  },
+  async mounted() {
+    await this.loadUsers()
+  },
+  computed: {
+    currentUser() {
+      return this.selectedUser || { name: '', image: null }
+    },
+  },
+  methods: {
+    async loadUsers() {
+      try {
+        this.loading = true
+        this.users = await UserService.getUsers()
+        this.selectedUser = this.users[0] || null
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error)
+      } finally {
+        this.loading = false
+      }
+    },
   },
 }
 </script>
@@ -57,11 +77,30 @@ export default {
   align-items: center;
   width: 100%;
   height: 70px;
+  padding: 0 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-sizing: border-box;
 }
-.left-section,
-.middle-section,
+
+.left-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.middle-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
 .right-section {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex: 1;
 }
 </style>

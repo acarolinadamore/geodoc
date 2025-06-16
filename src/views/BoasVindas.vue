@@ -1,6 +1,16 @@
 <template>
-  <div class="welcome-container">
-    <div class="card">
+  <div class="welcome-container flex flex-col">
+    <div>
+      <nav>
+        <router-link to="/">Boas Vindas</router-link> |
+        <router-link to="/exemplo">Biblioteca de Componentes</router-link> |
+        <router-link to="/documento-sucesso">Documento Sucesso</router-link> |
+        <router-link to="/inicio">Inicio</router-link> |
+        <router-link to="/caixa-entrada">Caixa de Entrada</router-link> |
+        <router-link to="/enviados">Enviados</router-link> |
+      </nav>
+    </div>
+    <div class="card mt-5">
       <h1>👋 Bem-vindo ao Front-End do Projeto GeoDoc</h1>
       <p>
         Este é Front-End do <strong>GeoDoc</strong>, uma aplicação moderna

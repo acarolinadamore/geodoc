@@ -63,7 +63,7 @@ import GdCardColunaDocumento from '@/components/ui/GdCardColunaDocumento.vue'
 import GdCardColunaAncora from '@/components/ui/GdCardColunaAncora.vue'
 import GdCardColunaVencimento from '@/components/ui/GdCardColunaVencimento.vue'
 import GdButton from '@/components/ui/GdButton.vue'
-import cardData from '@/assets/mock-data/card-dados.json'
+import cardData from '@/mocks/data/cards.json'
 
 export default {
   name: 'GdCard',

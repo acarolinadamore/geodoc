@@ -32,7 +32,11 @@
     <!-- Conteúdo da aba selecionada -->
     <main class="flex-grow overflow-auto p-0 bg-white w-full">
       <!-- removido max-w-5xl e mx-auto -->
-      <component :is="activeTab.component" v-bind="activeTab.props || {}" />
+      <component
+        :is="activeTab.component"
+        v-bind="activeTab.props || {}"
+        :key="activeTabId"
+      />
     </main>
   </div>
 </template>
@@ -41,7 +45,6 @@
 import UserProfileDropdown from '@/components/ui/UserProfileDropdown.vue'
 import GdHeader from '@/components/ui/GdHeader.vue'
 import StatusCard from '@/components/ui/StatusCard.vue'
-import userProfileImage from '@/assets/images/perfil.png'
 import GdButton from '@/components/ui/GdButton.vue'
 import GdHeadingExemplo from '@/views/exemplos/GdHeadingExemplo.vue'
 import GdHeaderExemplo from '@/views/exemplos/GdHeaderExemplo.vue'
@@ -116,15 +119,6 @@ export default {
         { id: 'filterbar', label: 'FilterBar', component: GdFilterBar },
         { id: 'cardlist', label: 'CardList', component: GdCardList },
         { id: 'card', label: 'Card', component: GdCardExemplo },
-        {
-          id: 'dropdown-user',
-          label: 'User Profile Dropdown',
-          component: UserProfileDropdown,
-          props: {
-            userImage: userProfileImage,
-            userName: 'Ana Carolina',
-          },
-        },
         {
           id: 'status-card',
           label: 'Status Card',
