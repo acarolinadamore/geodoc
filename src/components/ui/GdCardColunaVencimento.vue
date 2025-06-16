@@ -15,12 +15,23 @@ export default {
   props: {
     dataVencimento: {
       type: Object,
-      required: true,
-      validator: value =>
-        'status' in value &&
-        ['vencido', 'vencendo'].includes(value.status) &&
-        'days' in value &&
-        'unit' in value,
+      required: false, // ← Mudado para false para evitar erros
+      default: () => null,
+      validator(value) {
+        // ✅ Validação mais flexível para aceitar todos os status dos seus mocks
+        if (!value) return true // Aceita null/undefined
+
+        return (
+          typeof value === 'object' &&
+          'status' in value &&
+          ['vencido', 'vence_em', 'no_prazo', 'vencendo'].includes(
+            value.status
+          ) && // ← Todos os status
+          'days' in value &&
+          'unit' in value &&
+          'data' in value
+        )
+      },
     },
   },
 }

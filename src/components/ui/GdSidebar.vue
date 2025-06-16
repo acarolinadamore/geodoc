@@ -32,12 +32,18 @@
 
       <!-- Menu -->
       <div class="menu">
-        <div v-for="section in menuConfig" :key="section.group" class="section">
+        <div
+          v-for="(section, sectionIndex) in menuConfig"
+          :key="`section-${section.group}-${sectionIndex}`"
+          class="section"
+        >
           <h2 class="section-title" v-if="isExpanded">{{ section.group }}</h2>
           <ul>
             <li
-              v-for="item in section.items"
-              :key="item.route"
+              v-for="(item, itemIndex) in section.items"
+              :key="`item-${section.group}-${
+                item.route || item.name
+              }-${itemIndex}`"
               @click="navigate(item.route)"
             >
               <img
@@ -97,7 +103,9 @@ export default {
       }
     },
     navigate(route) {
-      this.$router.push(route)
+      if (route) {
+        this.$router.push(route)
+      }
     },
     getIconPath(iconName) {
       try {
@@ -111,6 +119,7 @@ export default {
 }
 </script>
 
+<!-- Mesmo CSS anterior -->
 <style scoped>
 .sidebar {
   width: 280px;

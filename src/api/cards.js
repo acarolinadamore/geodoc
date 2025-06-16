@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// Quando o backend estiver pronto, vai usar isso aqui
+// Quando o backend estiver pronto
 export function getCards() {
   return axios.get('/api/cards').then(response => response.data)
 }

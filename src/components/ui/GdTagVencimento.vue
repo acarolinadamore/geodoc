@@ -3,14 +3,18 @@
     :class="[
       'card-vencimento',
       dataVencimento.status === 'vencido' ? 'vencido' : '',
-      dataVencimento.status === 'vencendo' ? 'vencendo' : '',
+      dataVencimento.status === 'vence_em' ? 'vencendo' : '',
     ]"
   >
     <span v-if="dataVencimento.status === 'vencido'">
       Vencido faz {{ dataVencimento.days }} {{ dataVencimento.unit }}
     </span>
-    <span v-else-if="dataVencimento.status === 'vencendo'">
+    <span v-else-if="dataVencimento.status === 'vence_em'">
       Vence em {{ dataVencimento.days }} {{ dataVencimento.unit }}
+    </span>
+    <span v-else>
+      <!-- Fallback para status não mapeados -->
+      Status: {{ dataVencimento.status }}
     </span>
   </div>
 </template>
@@ -21,12 +25,20 @@ export default {
   props: {
     dataVencimento: {
       type: Object,
-      required: true,
-      validator: value =>
-        'status' in value &&
-        ['vencido', 'vencendo'].includes(value.status) &&
-        'days' in value &&
-        'unit' in value,
+      required: false,
+      default: () => null,
+      validator(value) {
+        if (!value) return true
+
+        return (
+          typeof value === 'object' &&
+          'status' in value &&
+          ['vencido', 'vence_em'].includes(value.status) && // ✅ Apenas estes 2 status
+          'days' in value &&
+          'unit' in value &&
+          'data' in value
+        )
+      },
     },
   },
 }
@@ -52,5 +64,6 @@ export default {
 
 .card-vencimento.vencendo {
   background-color: #ffd856;
+  color: #8b5a00; /* Cor escura para contraste no amarelo */
 }
 </style>

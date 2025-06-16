@@ -1,10 +1,10 @@
 <template>
   <header class="gd-header">
-    <div class="left-section"></div>
-
-    <div class="middle-section">
+    <div class="left-section">
       <gd-data-atual v-if="showDate" />
     </div>
+
+    <div class="middle-section"></div>
 
     <div class="right-section">
       <gd-notification v-if="showNotification" />
@@ -20,7 +20,7 @@
 import GdDataAtual from './GdDataAtual.vue'
 import UserProfileDropdown from './UserProfileDropdown.vue'
 import GdNotification from '@/components/ui/GdNotification.vue'
-import { UserService } from '@/services/index.js'
+import { userService } from '@/services/index.js'
 
 export default {
   name: 'GdHeader',
@@ -32,7 +32,7 @@ export default {
   props: {
     showDate: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     showNotification: {
       type: Boolean,
@@ -58,7 +58,7 @@ export default {
     async loadUsers() {
       try {
         this.loading = true
-        this.users = await UserService.getUsers()
+        this.users = await userService.getUsers()
         this.selectedUser = this.users[0] || null
       } catch (error) {
         console.error('Erro ao carregar usuários:', error)

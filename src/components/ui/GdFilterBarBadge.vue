@@ -46,45 +46,44 @@
       </button>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click="closeModal">
-        <div class="modal-container modal-small" @click.stop>
-          <div class="modal-header">
-            <h3 class="modal-title">Adicionar Marcador</h3>
-            <button class="modal-close" @click="closeModal">×</button>
-          </div>
+    <!-- ✅ SUBSTITUÍDO: Teleport por div normal -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-container modal-small" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">Adicionar Marcador</h3>
+          <button class="modal-close" @click="closeModal">×</button>
+        </div>
 
-          <div class="modal-body">
-            <div class="form-group">
-              <input
-                id="markerName"
-                v-model="newMarkerName"
-                type="text"
-                class="form-input"
-                placeholder="Nome do marcador"
-                @keyup.enter="addMarker"
-                ref="markerInput"
-              />
-            </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <input
+              id="markerName"
+              v-model="newMarkerName"
+              type="text"
+              class="form-input"
+              placeholder="Nome do marcador"
+              @keyup.enter="addMarker"
+              ref="markerInput"
+            />
           </div>
+        </div>
 
-          <div class="modal-footer">
-            <div class="modal-actions">
-              <button class="btn btn-secondary" @click="closeModal">
-                Cancelar
-              </button>
-              <button
-                class="btn btn-primary"
-                @click="addMarker"
-                :disabled="!newMarkerName.trim()"
-              >
-                Adicionar
-              </button>
-            </div>
+        <div class="modal-footer">
+          <div class="modal-actions">
+            <button class="btn btn-secondary" @click="closeModal">
+              Cancelar
+            </button>
+            <button
+              class="btn btn-primary"
+              @click="addMarker"
+              :disabled="!newMarkerName.trim()"
+            >
+              Adicionar
+            </button>
           </div>
         </div>
       </div>
-    </Teleport>
+    </div>
   </div>
 </template>
 
@@ -154,7 +153,8 @@ export default {
       }
     },
   },
-  beforeUnmount() {
+  // ✅ CORRIGIDO: Vue 2 usa beforeDestroy, não beforeUnmount
+  beforeDestroy() {
     document.body.style.overflow = ''
   },
   methods: {

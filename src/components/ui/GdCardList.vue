@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 min-h-screen">
     <div class="space-y-6">
-      <GdCard v-for="card in cards" :key="card.id" :cardData="card" />
+      <GdCard v-for="card in cards" :key="card.id" :card="card" />
     </div>
   </div>
 </template>
@@ -23,5 +23,3 @@ export default {
   },
 }
 </script>
-
-<style scoped></style>

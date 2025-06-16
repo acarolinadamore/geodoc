@@ -7,7 +7,7 @@
     @click="toggleSelection"
   >
     <div class="w-full xl:hidden">
-      <GdCardColunaVencimento :dataVencimento="dataVencimento" />
+      <GdCardColunaVencimento :dataVencimento="card.vencimento" />
     </div>
     <div class="flex flex-col xl:flex-row w-full p-4 xl:p-6 gap-6 xl:gap-4">
       <!-- Coluna 1 - Remetente -->
@@ -15,8 +15,8 @@
         class="flex flex-1 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
       >
         <GdCardColunaRemetente
-          :remetente="remetenteData"
-          :type="cardData.tipo"
+          :remetente="card.remetente"
+          :type="card.documento?.tipo"
         />
       </div>
 
@@ -24,21 +24,21 @@
       <div
         class="flex w-full xl:w-1/3 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
       >
-        <GdCardColunaDocumento :documento="cardData" />
+        <GdCardColunaDocumento :documento="card.documento" />
       </div>
 
       <!-- Coluna 3 - Âncoras -->
       <div
         class="flex flex-1 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
       >
-        <GdCardColunaAncora :projeto="ancoraData" />
+        <GdCardColunaAncora :projeto="card.ancora" />
       </div>
 
       <!-- Coluna 4 - Prazo (Vencimento) - Apenas no desktop -->
       <div
         class="hidden xl:flex flex-1 flex-col justify-center items-center min-h-[120px]"
       >
-        <GdCardColunaVencimento :dataVencimento="dataVencimento" />
+        <GdCardColunaVencimento :dataVencimento="card.vencimento" />
       </div>
 
       <!-- Coluna 5 - Ações -->
@@ -46,7 +46,7 @@
         class="flex flex-1 flex-col gap-3 xl:gap-2 justify-start xl:justify-center items-stretch xl:items-center pt-4 xl:pt-0 border-t xl:border-t-0 border-gray-200 min-h-0 xl:min-h-[120px]"
       >
         <GdButton
-          v-for="acao in acoes"
+          v-for="acao in card.acoes"
           :key="acao"
           class="w-full xl:w-auto xl:min-w-[120px]"
         >
@@ -63,7 +63,6 @@ import GdCardColunaDocumento from '@/components/ui/GdCardColunaDocumento.vue'
 import GdCardColunaAncora from '@/components/ui/GdCardColunaAncora.vue'
 import GdCardColunaVencimento from '@/components/ui/GdCardColunaVencimento.vue'
 import GdButton from '@/components/ui/GdButton.vue'
-import cardData from '@/mocks/data/cards.json'
 
 export default {
   name: 'GdCard',
@@ -74,13 +73,15 @@ export default {
     GdCardColunaVencimento,
     GdButton,
   },
+  props: {
+    card: {
+      type: Object,
+      required: true,
+      default: () => ({}),
+    },
+  },
   data() {
     return {
-      cardData: cardData.documento,
-      remetenteData: cardData.remetente,
-      ancoraData: cardData.ancora,
-      dataVencimento: cardData.vencimento,
-      acoes: cardData.acoes,
       isSelected: false,
     }
   },
@@ -91,20 +92,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-/* Melhorias adicionais para leitura */
-@media (max-width: 1279px) {
-  /* Mobile: espaçamento otimizado para leitura vertical */
-  .flex-col > div:not(:last-child) {
-    margin-bottom: 0.5rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  /* Desktop: alinhamento centralizado para harmonia visual */
-  .flex-row > div {
-    min-height: 80px;
-  }
-}
-</style>
