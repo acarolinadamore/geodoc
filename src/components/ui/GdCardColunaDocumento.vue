@@ -14,8 +14,8 @@
         <span class="gd-text-black ml-3">{{ documento.data }}</span>
       </div>
       <div class="flex">
-        <span class="gd-text-gray w-24 text-right flex-shrink-0">Tipo:</span>
-        <span class="gd-text-black ml-3">{{ documento.tipo }}</span>
+        <span class="gd-text-gray w-24 text-right flex-shrink-0">Modelo:</span>
+        <span class="gd-text-black ml-3">{{ documento.modelo }}</span>
       </div>
       <div class="flex">
         <span class="gd-text-gray w-24 text-right flex-shrink-0">Fluxo:</span>

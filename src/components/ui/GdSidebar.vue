@@ -1,77 +1,82 @@
 <template>
-  <nav
-    class="sidebar"
-    :class="{ collapsed: !isExpanded }"
-    @click="handleSidebarClick"
-  >
-    <div class="sidebar-container">
-      <!-- Header -->
-      <div class="header">
-        <div class="top-bar">
-          <div class="logo" :class="{ center: !isExpanded }">
-            <img
-              :src="isExpanded ? logoPath : logoMiniPath"
-              alt="GeoDoc Logo"
-              class="logo-image"
-            />
-          </div>
-          <button
-            v-if="isExpanded"
-            class="toggle-btn"
-            @click.stop="toggleSidebar"
-          >
-            <i class="fas fa-chevron-left"></i>
-          </button>
-        </div>
-        <button class="new-doc-btn" :class="{ compact: !isExpanded }">
-          <i class="lni lni-pencil"></i>
-          <span v-if="isExpanded">Novo Documento</span>
-        </button>
-        <div class="divider special"></div>
-      </div>
-
-      <!-- Menu -->
-      <div class="menu">
-        <div
-          v-for="(section, sectionIndex) in menuConfig"
-          :key="`section-${section.group}-${sectionIndex}`"
-          class="section"
-        >
-          <h2 class="section-title" v-if="isExpanded">{{ section.group }}</h2>
-          <ul>
-            <li
-              v-for="(item, itemIndex) in section.items"
-              :key="`item-${section.group}-${
-                item.route || item.name
-              }-${itemIndex}`"
-              @click="navigate(item.route)"
-            >
-              <img
-                :src="getIconPath(item.icon)"
-                :alt="item.name"
-                class="icon"
-              />
-              <span v-if="isExpanded">{{ item.name }}</span>
-              <div v-if="isExpanded && item.notification" class="notification">
-                {{ item.notification }}
+  <div class="container-sidebar">
+    <!-- Transição para a sidebar principal -->
+    <transition name="deslizar-sidebar" mode="out-in">
+      <nav v-if="isExpanded" class="barra-lateral" @click="handleSidebarClick">
+        <div class="container-conteudo">
+          <!-- Cabeçalho -->
+          <div class="cabecalho">
+            <div class="barra-superior">
+              <div class="logo">
+                <img :src="logoPath" alt="GeoDoc Logo" class="imagem-logo" />
               </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+              <button class="botao-colapsar" @click.stop="toggleSidebar">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+            </div>
+            <button class="botao-novo-documento">
+              <i class="lni lni-pencil"></i>
+              <span>Novo Documento</span>
+            </button>
+            <div class="divisor especial"></div>
+          </div>
 
-      <!-- Rodapé -->
-      <div class="footer" v-if="isExpanded">
-        <div class="footer-logo">
-          <img
-            :src="grupoImagetechPath"
-            alt="Grupo Imagetech"
-            class="grupo-image"
-          />
+          <!-- Menu -->
+          <div class="menu">
+            <div
+              v-for="(section, sectionIndex) in menuConfig"
+              :key="`section-${section.group}-${sectionIndex}`"
+              class="secao"
+            >
+              <h2 class="titulo-secao">{{ section.group }}</h2>
+              <ul>
+                <li
+                  v-for="(item, itemIndex) in section.items"
+                  :key="`item-${section.group}-${
+                    item.route || item.name
+                  }-${itemIndex}`"
+                  @click="navigate(item.route)"
+                  class="item-menu"
+                >
+                  <img
+                    :src="getIconPath(item.icon)"
+                    :alt="item.name"
+                    class="icone"
+                  />
+                  <span class="texto-item">{{ item.name }}</span>
+                  <div v-if="item.notification" class="notificacao">
+                    {{ item.notification }}
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Rodapé -->
+          <div class="rodape">
+            <div class="logo-rodape">
+              <img
+                :src="grupoImagetechPath"
+                alt="Grupo Imagetech"
+                class="imagem-grupo"
+              />
+            </div>
+          </div>
         </div>
+      </nav>
+    </transition>
+
+    <!-- Transição para o logo mini -->
+    <transition name="aparecer-logo" mode="out-in">
+      <div v-if="!isExpanded" class="logo-mini" @click="expandSidebar">
+        <img
+          :src="logoMiniPath"
+          alt="GeoDoc Logo Mini"
+          class="imagem-logo-mini"
+        />
       </div>
-    </div>
-  </nav>
+    </transition>
+  </div>
 </template>
 
 <script>
@@ -91,16 +96,16 @@ export default {
   methods: {
     toggleSidebar() {
       this.isExpanded = !this.isExpanded
+      this.$emit('sidebar-toggle', this.isExpanded)
     },
     expandSidebar() {
       if (!this.isExpanded) {
         this.isExpanded = true
+        this.$emit('sidebar-toggle', this.isExpanded)
       }
     },
     handleSidebarClick() {
-      if (!this.isExpanded) {
-        this.expandSidebar()
-      }
+      // Removido para evitar expansão acidental
     },
     navigate(route) {
       if (route) {
@@ -119,129 +124,113 @@ export default {
 }
 </script>
 
-<!-- Mesmo CSS anterior -->
 <style scoped>
-.sidebar {
-  width: 280px;
+.container-sidebar {
+  position: relative;
+}
+
+.barra-lateral {
+  width: 210px;
   height: 100vh;
   background: linear-gradient(180deg, #004b9d 0%, #0078c8 100%);
   color: #d7dadd;
   font-family: 'Inter', sans-serif;
-  padding: 20px 0;
+  padding: 16px 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
   overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
-.sidebar.collapsed {
-  width: 60px;
-}
-
-.sidebar-container {
+.container-conteudo {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
-.header {
-  margin-bottom: 10px;
-  padding: 0 10px;
+.cabecalho {
+  margin-bottom: 8px;
+  padding: 0 8px;
 }
 
-.top-bar {
+.barra-superior {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.logo.center {
+.logo {
   display: flex;
-  justify-content: center;
-  width: 100%;
+  align-items: center;
+  text-align: left;
 }
 
-.logo-image {
+.imagem-logo {
   height: 30px;
   width: auto;
 }
 
-.toggle-btn {
+.botao-colapsar {
   background: transparent;
   border: none;
   color: #fff;
   font-size: 12px;
   cursor: pointer;
-  padding: 0;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  margin-left: 4px;
+  transform: rotate(0deg);
 }
 
-.divider.special {
+.botao-colapsar:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(-5deg) scale(1.1);
+}
+
+.divisor.especial {
   background: rgba(146, 218, 255, 0.2);
-  margin-top: 24px;
+  margin-top: 16px;
+  height: 1px;
 }
 
-.new-doc-btn {
+.botao-novo-documento {
   background: #0470ae;
   color: white;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0 20px;
+  transition: all 0.3s ease;
+  padding: 0 12px;
   height: 45px;
-  margin: 24px 0 0;
+  margin: 16px 0 0;
   width: 100%;
+  text-align: left;
 }
 
-.new-doc-btn.compact {
-  width: 45px;
-  height: 45px;
-  padding: 0;
-  margin: 24px auto 0;
-}
-
-.new-doc-btn.compact i {
-  font-size: 16px;
-  margin: 0;
-}
-
-.sidebar.collapsed ul {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar.collapsed li {
-  justify-content: center;
-  padding: 10px 0;
-  width: 100%;
-}
-
-.sidebar.collapsed li i {
-  margin: 0 auto;
-  text-align: center;
-}
-
-.sidebar.collapsed li span,
-.sidebar.collapsed li .arrow,
-.sidebar.collapsed li .notification {
-  display: none;
+.botao-novo-documento:hover {
+  background: #035a8a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .menu {
   flex-grow: 1;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 0 10px;
+  padding: 0 8px;
   scrollbar-width: none;
 }
 
@@ -249,27 +238,28 @@ export default {
   display: none;
 }
 
-.section {
-  margin-bottom: 25px;
+.secao {
+  margin-bottom: 20px;
 }
 
-.section-title {
+.titulo-secao {
   display: flex;
   font-size: 12px;
   font-weight: 300;
   line-height: 24px;
   text-transform: uppercase;
   color: #d7dadd;
-  margin-bottom: 10px;
-  padding-left: 10px;
+  margin-bottom: 8px;
+  padding-left: 8px;
   letter-spacing: 0.5px;
   font-family: 'Inter', sans-serif;
+  text-align: left;
 }
 
-.divider {
+.divisor {
   height: 1px;
   background: rgba(215, 218, 221, 0.2);
-  margin: 15px 0;
+  margin: 12px 0;
 }
 
 ul {
@@ -278,73 +268,48 @@ ul {
   margin: 0;
 }
 
-.icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 12px;
-  vertical-align: middle;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.icon-warning {
-  width: 18px;
-  height: 18px;
-  margin-left: -2px;
-  margin-right: 12px;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
-
-li {
+.item-menu {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 10px 12px;
-  margin-bottom: 4px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   font-size: 14px;
   line-height: 24px;
+  gap: 8px;
 }
 
-.sidebar.collapsed li {
-  justify-content: center;
-  padding-left: 0;
-}
-
-li:hover {
+.item-menu:hover {
   background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+  padding-left: 14px;
 }
 
-li span {
+.icone {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.item-menu:hover .icone {
+  transform: scale(1.1);
+}
+
+.texto-item {
   display: inline-block;
   line-height: 1;
-  position: relative;
-  top: 1px;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.arrow {
-  margin-left: auto;
-  font-size: 14px;
-  color: rgba(215, 218, 221, 0.5);
-}
-
-.lni-chevron-left {
-  font-size: 18px;
-}
-
-.highlight {
-  color: #ffc107;
-  font-weight: 700;
-}
-
-.highlight i {
-  color: #ffc107;
-}
-
-.notification {
+.notificacao {
   background-color: #ffc107;
   color: #004b9d;
   width: 20px;
@@ -355,56 +320,128 @@ li span {
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
-  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
-.footer {
+.item-menu:hover .notificacao {
+  transform: scale(1.1);
+}
+
+.rodape {
   margin-top: auto;
-  text-align: center;
+  text-align: left;
   font-size: 12px;
   color: rgba(215, 218, 221, 0.7);
-  padding: 20px 10px 0;
+  padding: 16px 8px 0;
 }
 
-.footer-logo {
+.logo-rodape {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 5px;
 }
 
-.sidebar.collapsed .footer {
-  display: none;
+.imagem-grupo {
+  max-width: 100%;
+  height: auto;
+  transition: opacity 0.3s ease;
 }
 
-.sidebar.collapsed li {
-  justify-content: center;
-  padding-left: 0;
+.imagem-grupo:hover {
+  opacity: 0.8;
 }
 
-.sidebar.collapsed li i {
-  margin: 0;
-}
-
-.sidebar.collapsed li:hover::after {
-  content: attr(title);
-  position: absolute;
-  left: 70px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.sidebar.collapsed .header {
+/* Logo mini quando sidebar está colapsada */
+.logo-mini {
+  position: fixed;
+  top: 16px;
+  left: 12px;
+  z-index: 1001;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(180deg, #004b9d 0%, #0078c8 100%);
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 0;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.sidebar.collapsed .top-bar {
-  justify-content: center;
+.logo-mini:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.imagem-logo-mini {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.logo-mini:hover .imagem-logo-mini {
+  transform: scale(1.1);
+}
+
+/* Transições da Sidebar */
+.deslizar-sidebar-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.deslizar-sidebar-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.deslizar-sidebar-enter {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.deslizar-sidebar-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* Transições do Logo Mini */
+.aparecer-logo-enter-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s; /* Aparece depois que a sidebar sai */
+}
+
+.aparecer-logo-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aparecer-logo-enter {
+  transform: scale(0) rotate(-180deg);
+  opacity: 0;
+}
+
+.aparecer-logo-leave-to {
+  transform: scale(0) rotate(180deg);
+  opacity: 0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .barra-lateral {
+    width: 100%;
+  }
+
+  .logo-mini {
+    top: 8px;
+    left: 8px;
+  }
+}
+
+/* Para textos longos que podem quebrar */
+@media (max-width: 250px) {
+  .texto-item {
+    white-space: normal;
+    text-align: left;
+  }
 }
 </style>

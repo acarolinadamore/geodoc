@@ -1,16 +1,16 @@
 <template>
   <div class="relative">
     <button
-      class="flex items-center px-4 py-2 bg-white border rounded cursor-pointer text-gray-700 hover:bg-gray-50"
+      class="flex items-center px-3 py-2 bg-white border rounded cursor-pointer text-gray-700 hover:bg-gray-50"
       @click="open = !open"
     >
       <input
         type="checkbox"
         :checked="checkedAll"
-        @change="$emit('toggle-all')"
-        class="form-checkbox h-4 w-4 text-blue-600 rounded mr-2"
+        @change="handleCheckboxChange"
+        @click.stop
+        class="form-checkbox h-4 w-4 text-blue-600 rounded"
       />
-      <span>Selecionar todos</span>
       <svg
         class="w-4 h-4 ml-2"
         fill="none"
@@ -47,23 +47,21 @@
 export default {
   props: {
     checkedAll: Boolean,
-    onCheckAll: {
-      type: Function,
-      default: () => {},
+    actions: {
+      type: Array,
+      default: () => [],
     },
   },
   data() {
     return {
       open: false,
-      actions: [
-        { label: 'Atribuir selecionados', value: 'atribuir' },
-        { label: 'Aprovar selecionados', value: 'aprovar' },
-        { label: 'Agrupar selecionados', value: 'agrupar' },
-        // Adicione outras ações aqui
-      ],
     }
   },
   methods: {
+    handleCheckboxChange() {
+      this.$emit('toggle-all')
+    },
+
     handleAction(val) {
       this.$emit('action', val)
       this.open = false

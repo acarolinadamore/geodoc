@@ -1,125 +1,118 @@
 <template>
-  <div class="flex min-h-screen">
-    <GdSidebar class="flex-shrink-0" />
-    <div class="flex-1 flex flex-col">
-      <GdHeader />
-      <div class="flex-1 p-6 font-sans antialiased">
-        <h1 class="title mb-5">Caixa de Entrada</h1>
+  <layout-sidebar-header
+    :show-header-date="false"
+    :show-header-notification="true"
+  >
+    <div class="caixa-entrada-container">
+      <h1 class="titulo-pagina">Caixa de Entrada</h1>
 
-        <GdFilterBar class="mb-1" />
-        <GdFilterBarBadge
-          class="mb-4"
-          :initial-tabs="filterTabs"
-          @filter-change="handleFilterChange"
-          @marker-added="handleMarkerAdded"
-        />
+      <GdFilterBar class="mb-1" />
+      <GdFilterBarBadge
+        class="mb-4"
+        :initial-tabs="filterTabs"
+        @filter-change="handleFilterChange"
+        @marker-added="handleMarkerAdded"
+      />
 
-        <div class="controls-container mb-6 mt-8">
-          <!-- Grupo 1: Dropdowns -->
-          <div class="dropdowns-group">
-            <GdCheckboxDropdown />
-            <GdEnviarParaDropdown />
-          </div>
-
-          <!-- Grupo 2: Botões -->
-          <div class="buttons-group">
-            <GdButton
-              label="Atribuir a mim"
-              variant="outlined"
-              border-color="#37c989"
-              text-color="#37c989"
-              @click="handleAtribuirMim"
-            />
-            <GdButton
-              label="Aprovar"
-              icon="fa-check"
-              variant="filled"
-              bg-color="#37c989"
-              text-color="#ffffff"
-              @click="handleAprovar"
-            />
-            <GdButton
-              label="Agrupar"
-              variant="filled"
-              bg-color="#1a82d9"
-              text-color="#ffffff"
-              @click="handleAgrupar"
-            />
-          </div>
-
-          <!-- Grupo 3: Search e Date Picker -->
-          <div class="search-group">
-            <GdSearchBar
-              v-model="searchTerm"
-              @search="handleSearch"
-              @clear="handleClearSearch"
-            />
-            <GdDatePicker
-              v-model="dateRange"
-              :placeholder="'Selecionar período'"
-              @change="handleDateChange"
-            />
-          </div>
+      <div class="container-controles">
+        <!-- Grupo 1: Dropdowns -->
+        <div class="grupo-dropdowns">
+          <GdCheckboxDropdown />
+          <GdEnviarParaDropdown />
         </div>
 
-        <!-- Indicador de filtros ativos -->
-        <div v-if="hasActiveFilters" class="active-filters mb-4">
-          <div class="filter-indicators">
-            <span v-if="searchTerm" class="filter-badge">
-              🔍 "{{ searchTerm }}"
-              <button @click="clearSearch" class="clear-filter">×</button>
-            </span>
-            <span
-              v-if="dateRange && dateRange.length === 2"
-              class="filter-badge"
-            >
-              📅 {{ formatDateRange(dateRange) }}
-              <button @click="clearDateFilter" class="clear-filter">×</button>
-            </span>
-          </div>
-          <button @click="clearAllFilters" class="clear-all-filters">
-            Limpar todos os filtros
-          </button>
+        <!-- Grupo 2: Botões -->
+        <div class="grupo-botoes">
+          <GdButton
+            label="Atribuir a mim"
+            variant="outlined"
+            border-color="#37c989"
+            text-color="#37c989"
+            @click="handleAtribuirMim"
+          />
+          <GdButton
+            label="Aprovar"
+            icon="fa-check"
+            variant="filled"
+            bg-color="#37c989"
+            text-color="#ffffff"
+            @click="handleAprovar"
+          />
+          <GdButton
+            label="Agrupar"
+            variant="filled"
+            bg-color="#1a82d9"
+            text-color="#ffffff"
+            @click="handleAgrupar"
+          />
         </div>
 
-        <div
-          class="card-heading flex items-center justify-between p-3 mb-4 text-sm text-gray-400"
-        >
-          <div class="flex-1"><span>Remetente</span></div>
-          <div class="flex-1"><span>Documento</span></div>
-          <div class="flex-1"><span>Âncora</span></div>
-          <div class="flex-1"><span>Ações</span></div>
+        <!-- Grupo 3: Search e Date Picker -->
+        <div class="grupo-busca">
+          <GdSearchBar
+            v-model="searchTerm"
+            @search="handleSearch"
+            @clear="handleClearSearch"
+          />
+          <GdDatePicker
+            v-model="dateRange"
+            :placeholder="'Selecionar período'"
+            @change="handleDateChange"
+          />
         </div>
-
-        <!-- Loading ou Cards -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Carregando documentos...</p>
-        </div>
-        <div
-          v-else-if="filteredCards.length === 0 && allCards.length === 0"
-          class="empty-state"
-        >
-          <p>Nenhum documento encontrado.</p>
-        </div>
-        <div v-else-if="filteredCards.length === 0" class="empty-state">
-          <p>Nenhum documento encontrado com os filtros aplicados.</p>
-          <button @click="clearAllFilters" class="clear-filters-btn">
-            Limpar filtros
-          </button>
-        </div>
-        <GdCardList v-else :cards="filteredCards" />
       </div>
+
+      <!-- Indicador de filtros ativos -->
+      <div v-if="hasActiveFilters" class="filtros-ativos">
+        <div class="indicadores-filtro">
+          <span v-if="searchTerm" class="badge-filtro">
+            🔍 "{{ searchTerm }}"
+            <button @click="clearSearch" class="limpar-filtro">×</button>
+          </span>
+          <span v-if="dateRange && dateRange.length === 2" class="badge-filtro">
+            📅 {{ formatDateRange(dateRange) }}
+            <button @click="clearDateFilter" class="limpar-filtro">×</button>
+          </span>
+        </div>
+        <button @click="clearAllFilters" class="limpar-todos-filtros">
+          Limpar todos os filtros
+        </button>
+      </div>
+
+      <div class="cabecalho-cards">
+        <div class="coluna-cabecalho"><span>Remetente</span></div>
+        <div class="coluna-cabecalho"><span>Documento</span></div>
+        <div class="coluna-cabecalho"><span>Âncora</span></div>
+        <div class="coluna-cabecalho"><span>Ações</span></div>
+      </div>
+
+      <!-- Loading ou Cards -->
+      <div v-if="loading" class="estado-carregamento">
+        <div class="spinner-carregamento"></div>
+        <p>Carregando documentos...</p>
+      </div>
+      <div
+        v-else-if="filteredCards.length === 0 && allCards.length === 0"
+        class="estado-vazio"
+      >
+        <p>Nenhum documento encontrado.</p>
+      </div>
+      <div v-else-if="filteredCards.length === 0" class="estado-vazio">
+        <p>Nenhum documento encontrado com os filtros aplicados.</p>
+        <button @click="clearAllFilters" class="botao-limpar-filtros">
+          Limpar filtros
+        </button>
+      </div>
+      <GdCardList v-else :cards="filteredCards" />
     </div>
-  </div>
+  </layout-sidebar-header>
 </template>
 
 <script>
-import GdHeader from '@/components/ui/GdHeader.vue'
+import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
 import GdFilterBar from '@/components/ui/GdFilterBar.vue'
 import GdFilterBarBadge from '@/components/ui/GdFilterBarBadge.vue'
 import GdCardList from '@/components/ui/GdCardList.vue'
-import GdSidebar from '@/components/ui/GdSidebar.vue'
 import GdCheckboxDropdown from '@/components/ui/GdCheckboxDropdown.vue'
 import GdEnviarParaDropdown from '@/components/ui/GdEnviarParaDropdown.vue'
 import GdButton from '@/components/ui/GdButton.vue'
@@ -130,11 +123,10 @@ import { cardService } from '@/services/index.js'
 export default {
   name: 'GdCaixaEntrada',
   components: {
-    GdHeader,
+    LayoutSidebarHeader,
     GdFilterBar,
     GdFilterBarBadge,
     GdCardList,
-    GdSidebar,
     GdCheckboxDropdown,
     GdEnviarParaDropdown,
     GdButton,
@@ -179,7 +171,7 @@ export default {
         filtered = filtered.filter(card => {
           const searchableFields = [
             card.remetente?.nome || '',
-            card.documento?.tipo || '',
+            card.documento?.modelo || '',
             card.documento?.id || '',
             card.ancora?.projeto || '',
             card.ancora?.prestadorServico || '',
@@ -358,51 +350,66 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-body {
-  margin: 0;
+.caixa-entrada-container {
+  font-family: 'Inter', sans-serif;
+  min-height: 100%;
 }
 
-.title {
-  font-family: 'Inter', sans-serif;
+.titulo-pagina {
   font-size: 22px;
   font-weight: 600;
   text-align: left;
   color: #4b5563;
+  margin-bottom: 20px;
 }
 
-.card-heading {
+.cabecalho-cards {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #9ca3af;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.controls-container {
+.coluna-cabecalho {
+  flex: 1;
+  text-align: left;
+}
+
+.container-controles {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 32px;
+  margin-bottom: 24px;
+  margin-top: 32px;
 }
 
-.dropdowns-group {
+.grupo-dropdowns {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.buttons-group {
+.grupo-botoes {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.search-group {
+.grupo-busca {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.active-filters {
+.filtros-ativos {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -410,15 +417,16 @@ body {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
+  margin-bottom: 16px;
 }
 
-.filter-indicators {
+.indicadores-filtro {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.filter-badge {
+.badge-filtro {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -429,22 +437,23 @@ body {
   font-size: 12px;
 }
 
-.clear-filter {
+.limpar-filtro {
   background: none;
   border: none;
   color: white;
   cursor: pointer;
   font-size: 14px;
   padding: 0 2px;
+  transition: background-color 0.2s ease;
 }
 
-.clear-filter:hover {
+.limpar-filtro:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }
 
-.clear-all-filters,
-.clear-filters-btn {
+.limpar-todos-filtros,
+.botao-limpar-filtros {
   padding: 6px 12px;
   background: none;
   border: 1px solid #dc2626;
@@ -455,30 +464,30 @@ body {
   transition: all 0.2s ease;
 }
 
-.clear-all-filters:hover,
-.clear-filters-btn:hover {
+.limpar-todos-filtros:hover,
+.botao-limpar-filtros:hover {
   background-color: #dc2626;
   color: white;
 }
 
-.loading-state,
-.empty-state {
+.estado-carregamento,
+.estado-vazio {
   text-align: center;
   padding: 40px;
   color: #6b7280;
 }
 
-.loading-spinner {
+.spinner-carregamento {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
   border-top: 4px solid #1a82d9;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: girar 1s linear infinite;
   margin: 0 auto 16px;
 }
 
-@keyframes spin {
+@keyframes girar {
   0% {
     transform: rotate(0deg);
   }
@@ -487,36 +496,46 @@ body {
   }
 }
 
+/* Responsividade */
 @media (max-width: 1024px) {
-  .controls-container {
+  .container-controles {
     gap: 24px;
   }
 }
 
 @media (max-width: 768px) {
-  .controls-container {
+  .container-controles {
     flex-direction: column;
     gap: 16px;
   }
 
-  .dropdowns-group,
-  .buttons-group,
-  .search-group {
+  .grupo-dropdowns,
+  .grupo-botoes,
+  .grupo-busca {
     width: 100%;
   }
 
-  .active-filters {
+  .filtros-ativos {
     flex-direction: column;
     gap: 8px;
     align-items: stretch;
   }
+
+  .cabecalho-cards {
+    font-size: 12px;
+    padding: 8px;
+  }
 }
 
 @media (max-width: 640px) {
-  .dropdowns-group,
-  .buttons-group,
-  .search-group {
+  .grupo-dropdowns,
+  .grupo-botoes,
+  .grupo-busca {
     flex-direction: column;
+  }
+
+  .titulo-pagina {
+    font-size: 20px;
   }
 }
 </style>

@@ -1,12 +1,10 @@
 <template>
-  <div class="dashboard-container">
-    <div class="main-content">
-      <gd-header
-        :userName="selectedUser.name"
-        :userImage="selectedUser.image"
-        :showDate="true"
-        :showNotification="true"
-      />
+  <layout-sidebar-header
+    :show-header-date="true"
+    :show-header-notification="true"
+  >
+    <div class="inicio-container">
+      <!-- Seção de Boas-vindas -->
       <div class="welcome-section">
         <div class="welcome-title">
           <span class="wave">👋</span>
@@ -15,6 +13,8 @@
         <p class="welcome-subtitle"></p>
         <p class="text-left">Ao seu sistema de Gestão de Processos internos</p>
       </div>
+
+      <!-- Grid de Cards -->
       <div class="cards-grid">
         <div class="card card-yellow">
           <div class="card-header">
@@ -27,6 +27,7 @@
             <div class="card-item">Contrato Prestador / Jurídico</div>
           </div>
         </div>
+
         <div class="card card-white">
           <div class="card-header">
             <h3>A Configurar</h3>
@@ -38,6 +39,7 @@
             <div class="card-item blue">Contrato Prestador / Jurídico</div>
           </div>
         </div>
+
         <div class="card card-white">
           <div class="card-header">
             <h3>Aguardando Resposta</h3>
@@ -52,6 +54,7 @@
             </div>
           </div>
         </div>
+
         <div class="card card-white">
           <div class="card-header">
             <h3>Últimos Acessos</h3>
@@ -79,6 +82,8 @@
           </div>
         </div>
       </div>
+
+      <!-- Seção de Busca -->
       <div class="search-section">
         <div class="search-card">
           <h2>Busca Rápida de Documento</h2>
@@ -105,41 +110,21 @@
         </div>
       </div>
     </div>
-  </div>
+  </layout-sidebar-header>
 </template>
 
 <script>
-import GdHeader from '@/components/ui/GdHeader.vue'
+import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
 
 export default {
   name: 'GdInicio',
   components: {
-    GdHeader,
+    LayoutSidebarHeader,
   },
   data() {
     return {
-      users: [
-        {
-          id: 1,
-          name: 'Carlos Silva',
-          image: 'https://randomuser.me/api/portraits/men/32.jpg',
-        },
-        {
-          id: 2,
-          name: 'Ana Souza',
-          image: 'https://randomuser.me/api/portraits/woman/43.jpg',
-        },
-        {
-          id: 3,
-          name: 'Juliana Mendes',
-          image: 'https://randomuser.me/api/portraits/women/68.jpg',
-        },
-      ],
-      selectedUser: {},
+      searchQuery: '',
     }
-  },
-  created() {
-    this.selectedUser = this.users.find(user => user.id === 1)
   },
   methods: {
     clearSearch() {
@@ -154,119 +139,14 @@ export default {
   box-sizing: border-box;
 }
 
-.dashboard-container {
-  min-height: 100vh;
-  background-color: #f9fafb;
-  display: flex;
+.inicio-container {
+  min-height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 64px;
-  background-color: #2563eb;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 0;
-}
-
-.logo {
-  width: 40px;
-  height: 40px;
-  background-color: #06b6d4;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 32px;
-}
-
-.logo span {
-  color: white;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-}
-
-/* Header */
-.header {
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  color: #6b7280;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.notification {
-  position: relative;
-}
-
-.badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 12px;
-  height: 12px;
-  background-color: #ef4444;
-  border-radius: 50%;
-  color: white;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-}
-
-.icon-white {
-  width: 20px;
-  height: 20px;
-  color: white;
-}
-
-.icon-gray {
-  width: 20px;
-  height: 20px;
-  color: #6b7280;
 }
 
 /* Welcome Section */
 .welcome-section {
-  padding: 24px;
+  margin-bottom: 32px;
 }
 
 .welcome-title {
@@ -292,9 +172,13 @@ export default {
   margin: 0;
 }
 
+.text-left {
+  color: #6b7280;
+  margin: 0;
+}
+
 /* Cards Grid */
 .cards-grid {
-  padding: 0 24px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
@@ -382,9 +266,22 @@ export default {
   gap: 12px;
 }
 
+/* Icons */
+.icon-white {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.icon-gray {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
 /* Search Section */
 .search-section {
-  padding: 0 24px 24px;
+  margin-bottom: 24px;
 }
 
 .search-card {
@@ -457,12 +354,6 @@ export default {
 @media (max-width: 768px) {
   .cards-grid {
     grid-template-columns: 1fr;
-  }
-
-  .header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
   }
 
   .welcome-title h1 {

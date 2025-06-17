@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import './assets/styles/tailwind.css'
 import '@fortawesome/fontawesome-free/css/all.css'
+import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
 
 Vue.config.productionTip = false
 
@@ -18,6 +19,8 @@ requireComponent.keys().forEach(fileName => {
 
   Vue.component(componentName, componentConfig.default || componentConfig)
 })
+
+Vue.component('LayoutSidebarHeader', LayoutSidebarHeader)
 
 new Vue({
   router,

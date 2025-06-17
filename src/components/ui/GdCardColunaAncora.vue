@@ -4,10 +4,10 @@
       <div class="flex items-center">
         <span
           class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Tipo:</span
+          >Modelo:</span
         >
         <div class="ml-2">
-          <GdTag :text="projeto.tipo" />
+          <GdTag :text="projeto.modelo" />
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export default {
       type: Object,
       required: true,
       validator: value =>
-        'tipo' in value &&
+        'modelo' in value &&
         'projeto' in value &&
         'prestadorServico' in value &&
         'dataPagamento' in value &&
