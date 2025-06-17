@@ -1,10 +1,9 @@
 <template>
   <div class="container-sidebar">
-    <!-- Transição para a sidebar principal -->
     <transition name="deslizar-sidebar" mode="out-in">
       <nav v-if="isExpanded" class="barra-lateral" @click="handleSidebarClick">
         <div class="container-conteudo">
-          <!-- Cabeçalho -->
+          <!-- Sidebar - Cabeçalho -->
           <div class="cabecalho">
             <div class="barra-superior">
               <div class="logo">
@@ -21,7 +20,7 @@
             <div class="divisor especial"></div>
           </div>
 
-          <!-- Menu -->
+          <!-- Sidebar - Content -->
           <div class="menu">
             <div
               v-for="(section, sectionIndex) in menuConfig"
@@ -52,7 +51,7 @@
             </div>
           </div>
 
-          <!-- Rodapé -->
+          <!-- Sidebar - Rodapé fixo -->
           <div class="rodape">
             <div class="logo-rodape">
               <img
@@ -130,7 +129,7 @@ export default {
 }
 
 .barra-lateral {
-  width: 210px;
+  width: 200px;
   height: 100vh;
   background: linear-gradient(180deg, #004b9d 0%, #0078c8 100%);
   color: #d7dadd;
@@ -172,7 +171,7 @@ export default {
 }
 
 .imagem-logo {
-  height: 30px;
+  height: 25px;
   width: auto;
 }
 
@@ -180,9 +179,9 @@ export default {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 12px;
+  font-size: 10px;
   cursor: pointer;
-  padding: 6px;
+  padding: 8px 12px;
   border-radius: 4px;
   transition: all 0.3s ease;
   margin-left: 4px;
@@ -191,7 +190,7 @@ export default {
 
 .botao-colapsar:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: rotate(-5deg) scale(1.1);
+  transform: scale(1.1);
 }
 
 .divisor.especial {
@@ -201,7 +200,7 @@ export default {
 }
 
 .botao-novo-documento {
-  background: #0470ae;
+  background: #1988c8;
   color: white;
   border: none;
   display: flex;
@@ -221,7 +220,7 @@ export default {
 }
 
 .botao-novo-documento:hover {
-  background: #035a8a;
+  background: #4db9d2;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -239,19 +238,19 @@ export default {
 }
 
 .secao {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .titulo-secao {
   display: flex;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 300;
   line-height: 24px;
   text-transform: uppercase;
   color: #d7dadd;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   padding-left: 8px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   font-family: 'Inter', sans-serif;
   text-align: left;
 }
@@ -301,7 +300,7 @@ ul {
 
 .texto-item {
   display: inline-block;
-  line-height: 1;
+  line-height: 1.2;
   flex: 1;
   text-align: left;
   white-space: nowrap;
@@ -339,12 +338,12 @@ ul {
 .logo-rodape {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   margin-bottom: 5px;
 }
 
 .imagem-grupo {
-  max-width: 100%;
+  max-width: 80%;
   height: auto;
   transition: opacity 0.3s ease;
 }
@@ -408,7 +407,7 @@ ul {
 /* Transições do Logo Mini */
 .aparecer-logo-enter-active {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: 0.2s; /* Aparece depois que a sidebar sai */
+  transition-delay: 0.2s;
 }
 
 .aparecer-logo-leave-active {
@@ -426,22 +425,64 @@ ul {
 }
 
 /* Responsividade */
+
 @media (max-width: 768px) {
   .barra-lateral {
-    width: 100%;
+    width: 220px;
   }
 
   .logo-mini {
     top: 8px;
     left: 8px;
   }
+
+  .item-menu {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  .botao-novo-documento {
+    height: 48px;
+    font-size: 14px;
+  }
+
+  .icone {
+    width: 18px;
+    height: 18px;
+  }
 }
 
-/* Para textos longos que podem quebrar */
-@media (max-width: 250px) {
+@media (max-width: 480px) {
+  .barra-lateral {
+    width: 200px;
+  }
+
+  .container-conteudo {
+    padding: 0 6px;
+  }
+
+  .cabecalho {
+    padding: 0 6px;
+  }
+
+  .menu {
+    padding: 0 6px;
+  }
+}
+
+@media (max-width: 320px) {
+  .barra-lateral {
+    width: 180px;
+  }
+
   .texto-item {
     white-space: normal;
     text-align: left;
+    font-size: 13px;
+  }
+
+  .item-menu {
+    padding: 10px 6px;
   }
 }
 </style>

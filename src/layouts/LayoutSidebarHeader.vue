@@ -1,10 +1,19 @@
 <template>
   <div class="layout-sidebar-header">
     <!-- Sidebar fixa à esquerda -->
-    <gd-sidebar class="layout-sidebar" @sidebar-toggle="handleSidebarToggle" />
+    <gd-sidebar
+      class="layout-sidebar"
+      @sidebar-toggle="handleSidebarToggle"
+      ref="sidebar"
+    />
 
     <!-- Área principal com header e conteúdo -->
-    <div class="layout-main" :class="{ 'sidebar-collapsed': !sidebarExpanded }">
+    <div
+      class="layout-main"
+      :class="{
+        'sidebar-collapsed': !sidebarExpanded,
+      }"
+    >
       <!-- Header fixo no topo -->
       <gd-header
         class="layout-header"
@@ -67,20 +76,21 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 200px; /* Ajustado para nova largura da sidebar */
-  transition: margin-left 0.3s ease;
+  margin-left: 200px; /* Desktop: largura fixa da sidebar */
+  transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0; /* Importante para evitar overflow */
 }
 
 /* Quando sidebar está colapsada */
 .layout-main.sidebar-collapsed {
-  margin-left: 0; /* Sem margem quando colapsada */
+  margin-left: 0;
 }
 
 /* Header fixo no topo da área principal */
 .layout-header {
   position: sticky;
   top: 0;
-  z-index: 999;
+  z-index: 998;
   width: 100%;
 }
 
@@ -97,39 +107,62 @@ export default {
   min-height: calc(100vh - 70px);
 }
 
-/* Responsividade para telas pequenas */
+/* === RESPONSIVIDADE === */
+
+/* Tablet - mantém igual ao desktop */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .layout-main {
+    margin-left: 200px; /* Mesmo que desktop */
+  }
+
+  .layout-main.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  .content-container {
+    padding: 20px;
+  }
+}
+
+/* Mobile - margem reduzida */
 @media (max-width: 768px) {
-  .layout-main,
+  .layout-main {
+    margin-left: 220px; /* Acompanha nova largura da sidebar */
+  }
+
   .layout-main.sidebar-collapsed {
     margin-left: 0;
   }
 
   .content-container {
     padding: 16px;
+    min-height: calc(100vh - 60px);
   }
 }
 
-/* Customização do scrollbar do conteúdo */
-.layout-content::-webkit-scrollbar {
-  width: 6px;
+/* Mobile pequeno */
+@media (max-width: 480px) {
+  .layout-main {
+    margin-left: 200px; /* Acompanha sidebar menor */
+  }
+
+  .layout-main.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  .content-container {
+    padding: 12px;
+  }
 }
 
-.layout-content::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
+/* Mobile muito pequeno */
+@media (max-width: 320px) {
+  .layout-main {
+    margin-left: 180px; /* Acompanha sidebar mínima */
+  }
 
-.layout-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.layout-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Para Firefox */
-.layout-content {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  .layout-main.sidebar-collapsed {
+    margin-left: 0;
+  }
 }
 </style>
