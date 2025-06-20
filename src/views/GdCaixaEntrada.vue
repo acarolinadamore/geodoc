@@ -4,106 +4,187 @@
     :show-header-notification="true"
   >
     <div class="caixa-entrada-container">
-      <h1 class="titulo-pagina">Caixa de Entrada</h1>
-
-      <GdFilterBar class="mb-1" />
-      <GdFilterBarBadge
-        class="mb-4"
-        :initial-tabs="filterTabs"
-        @filter-change="handleFilterChange"
-        @marker-added="handleMarkerAdded"
-      />
-
-      <div class="container-controles">
-        <!-- Grupo 1: Dropdowns -->
-        <div class="grupo-dropdowns">
-          <GdCheckboxDropdown />
-          <GdEnviarParaDropdown />
+      <!-- Header Fixo -->
+      <div class="caixa-entrada-header-fixo">
+        <!-- Linha 1: Título da Página -->
+        <div class="page-title-container">
+          <h1 class="titulo-pagina">Caixa de Entrada</h1>
         </div>
 
-        <!-- Grupo 2: Botões -->
-        <div class="grupo-botoes">
-          <GdButton
-            label="Atribuir a mim"
-            variant="outlined"
-            border-color="#37c989"
-            text-color="#37c989"
-            @click="handleAtribuirMim"
-          />
-          <GdButton
-            label="Aprovar"
-            icon="fa-check"
-            variant="filled"
-            bg-color="#37c989"
-            text-color="#ffffff"
-            @click="handleAprovar"
-          />
-          <GdButton
-            label="Agrupar"
-            variant="filled"
-            bg-color="#1a82d9"
-            text-color="#ffffff"
-            @click="handleAgrupar"
+        <!-- Linha 2: Filtros de Clique -->
+        <div class="filters-container">
+          <GdFilterBar class="espacamento-xs" />
+          <GdFilterBarBadge
+            class="espacamento-xs"
+            :initial-tabs="filterTabs"
+            @filter-change="handleFilterChange"
+            @marker-added="handleMarkerAdded"
           />
         </div>
 
-        <!-- Grupo 3: Search e Date Picker -->
-        <div class="grupo-busca">
-          <GdSearchBar
-            v-model="searchTerm"
-            @search="handleSearch"
-            @clear="handleClearSearch"
-          />
-          <GdDatePicker
-            v-model="dateRange"
-            :placeholder="'Selecionar período'"
-            @change="handleDateChange"
-          />
+        <!-- Linha 3: Botões com Search e DatePicker -->
+        <div class="buttons-container">
+          <div class="grupo-botoes">
+            <GdButton
+              label="Atribuir a mim"
+              variant="outlined"
+              border-color="#37c989"
+              text-color="#37c989"
+              @click="handleAtribuirMim"
+            />
+            <GdButton
+              label="Aprovar"
+              icon="fa-check"
+              variant="filled"
+              bg-color="#37c989"
+              text-color="#ffffff"
+              @click="handleAprovar"
+            />
+            <GdButton
+              label="Agrupar"
+              variant="filled"
+              bg-color="#1a82d9"
+              text-color="#ffffff"
+              @click="handleAgrupar"
+            />
+            <GdButton
+              label="Mais Ações"
+              variant="outlined"
+              border-color="#6b7280"
+              text-color="#6b7280"
+              @click="handleMaisAcoes"
+            />
+          </div>
+
+          <div class="grupo-busca-data">
+            <GdSearchBar
+              v-model="searchTerm"
+              @search="handleSearch"
+              @clear="handleClearSearch"
+            />
+            <GdDatePicker
+              v-model="dateRange"
+              :placeholder="'Selecionar período'"
+              @change="handleDateChange"
+            />
+          </div>
+        </div>
+
+        <!-- Linha 4: Indicador de filtros ativos -->
+        <div
+          v-if="hasActiveFilters"
+          class="filtros-ativos"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="indicadores-filtro">
+            <span v-if="searchTerm" class="badge-filtro">
+              <span class="sr-only">Filtro de busca ativo:</span>
+              🔍 "{{ searchTerm }}"
+              <button
+                @click="clearSearch"
+                class="limpar-filtro"
+                :aria-label="`Remover filtro de busca: ${searchTerm}`"
+              >
+                ×
+              </button>
+            </span>
+            <span
+              v-if="dateRange && dateRange.length === 2"
+              class="badge-filtro"
+            >
+              <span class="sr-only">Filtro de data ativo:</span>
+              📅 {{ formatDateRange(dateRange) }}
+              <button
+                @click="clearDateFilter"
+                class="limpar-filtro"
+                :aria-label="`Remover filtro de data: ${formatDateRange(
+                  dateRange
+                )}`"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+          <button
+            @click="clearAllFilters"
+            class="limpar-todos-filtros"
+            aria-label="Limpar todos os filtros ativos"
+          >
+            Limpar todos os filtros
+          </button>
+        </div>
+
+        <!-- Linha 5: Título dos Cards com Dropdowns -->
+        <div class="title-card-container">
+          <div class="dropdowns-titulo">
+            <GdCheckboxDropdown
+              :checked-all="allCardsSelected"
+              :actions="checkboxActions"
+              @toggle-all="handleToggleAll"
+              @action="handleCheckboxAction"
+            />
+            <GdEnviarParaDropdown
+              :markers="enviarParaOptions"
+              @select-marker="handleEnviarPara"
+            />
+          </div>
+          <div class="titulos-colunas">
+            <div class="coluna-titulo"><span>Remetente</span></div>
+            <div class="coluna-titulo"><span>Documento</span></div>
+            <div class="coluna-titulo"><span>Âncora</span></div>
+            <div class="coluna-titulo"><span>Ações</span></div>
+          </div>
         </div>
       </div>
 
-      <!-- Indicador de filtros ativos -->
-      <div v-if="hasActiveFilters" class="filtros-ativos">
-        <div class="indicadores-filtro">
-          <span v-if="searchTerm" class="badge-filtro">
-            🔍 "{{ searchTerm }}"
-            <button @click="clearSearch" class="limpar-filtro">×</button>
-          </span>
-          <span v-if="dateRange && dateRange.length === 2" class="badge-filtro">
-            📅 {{ formatDateRange(dateRange) }}
-            <button @click="clearDateFilter" class="limpar-filtro">×</button>
-          </span>
+      <!-- Área de Rolagem - Apenas Lista de Cards -->
+      <div class="area-rolagem">
+        <!-- Loading -->
+        <div v-if="loading" class="estado-carregamento">
+          <div class="spinner-carregamento" aria-label="Carregando"></div>
+          <p>Carregando documentos...</p>
+          <div v-if="retryCount > 0" class="retry-info">
+            Tentativa {{ retryCount }} de {{ maxRetries }}
+          </div>
         </div>
-        <button @click="clearAllFilters" class="limpar-todos-filtros">
-          Limpar todos os filtros
-        </button>
-      </div>
 
-      <div class="cabecalho-cards">
-        <div class="coluna-cabecalho"><span>Remetente</span></div>
-        <div class="coluna-cabecalho"><span>Documento</span></div>
-        <div class="coluna-cabecalho"><span>Âncora</span></div>
-        <div class="coluna-cabecalho"><span>Ações</span></div>
-      </div>
+        <!-- Estado de Erro -->
+        <div v-else-if="error" class="estado-erro">
+          <div class="icone-erro">⚠️</div>
+          <h3>Ops! Algo deu errado</h3>
+          <p>{{ error }}</p>
+          <div class="acoes-erro">
+            <button @click="loadCards" class="botao-tentar-novamente">
+              Tentar novamente
+            </button>
+            <button @click="clearError" class="botao-limpar-erro">
+              Limpar erro
+            </button>
+          </div>
+        </div>
 
-      <!-- Loading ou Cards -->
-      <div v-if="loading" class="estado-carregamento">
-        <div class="spinner-carregamento"></div>
-        <p>Carregando documentos...</p>
+        <!-- Estados Vazios -->
+        <div
+          v-else-if="filteredCards.length === 0 && allCards.length === 0"
+          class="estado-vazio"
+        >
+          <div class="icone-vazio">📄</div>
+          <h3>Nenhum documento encontrado</h3>
+          <p>Sua caixa de entrada está vazia no momento.</p>
+        </div>
+        <div v-else-if="filteredCards.length === 0" class="estado-vazio">
+          <div class="icone-vazio">🔍</div>
+          <h3>Nenhum resultado encontrado</h3>
+          <p>Nenhum documento encontrado com os filtros aplicados.</p>
+          <button @click="clearAllFilters" class="botao-limpar-filtros">
+            Limpar filtros
+          </button>
+        </div>
+
+        <!-- Lista de Cards -->
+        <GdCardList v-else :cards="filteredCards" />
       </div>
-      <div
-        v-else-if="filteredCards.length === 0 && allCards.length === 0"
-        class="estado-vazio"
-      >
-        <p>Nenhum documento encontrado.</p>
-      </div>
-      <div v-else-if="filteredCards.length === 0" class="estado-vazio">
-        <p>Nenhum documento encontrado com os filtros aplicados.</p>
-        <button @click="clearAllFilters" class="botao-limpar-filtros">
-          Limpar filtros
-        </button>
-      </div>
-      <GdCardList v-else :cards="filteredCards" />
     </div>
   </layout-sidebar-header>
 </template>
@@ -135,23 +216,79 @@ export default {
   },
   data() {
     return {
+      // Filtros Badge - MODELOS de documento da caixa de entrada
       filterTabs: [
-        { id: 'todos', label: 'Todos', count: 15, color: '#1a82d9' },
+        { id: 'todos', label: 'Todos', count: 10, color: '#1a82d9' },
         {
-          id: 'aConfigurar',
-          label: 'A Configurar',
-          count: 3,
-          color: '#f59e0b',
+          id: 'solicitacao-fabrica-software',
+          label: 'Solicitação à Fábrica de Software',
+          count: 2,
+          color: '#10b981',
+          modelo: 'Solicitação à Fábrica de Software',
         },
-        { id: 'recebidos', label: 'Recebidos', count: 8, color: '#10b981' },
-        { id: 'solicitados', label: 'Solicitados', count: 2, color: '#8b5cf6' },
-        { id: 'lembretes', label: 'Lembretes', count: 1, color: '#ef4444' },
+        {
+          id: 'solicitacao-orcamento',
+          label: 'Solicitação de Orçamento',
+          count: 2,
+          color: '#f59e0b',
+          modelo: 'Solicitação de Orçamento',
+        },
+        {
+          id: 'relatorio-progresso',
+          label: 'Relatório de Progresso',
+          count: 2,
+          color: '#8b5cf6',
+          modelo: 'Relatório de Progresso',
+        },
+        {
+          id: 'auditoria-processo',
+          label: 'Auditoria de Processo',
+          count: 2,
+          color: '#ef4444',
+          modelo: 'Auditoria de Processo',
+        },
+        {
+          id: 'conciliacao-bancaria',
+          label: 'Conciliação Bancária',
+          count: 2,
+          color: '#06b6d4',
+          modelo: 'Conciliação Bancária',
+        },
       ],
+
+      // Opções do dropdown checkbox
+      checkboxActions: [
+        { label: 'Marcar como não lido', value: 'marcar-nao-lido' },
+        { label: 'Aprovar', value: 'aprovar' },
+        { label: 'Atualizar Fluxo', value: 'atualizar-fluxo' },
+        { label: 'Atribuir a Mim', value: 'atribuir-mim' },
+        { label: 'Identificar', value: 'identificar' },
+        { label: 'Somar Âncoras', value: 'somar-ancoras' },
+        { label: 'Agrupar', value: 'agrupar' },
+        { label: 'Cancelar', value: 'cancelar' },
+        { label: 'Vincular ModeloDocumento', value: 'vincular-modelo' },
+        { label: 'Vincular Pasta Digital', value: 'vincular-pasta' },
+      ],
+
+      // Opções do dropdown enviar para (marcações/pastas)
+      enviarParaOptions: [
+        { label: 'Diretoria', value: 'diretoria', color: '#2563eb' },
+        { label: 'Negócios', value: 'negocios', color: '#16a34a' },
+        { label: 'Financeiro', value: 'financeiro', color: '#f59e0b' },
+        { label: 'RH', value: 'rh', color: '#ef4444' },
+        { label: 'Jurídico', value: 'juridico', color: '#8b5cf6' },
+        { label: 'Operações', value: 'operacoes', color: '#06b6d4' },
+      ],
+
       allCards: [],
       loading: false,
+      error: null,
+      retryCount: 0,
+      maxRetries: 3,
       searchTerm: '',
       dateRange: null,
       activeTabFilter: 'todos',
+      allCardsSelected: false,
     }
   },
   computed: {
@@ -163,42 +300,7 @@ export default {
     },
 
     filteredCards() {
-      let filtered = [...this.allCards]
-
-      // Filtro por busca
-      if (this.searchTerm && this.searchTerm.trim()) {
-        const searchLower = this.searchTerm.toLowerCase().trim()
-        filtered = filtered.filter(card => {
-          const searchableFields = [
-            card.remetente?.nome || '',
-            card.documento?.modelo || '',
-            card.documento?.id || '',
-            card.ancora?.projeto || '',
-            card.ancora?.prestadorServico || '',
-          ]
-
-          return searchableFields.some(field =>
-            field.toLowerCase().includes(searchLower)
-          )
-        })
-      }
-
-      // Filtro por data
-      if (this.dateRange && this.dateRange.length === 2) {
-        const [startDate, endDate] = this.dateRange
-        filtered = filtered.filter(card => {
-          const cardDate = this.parseCardDate(card.documento?.dataInicio)
-          const cardVencimento = this.parseCardVencimento(card)
-
-          return (
-            this.isDateInRange(cardDate, startDate, endDate) ||
-            this.isDateInRange(cardVencimento, startDate, endDate)
-          )
-        })
-      }
-
-      // Ordenação por vencimento (mais vencidos primeiro)
-      return this.sortCardsByVencimento(filtered)
+      return this.getFilteredCards()
     },
   },
 
@@ -207,17 +309,139 @@ export default {
   },
 
   methods: {
+    // === CARREGAMENTO DE DADOS ===
     async loadCards() {
       try {
         this.loading = true
+        this.error = null
+
         const cards = await cardService.getCards()
         this.allCards = Array.isArray(cards) ? cards : []
+
+        // Atualizar contadores dos modelos
+        this.updateModeloCounters()
+
+        this.retryCount = 0
       } catch (error) {
         console.error('Erro ao carregar cards:', error)
+        this.error = this.getErrorMessage(error)
         this.allCards = []
+
+        if (this.retryCount < this.maxRetries) {
+          this.retryCount++
+          setTimeout(() => this.loadCards(), 2000 * this.retryCount)
+        }
       } finally {
         this.loading = false
       }
+    },
+
+    // Atualizar contadores baseado nos modelos dos cards
+    updateModeloCounters() {
+      // Contar total
+      const totalCount = this.allCards.length
+      const todosTab = this.filterTabs.find(tab => tab.id === 'todos')
+      if (todosTab) todosTab.count = totalCount
+
+      // Contar por modelo
+      this.filterTabs.forEach(tab => {
+        if (tab.modelo) {
+          const count = this.allCards.filter(
+            card => card.documento?.modelo === tab.modelo
+          ).length
+          tab.count = count
+        }
+      })
+    },
+
+    getErrorMessage(error) {
+      if (error.response?.status === 404) {
+        return 'Serviço não encontrado. Tente novamente mais tarde.'
+      }
+      if (error.response?.status >= 500) {
+        return 'Erro interno do servidor. Tente novamente mais tarde.'
+      }
+      if (error.code === 'NETWORK_ERROR') {
+        return 'Erro de conexão. Verifique sua internet.'
+      }
+      return error.message || 'Erro desconhecido ao carregar documentos'
+    },
+
+    clearError() {
+      this.error = null
+      this.retryCount = 0
+    },
+
+    // === LÓGICA DE FILTROS ===
+    getFilteredCards() {
+      let filtered = [...this.allCards]
+
+      // Filtro por modelo (aba ativa)
+      if (this.activeTabFilter && this.activeTabFilter !== 'todos') {
+        filtered = this.filterByModelo(filtered)
+      }
+
+      if (this.searchTerm?.trim()) {
+        filtered = this.filterBySearch(filtered)
+      }
+
+      if (this.dateRange?.length === 2) {
+        filtered = this.filterByDate(filtered)
+      }
+
+      return this.sortCardsByVencimento(filtered)
+    },
+
+    // Filtro por modelo do documento
+    filterByModelo(cards) {
+      const activeTab = this.filterTabs.find(
+        tab => tab.id === this.activeTabFilter
+      )
+      if (!activeTab || !activeTab.modelo) return cards
+
+      return cards.filter(card => {
+        return card.documento?.modelo === activeTab.modelo
+      })
+    },
+
+    filterBySearch(cards) {
+      const searchLower = this.searchTerm.toLowerCase().trim()
+
+      return cards.filter(card => {
+        const searchableFields = [
+          card.remetente?.nome || '',
+          card.remetente?.funcao || '',
+          card.documento?.modelo || '',
+          card.documento?.id || '',
+          card.documento?.fluxo || '',
+          card.documento?.dirPath || '',
+          card.ancora?.projeto || '',
+          card.ancora?.prestadorServico || '',
+          card.ancora?.unidade || '',
+        ]
+
+        return searchableFields.some(field =>
+          field.toLowerCase().includes(searchLower)
+        )
+      })
+    },
+
+    filterByDate(cards) {
+      const [startDate, endDate] = this.dateRange
+
+      return cards.filter(card => {
+        const cardDataInicio = this.parseCardDate(card.documento?.dataInicio)
+        const cardVencimento = this.parseCardVencimento(card)
+        const cardDataPagamento = this.parseCardDateBR(
+          card.ancora?.dataPagamento
+        )
+
+        return (
+          this.isDateInRange(cardDataInicio, startDate, endDate) ||
+          this.isDateInRange(cardVencimento, startDate, endDate) ||
+          this.isDateInRange(cardDataPagamento, startDate, endDate)
+        )
+      })
     },
 
     sortCardsByVencimento(cards) {
@@ -261,11 +485,31 @@ export default {
       this.dateRange = null
     },
 
+    // === HANDLERS DOS DROPDOWNS ===
+    handleToggleAll() {
+      this.allCardsSelected = !this.allCardsSelected
+      console.log('Toggle all cards:', this.allCardsSelected)
+    },
+
+    handleCheckboxAction(action) {
+      console.log('Checkbox action:', action)
+    },
+
+    handleEnviarPara(marker) {
+      console.log('Enviar para:', marker)
+    },
+
     // === UTILITÁRIOS DE DATA ===
     parseCardDate(dateString) {
-      if (!dateString || typeof dateString !== 'string') return null
+      if (!dateString) return null
 
       try {
+        // Para formato ISO: "2025-04-15T08:30:00"
+        if (dateString.includes('T')) {
+          return new Date(dateString)
+        }
+
+        // Para formato BR: "15/04/2025"
         const parts = dateString.split('/')
         if (parts.length !== 3) return null
 
@@ -281,8 +525,27 @@ export default {
       }
     },
 
+    parseCardDateBR(dateString) {
+      if (!dateString || typeof dateString !== 'string') return null
+
+      try {
+        const parts = dateString.split('/')
+        if (parts.length !== 3) return null
+
+        const [day, month, year] = parts.map(part => parseInt(part, 10))
+
+        if (isNaN(day) || isNaN(month) || isNaN(year)) return null
+        if (day < 1 || day > 31 || month < 1 || month > 12) return null
+
+        return new Date(year, month - 1, day)
+      } catch (error) {
+        console.warn('Erro ao parsear data BR:', dateString, error)
+        return null
+      }
+    },
+
     parseCardVencimento(card) {
-      return this.parseCardDate(card?.vencimento?.data)
+      return this.parseCardDateBR(card?.vencimento?.data)
     },
 
     isDateInRange(date, startDate, endDate) {
@@ -324,27 +587,27 @@ export default {
     // === OUTROS HANDLERS ===
     handleFilterChange(tabId) {
       this.activeTabFilter = tabId
-      // TODO: Implementar filtro por aba se necessário
+      console.log('Filtro ativo por modelo:', tabId)
     },
 
     handleMarkerAdded(newTab) {
-      // TODO: Implementar se necessário
       console.log('Novo marcador adicionado:', newTab)
     },
 
     handleAtribuirMim() {
-      // TODO: Implementar ação
       console.log('Atribuir a mim')
     },
 
     handleAprovar() {
-      // TODO: Implementar ação
       console.log('Aprovar')
     },
 
     handleAgrupar() {
-      // TODO: Implementar ação
       console.log('Agrupar')
+    },
+
+    handleMaisAcoes() {
+      console.log('Mais ações')
     },
   },
 }
@@ -353,71 +616,88 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
+/* Variáveis CSS */
+:root {
+  --primary-color: #1a82d9;
+  --success-color: #37c989;
+  --danger-color: #dc2626;
+  --warning-color: #f59e0b;
+  --text-primary: #4b5563;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #e5e7eb;
+  --background-light: #f8fafc;
+  --background-error: #fef2f2;
+  --border-error: #fecaca;
+}
+
 .caixa-entrada-container {
   font-family: 'Inter', sans-serif;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header Fixo */
+.caixa-entrada-header-fixo {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Linha 1: Título */
+.page-title-container {
+  display: flex;
 }
 
 .titulo-pagina {
   font-size: 22px;
   font-weight: 600;
-  text-align: left;
-  color: #4b5563;
-  margin-bottom: 20px;
+  color: var(--text-primary);
+  margin: 0;
 }
 
-.cabecalho-cards {
+/* Linha 2: Filtros */
+.filters-container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Linha 3: Botões */
+.buttons-container {
+  display: flex;
   justify-content: space-between;
-  padding: 12px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: #9ca3af;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.coluna-cabecalho {
-  flex: 1;
-  text-align: left;
-}
-
-.container-controles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 32px;
-  margin-bottom: 24px;
-  margin-top: 32px;
-}
-
-.grupo-dropdowns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
 }
 
 .grupo-botoes {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-}
-
-.grupo-busca {
-  display: flex;
   flex-wrap: wrap;
-  gap: 12px;
 }
 
+.grupo-busca-data {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Linha 4: Filtros Ativos */
 .filtros-ativos {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background-color: #f8fafc;
+  padding: 8px 12px;
+  background-color: var(--background-light);
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .indicadores-filtro {
@@ -431,7 +711,7 @@ export default {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background-color: #1a82d9;
+  background-color: var(--primary-color);
   color: white;
   border-radius: 4px;
   font-size: 12px;
@@ -445,19 +725,19 @@ export default {
   font-size: 14px;
   padding: 0 2px;
   transition: background-color 0.2s ease;
+  border-radius: 2px;
 }
 
 .limpar-filtro:hover {
   background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
 }
 
 .limpar-todos-filtros,
 .botao-limpar-filtros {
-  padding: 6px 12px;
+  padding: 4px 8px;
   background: none;
-  border: 1px solid #dc2626;
-  color: #dc2626;
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
@@ -466,25 +746,141 @@ export default {
 
 .limpar-todos-filtros:hover,
 .botao-limpar-filtros:hover {
-  background-color: #dc2626;
+  background-color: var(--danger-color);
   color: white;
 }
 
-.estado-carregamento,
-.estado-vazio {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
+/* Linha 5: Título dos Cards */
+.title-card-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-color);
 }
 
+.dropdowns-titulo {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.titulos-colunas {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+}
+
+.coluna-titulo {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Área de Rolagem */
+.area-rolagem {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Estados */
+.estado-carregamento,
+.estado-vazio,
+.estado-erro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.estado-erro {
+  background-color: var(--background-error);
+  border: 1px solid var(--border-error);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.icone-erro,
+.icone-vazio {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.estado-erro h3,
+.estado-vazio h3 {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.estado-erro h3 {
+  color: var(--danger-color);
+}
+
+.estado-erro p,
+.estado-vazio p {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+.retry-info {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.acoes-erro {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.botao-tentar-novamente,
+.botao-limpar-erro {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.botao-tentar-novamente {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.botao-tentar-novamente:hover {
+  background-color: #b91c1c;
+}
+
+.botao-limpar-erro {
+  background-color: transparent;
+  color: var(--danger-color);
+  border: 1px solid var(--danger-color);
+}
+
+.botao-limpar-erro:hover {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+/* Spinner */
 .spinner-carregamento {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #1a82d9;
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: girar 1s linear infinite;
-  margin: 0 auto 16px;
+  margin-bottom: 16px;
 }
 
 @keyframes girar {
@@ -496,46 +892,97 @@ export default {
   }
 }
 
-/* Responsividade */
-@media (max-width: 1024px) {
-  .container-controles {
-    gap: 24px;
-  }
+/* Classes utilitárias para espaçamento */
+.espacamento-xs {
+  margin-bottom: 4px;
 }
 
+.espacamento-sm {
+  margin-bottom: 8px;
+}
+
+.espacamento-md {
+  margin-bottom: 12px;
+}
+
+.espacamento-lg {
+  margin-bottom: 16px;
+}
+
+/* Acessibilidade */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
-  .container-controles {
+  .caixa-entrada-header-fixo {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .buttons-container {
     flex-direction: column;
-    gap: 16px;
+    align-items: stretch;
+    gap: 12px;
   }
 
-  .grupo-dropdowns,
-  .grupo-botoes,
-  .grupo-busca {
-    width: 100%;
+  .grupo-botoes {
+    justify-content: center;
   }
 
-  .filtros-ativos {
+  .grupo-busca-data {
     flex-direction: column;
     gap: 8px;
-    align-items: stretch;
   }
 
-  .cabecalho-cards {
-    font-size: 12px;
-    padding: 8px;
+  .title-card-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .dropdowns-titulo {
+    justify-content: center;
+  }
+
+  .area-rolagem {
+    padding: 0 16px 16px;
+  }
+
+  /* Responsivo para vencimento */
+  .card-vencimento-responsivo {
+    display: flex;
+    flex-direction: column-reverse;
   }
 }
 
 @media (max-width: 640px) {
-  .grupo-dropdowns,
-  .grupo-botoes,
-  .grupo-busca {
+  .titulo-pagina {
+    font-size: 20px;
+  }
+
+  .grupo-botoes {
     flex-direction: column;
   }
 
-  .titulo-pagina {
-    font-size: 20px;
+  .estado-carregamento,
+  .estado-vazio,
+  .estado-erro {
+    padding: 24px 16px;
+  }
+
+  .icone-erro,
+  .icone-vazio {
+    font-size: 36px;
   }
 }
 </style>

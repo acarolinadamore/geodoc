@@ -103,7 +103,7 @@ export default {
 }
 
 .content-container {
-  padding: 24px;
+  padding: 10px 16px;
   min-height: calc(100vh - 70px);
 }
 

@@ -13,11 +13,11 @@
       />
     </div>
 
-    <div class="flex flex-col xl:flex-row w-full p-4 xl:p-6 gap-6 xl:gap-4">
+    <div
+      class="flex flex-col xl:flex-row w-full p-4 xl:p-6 gap-6 xl:gap-4 min-h-[120px]"
+    >
       <!-- Coluna 1 - Data/Vencimento (Desktop) -->
-      <div
-        class="hidden xl:flex flex-1 flex-col justify-center items-center min-h-[120px]"
-      >
+      <div class="hidden xl:flex flex-1 flex-col justify-center items-center">
         <GdCardColunaData
           :dataInicio="card.documento?.dataInicio"
           :dataVencimento="card.vencimento"
@@ -25,9 +25,7 @@
       </div>
 
       <!-- Coluna 2 - Remetente -->
-      <div
-        class="flex flex-1 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
-      >
+      <div class="flex flex-1 flex-col justify-start xl:justify-center">
         <GdCardColunaRemetente
           :remetente="card.remetente"
           :type="card.documento?.modelo"
@@ -36,21 +34,19 @@
 
       <!-- Coluna 3 - Documento -->
       <div
-        class="flex w-full xl:w-1/3 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
+        class="flex w-full xl:w-1/3 flex-col justify-start xl:justify-center"
       >
         <GdCardColunaDocumento :documento="card.documento" />
       </div>
 
       <!-- Coluna 4 - Âncoras -->
-      <div
-        class="flex flex-1 flex-col justify-start xl:justify-center min-h-0 xl:min-h-[120px]"
-      >
+      <div class="flex flex-1 flex-col justify-start xl:justify-center">
         <GdCardColunaAncora :projeto="card.ancora" />
       </div>
 
       <!-- Coluna 5 - Ações -->
       <div
-        class="flex flex-1 flex-col gap-3 xl:gap-2 justify-start xl:justify-center items-stretch xl:items-center pt-4 xl:pt-0 border-t xl:border-t-0 border-gray-200 min-h-0 xl:min-h-[120px]"
+        class="flex flex-1 flex-col gap-3 xl:gap-2 justify-start xl:justify-center items-stretch xl:items-center pt-4 xl:pt-0 border-t xl:border-t-0 border-gray-200"
       >
         <GdButton
           v-for="acao in card.acoes"

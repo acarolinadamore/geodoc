@@ -1,10 +1,10 @@
 <template>
-  <div class="gd-search-bar">
-    <div class="search-input-wrapper">
+  <div class="barra-busca">
+    <div class="container-entrada">
       <svg
-        class="search-icon"
-        width="16"
-        height="16"
+        class="icone-busca"
+        width="14"
+        height="14"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -17,7 +17,7 @@
         v-model="searchTerm"
         type="text"
         :placeholder="placeholder"
-        class="search-input"
+        class="campo-entrada"
         @input="handleInput"
         @keyup.enter="handleEnter"
         @focus="handleFocus"
@@ -26,12 +26,12 @@
       <button
         v-if="searchTerm"
         @click="clearSearch"
-        class="clear-button"
+        class="botao-limpar"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width="12"
+          height="12"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -55,7 +55,7 @@ export default {
     },
     placeholder: {
       type: String,
-      default: 'Buscar palavra-chave...',
+      default: 'Buscar...',
     },
     debounce: {
       type: Number,
@@ -70,7 +70,6 @@ export default {
   },
   methods: {
     handleInput() {
-      // Debounce para evitar muitas chamadas
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
         this.$emit('input', this.searchTerm)
@@ -103,69 +102,72 @@ export default {
 </script>
 
 <style scoped>
-.gd-search-bar {
-  position: relative;
-  display: inline-block;
-  min-width: 250px;
+.barra-busca {
+  display: flex;
+  width: 120px;
 }
 
-.search-input-wrapper {
-  position: relative;
+.container-entrada {
   display: flex;
   align-items: center;
-}
-
-.search-input {
   width: 100%;
-  padding: 8px 12px;
-  padding-left: 36px;
-  padding-right: 36px;
+  height: 40px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
   background-color: #ffffff;
   transition: border-color 0.2s ease;
+  gap: 6px;
+  padding: 0 8px;
 }
 
-.search-input:hover {
+.container-entrada:hover {
   border-color: #9ca3af;
 }
 
-.search-input:focus {
-  outline: none;
+.container-entrada:focus-within {
   border-color: #1a82d9;
   box-shadow: 0 0 0 3px rgba(26, 130, 217, 0.1);
 }
 
-.search-input::placeholder {
-  color: #9ca3af;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
+.icone-busca {
+  flex-shrink: 0;
   color: #6b7280;
-  pointer-events: none;
-  z-index: 1;
 }
 
-.clear-button {
-  position: absolute;
-  right: 8px;
-  padding: 4px;
+.campo-entrada {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px; /* 👈 FONTE PADRÃO */
+  font-family: 'Inter', sans-serif;
+  color: #374151;
+  min-width: 0;
+}
+
+.campo-entrada::placeholder {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.botao-limpar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
   background: none;
   border: none;
   color: #6b7280;
   cursor: pointer;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 3px;
   transition: background-color 0.2s ease;
 }
 
-.clear-button:hover {
+.botao-limpar:hover {
   background-color: #f3f4f6;
   color: #374151;
 }
