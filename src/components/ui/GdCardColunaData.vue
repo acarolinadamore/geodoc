@@ -84,7 +84,7 @@ export default {
 }
 
 .gd-data-documento {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 400;
   color: #2f2f2f;
   letter-spacing: -0.025em;

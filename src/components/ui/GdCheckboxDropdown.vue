@@ -2,12 +2,12 @@
   <div class="relative">
     <button
       class="flex items-center px-3 py-2 bg-white border rounded cursor-pointer text-gray-700 hover:bg-gray-50"
-      @click="open = !open"
+      @click="aberto = !aberto"
     >
       <input
         type="checkbox"
         :checked="checkedAll"
-        @change="handleCheckboxChange"
+        @change="manipularMudancaCheckbox"
         @click.stop
         class="form-checkbox h-4 w-4 text-blue-600 rounded"
       />
@@ -26,13 +26,13 @@
       </svg>
     </button>
     <div
-      v-if="open"
+      v-if="aberto"
       class="absolute z-10 left-0 mt-2 w-56 bg-white border rounded shadow"
     >
       <ul>
         <li v-for="action in actions" :key="action.value">
           <button
-            @click="handleAction(action.value)"
+            @click="manipularAcao(action.value)"
             class="block w-full px-4 py-2 text-gray-700 hover:bg-gray-100 text-left"
           >
             {{ action.label }}
@@ -54,17 +54,17 @@ export default {
   },
   data() {
     return {
-      open: false,
+      aberto: false,
     }
   },
   methods: {
-    handleCheckboxChange() {
+    manipularMudancaCheckbox() {
       this.$emit('toggle-all')
     },
 
-    handleAction(val) {
-      this.$emit('action', val)
-      this.open = false
+    manipularAcao(valor) {
+      this.$emit('action', valor)
+      this.aberto = false
     },
   },
 }

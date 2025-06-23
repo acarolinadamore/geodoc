@@ -5,7 +5,7 @@
       alt="Calendário"
       class="calendar-icon"
     />
-    {{ currentDate }}
+    {{ dataAtual }}
   </div>
 </template>
 
@@ -13,22 +13,24 @@
 export default {
   name: 'GdDataAtual',
   data() {
-    const date = new Date().toLocaleDateString('pt-BR', {
+    const data = new Date().toLocaleDateString('pt-BR', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     })
 
-    const capitalizeDate = string => {
-      return string
-        .replace(/^./, string[0].toUpperCase())
+    const capitalizarData = texto => {
+      return texto
+        .replace(/^./, texto[0].toUpperCase())
         .replace(/ de /g, ' ')
-        .replace(/(?:^|\s)([a-z])/g, match => match.toUpperCase())
+        .replace(/(?:^|\s)([a-z])/g, correspondencia =>
+          correspondencia.toUpperCase()
+        )
     }
 
     return {
-      currentDate: capitalizeDate(date),
+      dataAtual: capitalizarData(data),
     }
   },
 }

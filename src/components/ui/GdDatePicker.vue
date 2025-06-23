@@ -2,10 +2,10 @@
   <div class="gd-date-picker">
     <div class="date-input-wrapper">
       <input
-        ref="dateInput"
+        ref="entradaData"
         type="text"
         :placeholder="placeholder"
-        :value="displayValue"
+        :value="valorExibicao"
         readonly
         class="date-input"
       />
@@ -40,34 +40,32 @@ export default {
     },
     placeholder: {
       type: String,
-      default: 'Selecionar período', // ← Mudado para placeholder vazio
+      default: 'Selecionar período',
     },
   },
   data() {
     return {
-      datepicker: null,
-      displayValue: '',
+      seletorData: null,
+      valorExibicao: '',
     }
   },
   mounted() {
-    this.initDatepicker()
+    this.inicializarSeletorData()
   },
   beforeDestroy() {
-    if (this.datepicker) {
-      this.datepicker.destroy()
+    if (this.seletorData) {
+      this.seletorData.destroy()
     }
   },
   methods: {
-    initDatepicker() {
-      this.datepicker = new AirDatepicker(this.$refs.dateInput, {
-        // Configuração específica para intervalo
+    inicializarSeletorData() {
+      this.seletorData = new AirDatepicker(this.$refs.entradaData, {
         range: true,
         multipleDatesSeparator: ' - ',
-        dateFormat: 'dd MMM yyyy', // Formato igual ao protótipo
-        autoClose: true,
+        dateFormat: 'dd/MM',
+        autoClose: false,
         position: 'bottom left',
 
-        // Localização PT-BR
         locale: {
           days: [
             'Domingo',
@@ -110,18 +108,27 @@ export default {
           ],
           today: 'Hoje',
           clear: 'Limpar',
-          dateFormat: 'dd MMM yyyy',
+          dateFormat: 'dd/MM',
           firstDay: 0,
         },
 
-        // Callbacks
         onSelect: ({ date, formattedDate }) => {
-          this.displayValue = formattedDate
+          this.valorExibicao = formattedDate
           this.$emit('input', date)
           this.$emit('change', { date, formattedDate })
         },
 
         onHide: () => {
+          if (this.seletorData && this.seletorData.selectedDates.length === 1) {
+            const dataUnica = this.seletorData.selectedDates[0]
+            const dataFormatada = this.formatarDataUnica(dataUnica)
+            this.valorExibicao = dataFormatada
+            this.$emit('input', dataUnica)
+            this.$emit('change', {
+              date: dataUnica,
+              formattedDate: dataFormatada,
+            })
+          }
           this.$emit('close')
         },
 
@@ -130,51 +137,46 @@ export default {
         },
       })
 
-      // ✅ CORREÇÃO: Só define valor inicial se for passado via prop
       if (this.value) {
-        this.datepicker.selectDate(this.value)
+        this.seletorData.selectDate(this.value)
       }
-      // ❌ REMOVIDO: Valor padrão automático
-      // else {
-      //   const startDate = new Date(2025, 3, 15) // 15 Abr 2025
-      //   const endDate = new Date(2025, 3, 30) // 30 Abr 2025
-      //   this.datepicker.selectDate([startDate, endDate])
-      // }
     },
 
-    // ✅ NOVO: Método para limpar o datepicker
-    clear() {
-      if (this.datepicker) {
-        this.datepicker.clear()
-        this.displayValue = ''
+    formatarDataUnica(data) {
+      const dia = String(data.getDate()).padStart(2, '0')
+      const mes = String(data.getMonth() + 1).padStart(2, '0')
+      return `${dia}/${mes}`
+    },
+
+    limpar() {
+      if (this.seletorData) {
+        this.seletorData.clear()
+        this.valorExibicao = ''
         this.$emit('input', null)
         this.$emit('change', { date: null, formattedDate: '' })
       }
     },
 
-    // ✅ NOVO: Método para definir datas programaticamente
-    setDates(dates) {
-      if (this.datepicker && dates) {
-        this.datepicker.selectDate(dates)
+    definirDatas(datas) {
+      if (this.seletorData && datas) {
+        this.seletorData.selectDate(datas)
       }
     },
   },
 
   watch: {
-    value(newValue) {
-      if (this.datepicker) {
-        if (newValue) {
-          // Se há um novo valor, seleciona
+    value(novoValor) {
+      if (this.seletorData) {
+        if (novoValor) {
           if (
-            JSON.stringify(newValue) !==
-            JSON.stringify(this.datepicker.selectedDates)
+            JSON.stringify(novoValor) !==
+            JSON.stringify(this.seletorData.selectedDates)
           ) {
-            this.datepicker.selectDate(newValue)
+            this.seletorData.selectDate(novoValor)
           }
         } else {
-          // Se o valor é null/undefined, limpa o datepicker
-          this.datepicker.clear()
-          this.displayValue = ''
+          this.seletorData.clear()
+          this.valorExibicao = ''
         }
       }
     },
@@ -226,16 +228,15 @@ export default {
 .calendar-icon {
   position: absolute;
   right: 12px;
-  color: #6b7280;
+  color: #1a82d9;
   pointer-events: none;
   transition: color 0.2s ease;
 }
 
 .date-input:hover + .calendar-icon {
-  color: #374151;
+  color: #1565c0;
 }
 
-/* Customização do Air Datepicker para match com o protótipo */
 :global(.air-datepicker) {
   font-family: 'Inter', sans-serif !important;
   border: 1px solid #e5e7eb !important;
@@ -290,14 +291,13 @@ export default {
   color: #1a82d9 !important;
 }
 
-/* Responsividade */
 @media (max-width: 640px) {
   .gd-date-picker {
     min-width: 100%;
   }
 
   .date-input {
-    font-size: 16px; /* Evita zoom no iOS */
+    font-size: 16px;
   }
 }
 </style>

@@ -8,31 +8,55 @@
       <div class="header-fixo">
         <div class="header-content">
           <!-- Título da Página -->
-          <div class="flex pt-2">
+          <div class="flex pt-3 pb-1">
             <h1 class="text-xl font-semibold text-gray-700 m-0">
               Caixa de Entrada
             </h1>
           </div>
 
           <!-- Filtros de Clique -->
-          <div class="flex flex-col">
+          <div class="flex flex-col gap-1">
             <GdFilterBar />
             <GdFilterBarBadge
-              :initial-tabs="filterTabs"
+              :initial-tabs="abasFiltro"
               @filter-change="alterarFiltro"
               @marker-added="adicionarMarcador"
             />
           </div>
 
           <!-- Botoes - Search e DatePicker -->
-          <div class="flex justify-between items-center gap-4 mt-2">
-            <div class="flex gap-2 flex-wrap">
+          <div
+            class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mt-2"
+          >
+            <!-- Search e DatePicker - aparecem primeiro no mobile -->
+            <div
+              class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto order-1 lg:order-2"
+            >
+              <GdSearchBar
+                v-model="termoBusca"
+                @search="buscar"
+                @clear="limparBusca"
+                class="w-full lg:w-auto"
+              />
+              <GdDatePicker
+                v-model="intervaloData"
+                :placeholder="'Selecionar período'"
+                @change="alterarData"
+                class="w-full lg:w-auto"
+              />
+            </div>
+
+            <!-- Botões - aparecem depois no mobile -->
+            <div
+              class="flex gap-2 flex-wrap w-full lg:w-auto order-2 lg:order-1"
+            >
               <GdButton
                 label="Atribuir em Lotes"
                 variant="outlined"
                 border-color="#37c989"
                 text-color="#37c989"
                 @click="atribuirEmLotes"
+                class="flex-1 lg:flex-none"
               />
               <GdButton
                 label="Atribuir a mim"
@@ -40,6 +64,7 @@
                 border-color="#37c989"
                 text-color="#37c989"
                 @click="atribuirAMim"
+                class="flex-1 lg:flex-none"
               />
               <GdButton
                 label="Aprovar"
@@ -48,6 +73,7 @@
                 bg-color="#37c989"
                 text-color="#ffffff"
                 @click="aprovar"
+                class="flex-1 lg:flex-none"
               />
               <GdButton
                 label="Agrupar"
@@ -55,26 +81,13 @@
                 bg-color="#1a82d9"
                 text-color="#ffffff"
                 @click="agrupar"
-              />
-            </div>
-
-            <div class="flex gap-3 items-center">
-              <GdSearchBar
-                v-model="termoBusca"
-                @search="buscar"
-                @clear="limparBusca"
-              />
-              <GdDatePicker
-                v-model="intervaloData"
-                :placeholder="'Selecionar período'"
-                @change="alterarData"
+                class="flex-1 lg:flex-none"
               />
             </div>
           </div>
-
           <!-- Indicador de filtros ativos -->
           <div
-            v-if="temFiltrosAtivos"
+            v-if="possuiFiltrosAtivos"
             class="flex justify-between items-center p-2 bg-gray-50 border border-gray-200 rounded-md gap-3"
             role="status"
             aria-live="polite"
@@ -130,7 +143,7 @@
             <div class="flex gap-2 items-center">
               <GdCheckboxDropdown
                 :checked-all="todosCardsSelecionados"
-                :actions="acaoesCheckbox"
+                :actions="acoesCheckbox"
                 @toggle-all="alternarTodos"
                 @action="executarAcaoCheckbox"
               />
@@ -278,8 +291,7 @@ export default {
   },
   data() {
     return {
-      // Filtros Badge - MODELOS de documento da caixa de entrada
-      filterTabs: [
+      abasFiltro: [
         { id: 'todos', label: 'Todos', count: 10, color: '#1a82d9' },
         {
           id: 'solicitacao-fabrica-software',
@@ -318,8 +330,7 @@ export default {
         },
       ],
 
-      // Opções do dropdown checkbox
-      acaoesCheckbox: [
+      acoesCheckbox: [
         { label: 'Marcar como não lido', value: 'marcar-nao-lido' },
         { label: 'Aprovar', value: 'aprovar' },
         { label: 'Atualizar Fluxo', value: 'atualizar-fluxo' },
@@ -332,7 +343,6 @@ export default {
         { label: 'Vincular Pasta Digital', value: 'vincular-pasta' },
       ],
 
-      // Opções do dropdown enviar para (marcações/pastas)
       opcoesEnviarPara: [
         { label: 'Diretoria', value: 'diretoria', color: '#2563eb' },
         { label: 'Negócios', value: 'negocios', color: '#16a34a' },
@@ -343,7 +353,7 @@ export default {
       ],
 
       todosCards: [],
-      cardsSelecionados: [], // ✅ Array para gerenciar cards selecionados
+      cardsSelecionados: [],
       carregando: false,
       erro: null,
       contadorTentativas: 0,
@@ -355,10 +365,15 @@ export default {
     }
   },
   computed: {
-    temFiltrosAtivos() {
+    possuiFiltrosAtivos() {
       return (
         !!(this.termoBusca && this.termoBusca.trim()) ||
-        !!(this.intervaloData && this.intervaloData.length === 2)
+        !!(
+          this.intervaloData &&
+          ((Array.isArray(this.intervaloData) &&
+            this.intervaloData.length > 0) ||
+            this.intervaloData instanceof Date)
+        )
       )
     },
 
@@ -372,48 +387,41 @@ export default {
   },
 
   methods: {
-    // ✅ Handler para seleção individual de cards
     alternarSelecaoCard(cardId) {
-      console.log('🔄 Alternar seleção do card:', cardId)
+      console.log('Alternar seleção do card:', cardId)
 
       const indice = this.cardsSelecionados.indexOf(cardId)
 
       if (indice > -1) {
-        // Card já está selecionado, remove da seleção
         this.cardsSelecionados.splice(indice, 1)
-        console.log('➖ Card desselecionado:', cardId)
+        console.log('Card desselecionado:', cardId)
       } else {
-        // Card não está selecionado, adiciona à seleção
         this.cardsSelecionados.push(cardId)
-        console.log('➕ Card selecionado:', cardId)
+        console.log('Card selecionado:', cardId)
       }
 
-      console.log('📋 Cards selecionados:', this.cardsSelecionados)
-
-      // Atualizar estado do checkbox "selecionar todos"
+      console.log('Cards selecionados:', this.cardsSelecionados)
       this.atualizarEstadoTodosSelecionados()
     },
 
-    // ✅ Handler para ações em grupo por modelo
     executarAcaoModelo({ action, modelo, cardIds }) {
-      console.log('🎯 Ação do modelo:', { action, modelo, cardIds })
+      console.log('Ação do modelo:', { action, modelo, cardIds })
 
       switch (action) {
         case 'atribuir':
-          console.log(`📌 Atribuindo todos os cards do modelo "${modelo}"`)
+          console.log(`Atribuindo todos os cards do modelo "${modelo}"`)
           break
         case 'aprovar':
-          console.log(`✅ Aprovando todos os cards do modelo "${modelo}"`)
+          console.log(`Aprovando todos os cards do modelo "${modelo}"`)
           break
         case 'processar':
-          console.log(`⚙️ Processando conciliação para modelo "${modelo}"`)
+          console.log(`Processando conciliação para modelo "${modelo}"`)
           break
         default:
-          console.log(`🔧 Executando ação "${action}" para modelo "${modelo}"`)
+          console.log(`Executando ação "${action}" para modelo "${modelo}"`)
       }
     },
 
-    // ✅ Atualizar estado do checkbox "selecionar todos"
     atualizarEstadoTodosSelecionados() {
       const totalCardsVisiveis = this.cardsFiltrados.length
       const cardsVisiveisSelecionados = this.cardsFiltrados.filter(card =>
@@ -425,44 +433,40 @@ export default {
         cardsVisiveisSelecionados === totalCardsVisiveis
 
       console.log(
-        `📊 Estado "todos selecionados": ${this.todosCardsSelecionados} (${cardsVisiveisSelecionados}/${totalCardsVisiveis})`
+        `Estado "todos selecionados": ${this.todosCardsSelecionados} (${cardsVisiveisSelecionados}/${totalCardsVisiveis})`
       )
     },
 
-    // ✅ Handler do checkbox "selecionar todos" do header
     alternarTodos() {
       console.log(
-        '🔄 Alternar todos os cards - Estado atual:',
+        'Alternar todos os cards - Estado atual:',
         this.todosCardsSelecionados
       )
 
       if (this.todosCardsSelecionados) {
-        // Desselecionar todos os cards visíveis
         this.cardsFiltrados.forEach(card => {
           const indice = this.cardsSelecionados.indexOf(card.id)
           if (indice > -1) {
             this.cardsSelecionados.splice(indice, 1)
           }
         })
-        console.log('➖ Todos os cards visíveis foram desselecionados')
+        console.log('Todos os cards visíveis foram desselecionados')
       } else {
-        // Selecionar todos os cards visíveis
         this.cardsFiltrados.forEach(card => {
           if (!this.cardsSelecionados.includes(card.id)) {
             this.cardsSelecionados.push(card.id)
           }
         })
-        console.log('➕ Todos os cards visíveis foram selecionados')
+        console.log('Todos os cards visíveis foram selecionados')
       }
 
       this.atualizarEstadoTodosSelecionados()
       console.log(
-        '📋 Cards selecionados após alternar todos:',
+        'Cards selecionados após alternar todos:',
         this.cardsSelecionados
       )
     },
 
-    // === CARREGAMENTO DE DADOS ===
     async carregarCards() {
       try {
         this.carregando = true
@@ -471,13 +475,9 @@ export default {
         const cards = await cardService.getCards()
         this.todosCards = Array.isArray(cards) ? cards : []
 
-        // Atualizar contadores dos modelos
         this.atualizarContadoresModelo()
-
-        // ✅ Limpar seleções ao recarregar
         this.cardsSelecionados = []
         this.todosCardsSelecionados = false
-
         this.contadorTentativas = 0
       } catch (error) {
         console.error('Erro ao carregar cards:', error)
@@ -493,15 +493,12 @@ export default {
       }
     },
 
-    // Atualizar contadores baseado nos modelos dos cards
     atualizarContadoresModelo() {
-      // Contar total
       const totalContador = this.todosCards.length
-      const abaTotal = this.filterTabs.find(tab => tab.id === 'todos')
+      const abaTotal = this.abasFiltro.find(tab => tab.id === 'todos')
       if (abaTotal) abaTotal.count = totalContador
 
-      // Contar por modelo
-      this.filterTabs.forEach(tab => {
+      this.abasFiltro.forEach(tab => {
         if (tab.modelo) {
           const contador = this.todosCards.filter(
             card => card.documento?.modelo === tab.modelo
@@ -529,11 +526,9 @@ export default {
       this.contadorTentativas = 0
     },
 
-    // === LÓGICA DE FILTROS ===
     obterCardsFiltrados() {
       let filtrados = [...this.todosCards]
 
-      // Filtro por modelo (aba ativa)
       if (this.filtroAbaAtiva && this.filtroAbaAtiva !== 'todos') {
         filtrados = this.filtrarPorModelo(filtrados)
       }
@@ -542,16 +537,19 @@ export default {
         filtrados = this.filtrarPorBusca(filtrados)
       }
 
-      if (this.intervaloData?.length === 2) {
+      if (
+        this.intervaloData &&
+        ((Array.isArray(this.intervaloData) && this.intervaloData.length > 0) ||
+          this.intervaloData instanceof Date)
+      ) {
         filtrados = this.filtrarPorData(filtrados)
       }
 
       return this.ordenarCardsPorVencimento(filtrados)
     },
 
-    // Filtro por modelo do documento
     filtrarPorModelo(cards) {
-      const abaAtiva = this.filterTabs.find(
+      const abaAtiva = this.abasFiltro.find(
         tab => tab.id === this.filtroAbaAtiva
       )
       if (!abaAtiva || !abaAtiva.modelo) return cards
@@ -584,7 +582,23 @@ export default {
     },
 
     filtrarPorData(cards) {
-      const [dataInicio, dataFim] = this.intervaloData
+      let dataInicio, dataFim
+
+      if (this.intervaloData instanceof Date) {
+        dataInicio = dataFim = this.intervaloData
+      } else if (
+        Array.isArray(this.intervaloData) &&
+        this.intervaloData.length === 1
+      ) {
+        dataInicio = dataFim = this.intervaloData[0]
+      } else if (
+        Array.isArray(this.intervaloData) &&
+        this.intervaloData.length === 2
+      ) {
+        ;[dataInicio, dataFim] = this.intervaloData
+      } else {
+        return cards
+      }
 
       return cards.filter(card => {
         const dataInicioCard = this.analisarDataCard(card.documento?.dataInicio)
@@ -606,20 +620,16 @@ export default {
         const dataA = this.analisarVencimentoCard(a)
         const dataB = this.analisarVencimentoCard(b)
 
-        // Cards sem data vão para o final
         if (!dataA && !dataB) return 0
         if (!dataA) return 1
         if (!dataB) return -1
 
-        // Ordenação crescente (mais vencidos primeiro)
         return dataA - dataB
       })
     },
 
-    // === HANDLERS DE FILTROS ===
     buscar(termo) {
       this.termoBusca = termo || ''
-      // Atualizar estado de seleção após filtro
       this.$nextTick(() => {
         this.atualizarEstadoTodosSelecionados()
       })
@@ -633,8 +643,7 @@ export default {
     },
 
     alterarData({ date }) {
-      this.intervaloData =
-        Array.isArray(date) && date.length === 2 ? date : null
+      this.intervaloData = date
       this.$nextTick(() => {
         this.atualizarEstadoTodosSelecionados()
       })
@@ -655,34 +664,29 @@ export default {
       })
     },
 
-    // === HANDLERS DOS DROPDOWNS ===
     executarAcaoCheckbox(acao) {
       console.log(
-        '🔧 Ação do checkbox:',
+        'Ação do checkbox:',
         acao,
         'Cards selecionados:',
         this.cardsSelecionados
       )
 
       if (this.cardsSelecionados.length === 0) {
-        console.log('⚠️ Nenhum card selecionado para executar a ação')
+        console.log('Nenhum card selecionado para executar a ação')
         return
       }
 
-      // Aqui você pode implementar as ações específicas
       switch (acao) {
         case 'aprovar':
-          console.log(
-            '✅ Aprovando cards selecionados:',
-            this.cardsSelecionados
-          )
+          console.log('Aprovando cards selecionados:', this.cardsSelecionados)
           break
         case 'atribuir-mim':
-          console.log('📌 Atribuindo cards a mim:', this.cardsSelecionados)
+          console.log('Atribuindo cards a mim:', this.cardsSelecionados)
           break
         default:
           console.log(
-            `🔧 Executando ação "${acao}" nos cards:`,
+            `Executando ação "${acao}" nos cards:`,
             this.cardsSelecionados
           )
       }
@@ -690,24 +694,21 @@ export default {
 
     enviarPara(marcador) {
       console.log(
-        '📤 Enviar para:',
+        'Enviar para:',
         marcador,
         'Cards selecionados:',
         this.cardsSelecionados
       )
     },
 
-    // === UTILITÁRIOS DE DATA ===
     analisarDataCard(stringData) {
       if (!stringData) return null
 
       try {
-        // Para formato ISO: "2025-04-15T08:30:00"
         if (stringData.includes('T')) {
           return new Date(stringData)
         }
 
-        // Para formato BR: "15/04/2025"
         const partes = stringData.split('/')
         if (partes.length !== 3) return null
 
@@ -765,29 +766,38 @@ export default {
     formatarIntervaloData(intervaloData) {
       if (
         !intervaloData ||
-        !Array.isArray(intervaloData) ||
-        intervaloData.length !== 2
+        (!Array.isArray(intervaloData) && !(intervaloData instanceof Date))
       ) {
         return ''
       }
 
-      const [inicio, fim] = intervaloData
       const formatarData = data => {
         try {
-          return data.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
+          const dia = String(data.getDate()).padStart(2, '0')
+          const mes = String(data.getMonth() + 1).padStart(2, '0')
+          return `${dia}/${mes}`
         } catch (error) {
           return 'Data inválida'
         }
       }
 
-      return `${formatarData(inicio)} - ${formatarData(fim)}`
+      if (intervaloData instanceof Date) {
+        return formatarData(intervaloData)
+      }
+
+      if (Array.isArray(intervaloData)) {
+        if (intervaloData.length === 1) {
+          return formatarData(intervaloData[0])
+        }
+        if (intervaloData.length === 2) {
+          const [inicio, fim] = intervaloData
+          return `${formatarData(inicio)} - ${formatarData(fim)}`
+        }
+      }
+
+      return ''
     },
 
-    // === OUTROS HANDLERS ===
     alterarFiltro(idAba) {
       this.filtroAbaAtiva = idAba
       console.log('Filtro ativo por modelo:', idAba)
@@ -873,7 +883,6 @@ export default {
   padding: 0 16px;
 }
 
-/* Classe para acessibilidade */
 .texto-acessibilidade {
   position: absolute;
   width: 1px;
@@ -890,6 +899,12 @@ export default {
   color: #b7b7b7;
   font-size: 12px;
   font-weight: 400;
+}
+
+.inline-flex span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {

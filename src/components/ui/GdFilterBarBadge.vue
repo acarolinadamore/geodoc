@@ -3,10 +3,10 @@
     <div
       class="tabs-container"
       ref="tabsContainer"
-      @mousedown="startDrag"
-      @mousemove="onDrag"
-      @mouseup="endDrag"
-      @mouseleave="endDrag"
+      @mousedown="iniciarArrastar"
+      @mousemove="aoArrastar"
+      @mouseup="finalizarArrastar"
+      @mouseleave="finalizarArrastar"
     >
       <button
         v-for="tab in tabs"
@@ -18,23 +18,30 @@
             'gd-text-gray': activeTabId !== tab.id,
           },
         ]"
-        @click="setActiveTab(tab.id)"
+        @click="definirTabAtiva(tab.id)"
         @mousedown.stop
         type="button"
       >
-        <!-- Círculo com iniciais -->
+        <!-- Círculo com iniciais - apenas para tabs que não são "Todos" -->
         <div
+          v-if="tab.id !== 'todos'"
           class="avatar-circle"
           :style="{ backgroundColor: tab.color || '#1a82d9' }"
         >
-          {{ getInitials(tab.label) }}
+          {{ obterIniciais(tab.label) }}
         </div>
 
         <!-- Label -->
         <span class="tab-label">{{ tab.label }}</span>
 
-        <!-- Badge contador -->
-        <div class="count-badge" v-if="tab.count !== undefined">
+        <!-- Badge contador-->
+        <div
+          :class="[
+            'count-badge',
+            { 'circulo-pequeno-ativo': activeTabId === tab.id },
+          ]"
+          v-if="tab.count !== undefined"
+        >
           {{ tab.count }}
         </div>
       </button>
@@ -70,63 +77,63 @@ export default {
     return {
       tabs: JSON.parse(JSON.stringify(this.initialTabs)),
       activeTabId: this.initialActiveTabId,
-      isDragging: false,
-      startX: 0,
-      scrollLeft: 0,
+      estaArrastando: false,
+      inicioX: 0,
+      scrollEsquerda: 0,
     }
   },
   watch: {
     initialTabs: {
-      handler(newTabs) {
-        this.tabs = JSON.parse(JSON.stringify(newTabs))
+      handler(novasTabs) {
+        this.tabs = JSON.parse(JSON.stringify(novasTabs))
         if (
-          newTabs.length > 0 &&
-          !newTabs.find(tab => tab.id === this.activeTabId)
+          novasTabs.length > 0 &&
+          !novasTabs.find(tab => tab.id === this.activeTabId)
         ) {
-          this.activeTabId = newTabs[0].id
-        } else if (newTabs.length === 0) {
+          this.activeTabId = novasTabs[0].id
+        } else if (novasTabs.length === 0) {
           this.activeTabId = null
         }
       },
       deep: true,
     },
-    initialActiveTabId(newId) {
-      this.activeTabId = newId
+    initialActiveTabId(novoId) {
+      this.activeTabId = novoId
     },
   },
   methods: {
-    getInitials(name) {
-      return name
+    obterIniciais(nome) {
+      return nome
         .split(' ')
-        .filter(word => word.length > 2)
-        .map(word => word.charAt(0).toUpperCase())
+        .filter(palavra => palavra.length > 2)
+        .map(palavra => palavra.charAt(0).toUpperCase())
         .slice(0, 2)
         .join('')
     },
-    setActiveTab(tabId) {
-      if (!this.isDragging) {
+    definirTabAtiva(tabId) {
+      if (!this.estaArrastando) {
         this.activeTabId = tabId
         this.$emit('filter-change', tabId)
       }
     },
-    startDrag(e) {
-      this.isDragging = true
-      this.startX = e.pageX - this.$refs.tabsContainer.offsetLeft
-      this.scrollLeft = this.$refs.tabsContainer.scrollLeft
+    iniciarArrastar(evento) {
+      this.estaArrastando = true
+      this.inicioX = evento.pageX - this.$refs.tabsContainer.offsetLeft
+      this.scrollEsquerda = this.$refs.tabsContainer.scrollLeft
       this.$refs.tabsContainer.style.cursor = 'grabbing'
     },
-    onDrag(e) {
-      if (!this.isDragging) return
-      e.preventDefault()
-      const x = e.pageX - this.$refs.tabsContainer.offsetLeft
-      const walk = (x - this.startX) * 2
-      this.$refs.tabsContainer.scrollLeft = this.scrollLeft - walk
+    aoArrastar(evento) {
+      if (!this.estaArrastando) return
+      evento.preventDefault()
+      const x = evento.pageX - this.$refs.tabsContainer.offsetLeft
+      const movimento = (x - this.inicioX) * 2
+      this.$refs.tabsContainer.scrollLeft = this.scrollEsquerda - movimento
     },
-    endDrag() {
-      this.isDragging = false
+    finalizarArrastar() {
+      this.estaArrastando = false
       this.$refs.tabsContainer.style.cursor = 'grab'
       setTimeout(() => {
-        this.isDragging = false
+        this.estaArrastando = false
       }, 100)
     },
   },
@@ -139,14 +146,14 @@ export default {
   align-items: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  padding: 4px 0;
+  padding: 2px 0;
   width: 100%;
 }
 
 .tabs-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -170,21 +177,21 @@ export default {
 }
 
 .filter-tab-badge {
-  padding: 7px 16px;
-  border-radius: 80px;
-  border-width: 1.5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border-width: 1px;
   border-style: solid;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.4;
   text-align: center;
   transition: background-color 0.2s ease, color 0.2s ease,
     border-color 0.2s ease;
   background-color: #ffffff;
   border-color: #d1d5db;
   color: #656565;
-  height: 36px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +199,7 @@ export default {
   flex-shrink: 0;
   min-width: fit-content;
   pointer-events: auto;
-  gap: 8px;
+  gap: 6px;
 }
 
 .filter-tab-badge.active {
@@ -201,29 +208,19 @@ export default {
   border-color: #1a82d9;
 }
 
-.filter-tab-badge.active .avatar-circle {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff;
-}
-
-.filter-tab-badge.active .count-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
 .filter-tab-badge:not(.active):hover {
   border-color: #1a82d9;
   color: #1a82d9;
 }
 
 .avatar-circle {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 600;
   color: #ffffff;
   flex-shrink: 0;
@@ -236,39 +233,48 @@ export default {
 .count-badge {
   background-color: #f3f4f6;
   color: #374151;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 12px;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
   font-weight: 500;
-  min-width: 20px;
-  height: 20px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.circulo-pequeno-ativo {
+  background-color: #4cb6f4 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 @media (max-width: 768px) {
   .tabs-container {
-    gap: 6px;
+    gap: 4px;
   }
 
   .filter-tab-badge {
-    gap: 6px;
-    padding: 7px 12px;
+    gap: 4px;
+    padding: 4px 10px;
+    height: 26px;
+    font-size: 12px;
   }
 
   .avatar-circle {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
+    width: 14px;
+    height: 14px;
+    font-size: 7px;
   }
 
   .count-badge {
-    font-size: 11px;
-    padding: 1px 6px;
-    min-width: 18px;
-    height: 18px;
+    font-size: 10px;
+    padding: 1px 5px;
+    min-width: 14px;
+    height: 14px;
   }
 }
 </style>

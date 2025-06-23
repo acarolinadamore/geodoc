@@ -1,9 +1,6 @@
 <template>
   <div
-    :class="[
-      'bg-white rounded-lg shadow-md w-full flex flex-col xl:flex-row card-container cursor-pointer',
-      { 'card-selected': selected },
-    ]"
+    :class="['card-container', { 'card-selected': selected }]"
     @click="handleCardClick"
   >
     <!-- Coluna Data/Vencimento - Mobile (topo) -->
@@ -94,7 +91,6 @@ export default {
   },
   methods: {
     handleCardClick() {
-      // Emite evento para o componente pai selecionar/desselecionar o card
       this.$emit('toggle-selection', this.card.id)
     },
   },
@@ -102,56 +98,47 @@ export default {
 </script>
 
 <style scoped>
-/* Card padrão - branco com sombra sutil */
 .card-container {
-  border: 0.7px solid transparent !important;
-  border-width: 0.7px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  background-color: white !important;
+  --card-border-width: 1.6px;
 }
 
-/* Card selecionado - GLOW AZUL MUITO SUTIL COM COR CORRETA */
+.card-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: var(--card-border-width) solid #e5e7eb;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+@media (min-width: 1280px) {
+  .card-container {
+    flex-direction: row;
+  }
+}
+
 .card-container.card-selected {
-  border-color: #1988c8 !important; /* ✅ Removido verde, só azul */
-  border-width: 0.7px !important;
-  background-color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 173, 229, 0.1),
-    /* ✅ Azul #00ADE5 */ 0 0 8px rgba(0, 173, 229, 0.08),
-    0 0 16px rgba(0, 173, 229, 0.05) !important;
+  border-color: #489be1;
+  border-width: var(--card-border-width);
+  background-color: white;
 }
 
-/* Hover no card não selecionado - glow quase invisível */
 .card-container:hover:not(.card-selected) {
-  border-color: rgba(0, 173, 229, 0.15) !important; /* ✅ Azul #00ADE5 */
-  border-width: 0.7px !important;
-  background-color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 173, 229, 0.05),
-    0 0 6px rgba(0, 173, 229, 0.04) !important;
-  transform: translateY(-0.5px) !important;
+  border-color: #489be1;
+  border-width: var(--card-border-width);
+  background-color: white;
+  transform: translateY(-1px);
 }
 
-/* Hover no card selecionado - glow ligeiramente mais visível */
 .card-container.card-selected:hover {
-  background-color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 173, 229, 0.15),
-    /* ✅ Azul #00ADE5 */ 0 0 10px rgba(0, 173, 229, 0.1),
-    0 0 20px rgba(0, 173, 229, 0.08) !important;
-  transform: translateY(-0.5px) !important;
+  background-color: white;
+  transform: translateY(-1px);
 }
 
-/* Garante que o conteúdo interno permaneça branco */
-.card-container * {
-  box-sizing: border-box;
-}
-
-/* Força o fundo branco em todos os elementos internos */
 .card-container > * {
-  background-color: transparent !important;
-}
-
-/* Cursor pointer para indicar que é clicável */
-.card-container {
-  cursor: pointer !important;
+  background-color: transparent;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="barra-busca">
+  <div class="searchbar">
     <div class="container-entrada">
       <svg
         class="icone-busca"
@@ -17,7 +17,7 @@
         v-model="searchTerm"
         type="text"
         :placeholder="placeholder"
-        class="campo-entrada"
+        class="input-entrada"
         @input="handleInput"
         @keyup.enter="handleEnter"
         @focus="handleFocus"
@@ -102,9 +102,9 @@ export default {
 </script>
 
 <style scoped>
-.barra-busca {
+.searchbar {
   display: flex;
-  width: 120px;
+  width: 100%;
 }
 
 .container-entrada {
@@ -134,7 +134,7 @@ export default {
   color: #6b7280;
 }
 
-.campo-entrada {
+.input-entrada {
   flex: 1;
   height: 100%;
   border: none;
@@ -146,7 +146,7 @@ export default {
   min-width: 0;
 }
 
-.campo-entrada::placeholder {
+.input-entrada::placeholder {
   color: #9ca3af;
   font-size: 14px;
 }

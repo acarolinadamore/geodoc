@@ -3,10 +3,10 @@
     <div
       class="tabs-container"
       ref="tabsContainer"
-      @mousedown="startDrag"
-      @mousemove="onDrag"
-      @mouseup="endDrag"
-      @mouseleave="endDrag"
+      @mousedown="iniciarArrastar"
+      @mousemove="aoArrastar"
+      @mouseup="finalizarArrastar"
+      @mouseleave="finalizarArrastar"
     >
       <button
         v-for="tab in tabs"
@@ -18,7 +18,7 @@
             'gd-text-gray': activeTabId !== tab.id,
           },
         ]"
-        @click="setActiveTab(tab.id)"
+        @click="definirTabAtiva(tab.id)"
         @mousedown.stop
         type="button"
       >
@@ -27,28 +27,28 @@
     </div>
 
     <div class="add-button-wrapper">
-      <button class="add-button" @click.stop="openModal" type="button">
+      <button class="add-button" @click.stop="abrirModal" type="button">
         +
       </button>
     </div>
 
-    <!-- ✅ SUBSTITUÍDO: Teleport por div normal -->
-    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+    <!-- Modal -->
+    <div v-if="mostrarModal" class="modal-overlay" @click="fecharModal">
       <div class="modal-container modal-small" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">Adicionar Marcador</h3>
-          <button class="modal-close" @click="closeModal">×</button>
+          <button class="modal-close" @click="fecharModal">×</button>
         </div>
 
         <div class="modal-body">
           <div class="form-group">
             <input
               id="markerName"
-              v-model="newMarkerName"
+              v-model="novoNomeMarcador"
               type="text"
               class="form-input"
               placeholder="Nome do marcador"
-              @keyup.enter="addMarker"
+              @keyup.enter="adicionarMarcador"
               ref="markerInput"
             />
           </div>
@@ -56,13 +56,13 @@
 
         <div class="modal-footer">
           <div class="modal-actions">
-            <button class="btn btn-secondary" @click="closeModal">
+            <button class="btn btn-secondary" @click="fecharModal">
               Cancelar
             </button>
             <button
               class="btn btn-primary"
-              @click="addMarker"
-              :disabled="!newMarkerName.trim()"
+              @click="adicionarMarcador"
+              :disabled="!novoNomeMarcador.trim()"
             >
               Adicionar
             </button>
@@ -96,33 +96,33 @@ export default {
     return {
       tabs: JSON.parse(JSON.stringify(this.initialTabs)),
       activeTabId: this.initialActiveTabId,
-      isDragging: false,
-      startX: 0,
-      scrollLeft: 0,
-      showModal: false,
-      newMarkerName: '',
+      estaArrastando: false,
+      inicioX: 0,
+      scrollEsquerda: 0,
+      mostrarModal: false,
+      novoNomeMarcador: '',
     }
   },
   watch: {
     initialTabs: {
-      handler(newTabs) {
-        this.tabs = JSON.parse(JSON.stringify(newTabs))
+      handler(novasTabs) {
+        this.tabs = JSON.parse(JSON.stringify(novasTabs))
         if (
-          newTabs.length > 0 &&
-          !newTabs.find(tab => tab.id === this.activeTabId)
+          novasTabs.length > 0 &&
+          !novasTabs.find(tab => tab.id === this.activeTabId)
         ) {
-          this.activeTabId = newTabs[0].id
-        } else if (newTabs.length === 0) {
+          this.activeTabId = novasTabs[0].id
+        } else if (novasTabs.length === 0) {
           this.activeTabId = null
         }
       },
       deep: true,
     },
-    initialActiveTabId(newId) {
-      this.activeTabId = newId
+    initialActiveTabId(novoId) {
+      this.activeTabId = novoId
     },
-    showModal(newValue) {
-      if (newValue) {
+    mostrarModal(novoValor) {
+      if (novoValor) {
         document.body.style.overflow = 'hidden'
         this.$nextTick(() => {
           if (this.$refs.markerInput) {
@@ -134,81 +134,79 @@ export default {
       }
     },
   },
-  // ✅ CORRIGIDO: Vue 2 usa beforeDestroy, não beforeUnmount
   beforeDestroy() {
     document.body.style.overflow = ''
   },
   methods: {
-    setActiveTab(tabId) {
-      if (!this.isDragging) {
+    definirTabAtiva(tabId) {
+      if (!this.estaArrastando) {
         this.activeTabId = tabId
         this.$emit('filter-change', tabId)
       }
     },
-    openModal() {
-      this.showModal = true
-      this.newMarkerName = ''
+    abrirModal() {
+      this.mostrarModal = true
+      this.novoNomeMarcador = ''
     },
-    closeModal() {
-      this.showModal = false
-      this.newMarkerName = ''
+    fecharModal() {
+      this.mostrarModal = false
+      this.novoNomeMarcador = ''
     },
-    addMarker() {
-      if (!this.newMarkerName.trim()) return
+    adicionarMarcador() {
+      if (!this.novoNomeMarcador.trim()) return
 
-      const newTab = {
+      const novaTab = {
         id: `marker_${Date.now()}`,
-        label: this.newMarkerName.trim(),
+        label: this.novoNomeMarcador.trim(),
       }
 
-      this.tabs.push(newTab)
-      this.activeTabId = newTab.id
-      this.showModal = false
-      this.newMarkerName = ''
+      this.tabs.push(novaTab)
+      this.activeTabId = novaTab.id
+      this.mostrarModal = false
+      this.novoNomeMarcador = ''
 
-      this.$emit('filter-change', newTab.id)
-      this.$emit('marker-added', newTab)
+      this.$emit('filter-change', novaTab.id)
+      this.$emit('marker-added', novaTab)
     },
-    startDrag(e) {
-      this.isDragging = true
-      this.startX = e.pageX - this.$refs.tabsContainer.offsetLeft
-      this.scrollLeft = this.$refs.tabsContainer.scrollLeft
+    iniciarArrastar(evento) {
+      this.estaArrastando = true
+      this.inicioX = evento.pageX - this.$refs.tabsContainer.offsetLeft
+      this.scrollEsquerda = this.$refs.tabsContainer.scrollLeft
       this.$refs.tabsContainer.style.cursor = 'grabbing'
     },
-    onDrag(e) {
-      if (!this.isDragging) return
-      e.preventDefault()
-      const x = e.pageX - this.$refs.tabsContainer.offsetLeft
-      const walk = (x - this.startX) * 2
-      this.$refs.tabsContainer.scrollLeft = this.scrollLeft - walk
+    aoArrastar(evento) {
+      if (!this.estaArrastando) return
+      evento.preventDefault()
+      const x = evento.pageX - this.$refs.tabsContainer.offsetLeft
+      const movimento = (x - this.inicioX) * 2
+      this.$refs.tabsContainer.scrollLeft = this.scrollEsquerda - movimento
     },
-    endDrag() {
-      this.isDragging = false
+    finalizarArrastar() {
+      this.estaArrastando = false
       this.$refs.tabsContainer.style.cursor = 'grab'
       setTimeout(() => {
-        this.isDragging = false
+        this.estaArrastando = false
       }, 100)
     },
   },
 }
 </script>
 
-<!-- CSS mantido igual -->
 <style scoped>
 .gd-filter-bar-component {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px; /* Reduzido de 12px */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  padding: 4px 0;
+  padding: 2px 0; /* Reduzido de 4px */
   width: 100%;
 }
 
 .tabs-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Reduzido de 8px */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -231,21 +229,21 @@ export default {
 }
 
 .filter-tab {
-  padding: 7px 16px;
-  border-radius: 80px;
-  border-width: 1.5px;
+  padding: 5px 12px; /* Reduzido de 7px 16px */
+  border-radius: 20px; /* Reduzido de 80px */
+  border-width: 1px; /* Reduzido de 1.5px */
   border-style: solid;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px; /* Reduzido de 14px */
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.4; /* Reduzido de 1.5 */
   text-align: center;
   transition: background-color 0.2s ease, color 0.2s ease,
     border-color 0.2s ease;
   background-color: #ffffff;
   border-color: #d1d5db;
   color: #656565;
-  height: 36px;
+  height: 32px; /* Reduzido de 34px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,15 +272,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
+  width: 32px; /* Reduzido de 36px */
+  height: 32px; /* Reduzido de 36px */
+  min-width: 32px; /* Reduzido de 36px */
   border-radius: 50%;
-  border: 1.5px solid #d1d5db;
+  border: 1px solid #d1d5db; /* Reduzido de 1.5px */
   background-color: #ffffff;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease;
-  font-size: 18px;
+  font-size: 16px; /* Reduzido de 18px */
   font-weight: 300;
   line-height: 1;
   color: #9ca3af;
@@ -435,13 +433,28 @@ export default {
   opacity: 0.6;
 }
 
+/* Responsivo ainda menor para mobile real */
 @media (max-width: 768px) {
   .gd-filter-bar-component {
-    gap: 8px;
+    gap: 4px; /* Reduzido de 8px */
   }
 
   .tabs-container {
-    gap: 6px;
+    gap: 4px; /* Reduzido de 6px */
+  }
+
+  .filter-tab {
+    gap: 4px;
+    padding: 4px 10px;
+    height: 26px;
+    font-size: 12px;
+  }
+
+  .add-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 14px;
   }
 
   .modal-overlay {

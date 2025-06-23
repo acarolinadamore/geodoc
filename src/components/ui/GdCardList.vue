@@ -8,27 +8,27 @@
         class="grupo-modelo"
       >
         <!-- Cabeçalho do Modelo com Checkbox Dropdown -->
-        <div class="cabecalho-modelo">
+        <div class="header-modelo">
           <!-- Coluna 1: Dropdown alinhado com checkboxes dos cards -->
           <div class="coluna-dropdown">
             <GdCheckboxDropdown
-              :checked-all="isModeloSelected(modelo)"
-              :actions="getModeloActions(modelo)"
-              @toggle-all="toggleModelo(modelo)"
-              @action="handleModeloAction($event, modelo)"
+              :checked-all="temModeloSelecionado(modelo)"
+              :actions="obterAcoesModelo(modelo)"
+              @toggle-all="alternarModelo(modelo)"
+              @action="manipularAcaoModelo($event, modelo)"
             />
           </div>
 
           <!-- Coluna 2: Info do modelo -->
           <div class="coluna-info-modelo">
             <div
-              class="icone-modelo"
-              :style="{ backgroundColor: getModeloColor(modelo) }"
+              class="circle-modelo"
+              :style="{ backgroundColor: obterCorModelo(modelo) }"
             >
-              {{ getModeloInitials(modelo) }}
+              {{ obterIniciaisModelo(modelo) }}
             </div>
             <div class="info-texto">
-              <h3 class="titulo-modelo">{{ modelo }}</h3>
+              <h3 class="titulo-grupo">{{ modelo }}</h3>
               <span class="contador-modelo">
                 ({{ grupo.length }} item{{ grupo.length !== 1 ? 's' : '' }})
               </span>
@@ -44,8 +44,8 @@
               <input
                 type="checkbox"
                 :checked="selectedCards.includes(card.id)"
-                @change="toggleCardSelection(card.id)"
-                class="form-checkbox h-4 w-4 text-blue-600 rounded"
+                @change="alternarSelecaoCard(card.id)"
+                class="form-checkbox h-4 w-4 rounded checkbox-custom"
               />
             </div>
 
@@ -54,12 +54,20 @@
               <GdCard
                 :card="card"
                 :selected="selectedCards.includes(card.id)"
-                @toggle-selection="toggleCardSelection"
+                @toggle-selection="alternarSelecaoCard"
               />
             </div>
           </div>
         </div>
+
+        <!-- Separador fora do container com padding -->
       </div>
+
+      <!-- Separador que toca o sidebar - fora dos grupos -->
+      <div
+        v-if="Object.keys(cardsAgrupados).length > 0"
+        class="separador-modelo"
+      ></div>
     </div>
   </div>
 </template>
@@ -105,33 +113,29 @@ export default {
   },
 
   methods: {
-    toggleCardSelection(cardId) {
+    alternarSelecaoCard(cardId) {
       this.$emit('toggle-card-selection', cardId)
     },
 
-    toggleModelo(modelo) {
+    alternarModelo(modelo) {
       if (!this.cardsAgrupados[modelo]) return
 
       const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
-      const allSelected = cardsDoModelo.every(id =>
+      const todosSelecionados = cardsDoModelo.every(id =>
         this.selectedCards.includes(id)
       )
 
-      // Emite evento para cada card do modelo
       cardsDoModelo.forEach(cardId => {
-        const isCurrentlySelected = this.selectedCards.includes(cardId)
-
-        // Se todos estão selecionados, desselecionamos todos
-        // Se nem todos estão selecionados, selecionamos todos
-        if (allSelected && isCurrentlySelected) {
+        const estaAtualmenteSelecionado = this.selectedCards.includes(cardId)
+        if (todosSelecionados && estaAtualmenteSelecionado) {
           this.$emit('toggle-card-selection', cardId)
-        } else if (!allSelected && !isCurrentlySelected) {
+        } else if (!todosSelecionados && !estaAtualmenteSelecionado) {
           this.$emit('toggle-card-selection', cardId)
         }
       })
     },
 
-    isModeloSelected(modelo) {
+    temModeloSelecionado(modelo) {
       if (!this.cardsAgrupados[modelo]) return false
 
       const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
@@ -141,7 +145,7 @@ export default {
       )
     },
 
-    getModeloActions(modelo) {
+    obterAcoesModelo(modelo) {
       const acoesPorModelo = {
         'Solicitação à Fábrica de Software': [
           { label: 'Atribuir todos', value: 'atribuir' },
@@ -178,14 +182,18 @@ export default {
       )
     },
 
-    handleModeloAction(action, modelo) {
+    manipularAcaoModelo(acao, modelo) {
       if (!this.cardsAgrupados[modelo]) return
 
       const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
-      this.$emit('modelo-action', { action, modelo, cardIds: cardsDoModelo })
+      this.$emit('modelo-action', {
+        action: acao,
+        modelo,
+        cardIds: cardsDoModelo,
+      })
     },
 
-    getModeloColor(modelo) {
+    obterCorModelo(modelo) {
       const cores = {
         'Solicitação à Fábrica de Software': '#3b82f6',
         'Solicitação de Orçamento': '#10b981',
@@ -196,7 +204,7 @@ export default {
       return cores[modelo] || '#6b7280'
     },
 
-    getModeloInitials(modelo) {
+    obterIniciaisModelo(modelo) {
       if (!modelo || typeof modelo !== 'string') return 'SM'
 
       return modelo
@@ -229,14 +237,19 @@ export default {
   gap: 12px;
 }
 
-/* === CABEÇALHO DO MODELO === */
-.cabecalho-modelo {
+.header-modelo {
   display: grid;
   grid-template-columns: 56px 1fr;
   gap: 16px;
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.separador-modelo {
+  height: 1px;
+  background-color: #e5e7eb;
+  width: 100%;
 }
 
 .coluna-dropdown {
@@ -248,7 +261,7 @@ export default {
 .coluna-info-modelo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -260,21 +273,21 @@ export default {
   flex-wrap: wrap;
 }
 
-.icone-modelo {
-  width: 32px;
-  height: 32px;
+.circle-modelo {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
 }
 
-.titulo-modelo {
-  font-size: 18px;
+.titulo-grupo {
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
   margin: 0;
@@ -289,7 +302,6 @@ export default {
   white-space: nowrap;
 }
 
-/* === CONTAINER DOS CARDS === */
 .cards-container {
   display: flex;
   flex-direction: column;
@@ -303,7 +315,6 @@ export default {
   align-items: center;
 }
 
-/* === COLUNAS ALINHADAS === */
 .coluna-checkbox {
   display: flex;
   justify-content: center;
@@ -315,32 +326,38 @@ export default {
   min-width: 0;
 }
 
-/* === RESPONSIVIDADE === */
+.checkbox-custom {
+  border-color: #9c9c9c !important;
+}
 
-/* ✅ MENOR QUE 1024px - CHECKBOX SOME, CARD OCUPA 100% */
+.checkbox-custom:checked {
+  background-color: #489be1 !important;
+  border-color: #489be1 !important;
+  color: white !important;
+}
+
 @media (max-width: 1023px) {
   .card-row {
-    grid-template-columns: 1fr !important; /* ✅ Card ocupa 100% */
+    grid-template-columns: 1fr;
     gap: 0;
   }
 
   .coluna-checkbox {
-    display: none !important; /* ✅ Checkbox some */
+    display: none;
   }
 
-  .cabecalho-modelo {
-    grid-template-columns: 1fr !important; /* ✅ Remove espaço do dropdown */
+  .header-modelo {
+    grid-template-columns: 1fr;
     padding-left: 0;
   }
 
   .coluna-dropdown {
-    display: none !important; /* ✅ Dropdown do cabeçalho some */
+    display: none;
   }
 }
 
-/* Mobile pequeno */
 @media (max-width: 480px) {
-  .titulo-modelo {
+  .titulo-grupo {
     font-size: 14px;
   }
 
@@ -348,9 +365,9 @@ export default {
     font-size: 12px;
   }
 
-  .icone-modelo {
-    width: 24px;
-    height: 24px;
+  .circle-modelo {
+    width: 22px;
+    height: 22px;
     font-size: 10px;
   }
 
@@ -359,7 +376,6 @@ export default {
   }
 }
 
-/* Ajuste específico para telas menores que 770px */
 @media (max-width: 770px) {
   .info-texto {
     flex-direction: row;
@@ -368,7 +384,7 @@ export default {
     gap: 6px;
   }
 
-  .titulo-modelo {
+  .titulo-grupo {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -380,7 +396,6 @@ export default {
   }
 }
 
-/* Mobile muito pequeno */
 @media (max-width: 320px) {
   .grupos-container {
     gap: 16px;
@@ -390,7 +405,7 @@ export default {
     gap: 8px;
   }
 
-  .titulo-modelo {
+  .titulo-grupo {
     font-size: 13px;
     max-width: calc(100vw - 150px);
   }
@@ -401,6 +416,12 @@ export default {
 
   .info-texto {
     gap: 3px;
+  }
+
+  .circle-modelo {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
   }
 }
 </style>

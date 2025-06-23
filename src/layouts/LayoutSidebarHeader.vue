@@ -105,7 +105,6 @@ export default {
 .layout-content {
   flex: 1;
   overflow: hidden;
-  background-color: #f8fafc;
   min-height: 0;
 }
 

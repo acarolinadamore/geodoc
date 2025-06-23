@@ -76,11 +76,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 70px;
+  height: 56px;
   padding: 0 20px;
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  position: relative;
+  z-index: 10;
 }
 
 .left-section {

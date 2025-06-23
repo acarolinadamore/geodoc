@@ -355,7 +355,7 @@ ul {
 /* Logo mini quando sidebar está colapsada */
 .logo-mini {
   position: fixed;
-  top: 16px;
+  top: 8px;
   left: 12px;
   z-index: 1001;
   width: 40px;
