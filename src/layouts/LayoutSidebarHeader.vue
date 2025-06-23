@@ -1,6 +1,6 @@
 <template>
   <div class="layout-sidebar-header">
-    <!-- Sidebar fixa à esquerda -->
+    <!-- Sidebar fixo à esquerda -->
     <gd-sidebar
       class="layout-sidebar"
       @sidebar-toggle="handleSidebarToggle"
@@ -21,11 +21,9 @@
         :show-notification="showHeaderNotification"
       />
 
-      <!-- Conteúdo rolável -->
+      <!-- Conteúdo da página -->
       <main class="layout-content">
-        <div class="content-container">
-          <slot />
-        </div>
+        <slot />
       </main>
     </div>
   </div>
@@ -71,14 +69,24 @@ export default {
   overflow: hidden;
 }
 
+/* Sidebar fixa à esquerda */
+.layout-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 1000;
+}
+
 /* Área principal que se ajusta à sidebar */
 .layout-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 200px; /* Desktop: largura fixa da sidebar */
+  margin-left: 200px;
   transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 0; /* Importante para evitar overflow */
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Quando sidebar está colapsada */
@@ -88,77 +96,58 @@ export default {
 
 /* Header fixo no topo da área principal */
 .layout-header {
-  position: sticky;
-  top: 0;
-  z-index: 998;
+  flex-shrink: 0;
   width: 100%;
+  z-index: 100;
 }
 
-/* Conteúdo rolável */
+/* Conteúdo da página - área intercambiável */
 .layout-content {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   background-color: #f8fafc;
-}
-
-.content-container {
-  padding: 10px 16px;
-  min-height: calc(100vh - 70px);
+  min-height: 0;
 }
 
 /* === RESPONSIVIDADE === */
 
-/* Tablet - mantém igual ao desktop */
+/* Tablet */
 @media (max-width: 1024px) and (min-width: 769px) {
   .layout-main {
-    margin-left: 200px; /* Mesmo que desktop */
+    margin-left: 200px;
   }
 
   .layout-main.sidebar-collapsed {
     margin-left: 0;
-  }
-
-  .content-container {
-    padding: 20px;
   }
 }
 
 /* Mobile - margem reduzida */
 @media (max-width: 768px) {
   .layout-main {
-    margin-left: 220px; /* Acompanha nova largura da sidebar */
+    margin-left: 220px;
   }
 
   .layout-main.sidebar-collapsed {
     margin-left: 0;
-  }
-
-  .content-container {
-    padding: 16px;
-    min-height: calc(100vh - 60px);
   }
 }
 
 /* Mobile pequeno */
 @media (max-width: 480px) {
   .layout-main {
-    margin-left: 200px; /* Acompanha sidebar menor */
+    margin-left: 200px;
   }
 
   .layout-main.sidebar-collapsed {
     margin-left: 0;
-  }
-
-  .content-container {
-    padding: 12px;
   }
 }
 
 /* Mobile muito pequeno */
 @media (max-width: 320px) {
   .layout-main {
-    margin-left: 180px; /* Acompanha sidebar mínima */
+    margin-left: 180px;
   }
 
   .layout-main.sidebar-collapsed {

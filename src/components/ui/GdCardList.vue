@@ -27,10 +27,12 @@
             >
               {{ getModeloInitials(modelo) }}
             </div>
-            <h3 class="titulo-modelo">{{ modelo }}</h3>
-            <span class="contador-modelo">
-              ({{ grupo.length }} item{{ grupo.length !== 1 ? 's' : '' }})
-            </span>
+            <div class="info-texto">
+              <h3 class="titulo-modelo">{{ modelo }}</h3>
+              <span class="contador-modelo">
+                ({{ grupo.length }} item{{ grupo.length !== 1 ? 's' : '' }})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -43,7 +45,7 @@
                 type="checkbox"
                 :checked="selectedCards.includes(card.id)"
                 @change="toggleCardSelection(card.id)"
-                class="checkbox-card"
+                class="form-checkbox h-4 w-4 text-blue-600 rounded"
               />
             </div>
 
@@ -52,6 +54,7 @@
               <GdCard
                 :card="card"
                 :selected="selectedCards.includes(card.id)"
+                @toggle-selection="toggleCardSelection"
               />
             </div>
           </div>
@@ -61,7 +64,6 @@
   </div>
 </template>
 
-<!-- Script permanece igual -->
 <script>
 import GdCard from '@/components/ui/GdCard.vue'
 import GdCheckboxDropdown from '@/components/ui/GdCheckboxDropdown.vue'
@@ -84,16 +86,13 @@ export default {
     },
   },
 
-  // ✅ COMPUTED corrigido para Vue 2
   computed: {
     cardsAgrupados() {
-      // ✅ Verificação de segurança
       if (!this.cards || !Array.isArray(this.cards)) {
         return {}
       }
 
       return this.cards.reduce((grupos, card) => {
-        // ✅ Verificação se documento existe
         const modelo = card?.documento?.modelo || 'Sem Modelo'
 
         if (!grupos[modelo]) {
@@ -118,21 +117,18 @@ export default {
         this.selectedCards.includes(id)
       )
 
-      if (allSelected) {
-        // Desmarcar todos do modelo
-        cardsDoModelo.forEach(id => {
-          if (this.selectedCards.includes(id)) {
-            this.$emit('toggle-card-selection', id)
-          }
-        })
-      } else {
-        // Marcar todos do modelo
-        cardsDoModelo.forEach(id => {
-          if (!this.selectedCards.includes(id)) {
-            this.$emit('toggle-card-selection', id)
-          }
-        })
-      }
+      // Emite evento para cada card do modelo
+      cardsDoModelo.forEach(cardId => {
+        const isCurrentlySelected = this.selectedCards.includes(cardId)
+
+        // Se todos estão selecionados, desselecionamos todos
+        // Se nem todos estão selecionados, selecionamos todos
+        if (allSelected && isCurrentlySelected) {
+          this.$emit('toggle-card-selection', cardId)
+        } else if (!allSelected && !isCurrentlySelected) {
+          this.$emit('toggle-card-selection', cardId)
+        }
+      })
     },
 
     isModeloSelected(modelo) {
@@ -239,7 +235,7 @@ export default {
   grid-template-columns: 56px 1fr;
   gap: 16px;
   align-items: center;
-  padding-bottom: 8px;
+  padding: 8px 0;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -254,6 +250,14 @@ export default {
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+
+.info-texto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .icone-modelo {
@@ -275,12 +279,14 @@ export default {
   color: #1f2937;
   margin: 0;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .contador-modelo {
   font-size: 14px;
   color: #6b7280;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* === CONTAINER DOS CARDS === */
@@ -294,7 +300,7 @@ export default {
   display: grid;
   grid-template-columns: 56px 1fr;
   gap: 16px;
-  align-items: center; /* ✅ Mudança principal: center em vez de flex-start */
+  align-items: center;
 }
 
 /* === COLUNAS ALINHADAS === */
@@ -302,15 +308,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 120px; /* ✅ Altura fixa igual ao card */
-}
-
-.checkbox-card {
-  width: 18px;
-  height: 18px;
-  accent-color: #1a82d9;
-  cursor: pointer;
-  margin: 0;
+  height: 100%;
 }
 
 .coluna-card {
@@ -318,42 +316,91 @@ export default {
 }
 
 /* === RESPONSIVIDADE === */
-@media (max-width: 768px) {
-  .cabecalho-modelo {
-    grid-template-columns: 48px 1fr;
-    gap: 12px;
-  }
 
+/* ✅ MENOR QUE 1024px - CHECKBOX SOME, CARD OCUPA 100% */
+@media (max-width: 1023px) {
   .card-row {
-    grid-template-columns: 48px 1fr;
-    gap: 12px;
-    align-items: flex-start; /* ✅ No mobile, volta para flex-start */
+    grid-template-columns: 1fr !important; /* ✅ Card ocupa 100% */
+    gap: 0;
   }
 
   .coluna-checkbox {
-    height: auto; /* ✅ No mobile, altura automática */
-    min-height: 40px;
+    display: none !important; /* ✅ Checkbox some */
   }
 
-  .checkbox-card {
-    width: 16px;
-    height: 16px;
+  .cabecalho-modelo {
+    grid-template-columns: 1fr !important; /* ✅ Remove espaço do dropdown */
+    padding-left: 0;
   }
 
-  .titulo-modelo {
-    font-size: 16px;
+  .coluna-dropdown {
+    display: none !important; /* ✅ Dropdown do cabeçalho some */
   }
 }
 
+/* Mobile pequeno */
 @media (max-width: 480px) {
-  .cabecalho-modelo,
-  .card-row {
-    grid-template-columns: 40px 1fr;
+  .titulo-modelo {
+    font-size: 14px;
+  }
+
+  .contador-modelo {
+    font-size: 12px;
+  }
+
+  .icone-modelo {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .info-texto {
+    gap: 4px;
+  }
+}
+
+/* Ajuste específico para telas menores que 770px */
+@media (max-width: 770px) {
+  .info-texto {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .titulo-modelo {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 200px);
+  }
+
+  .contador-modelo {
+    white-space: nowrap;
+  }
+}
+
+/* Mobile muito pequeno */
+@media (max-width: 320px) {
+  .grupos-container {
+    gap: 16px;
+  }
+
+  .cards-container {
     gap: 8px;
   }
 
-  .coluna-checkbox {
-    min-height: 36px;
+  .titulo-modelo {
+    font-size: 13px;
+    max-width: calc(100vw - 150px);
+  }
+
+  .contador-modelo {
+    font-size: 11px;
+  }
+
+  .info-texto {
+    gap: 3px;
   }
 }
 </style>

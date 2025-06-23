@@ -5,34 +5,3 @@
 body {
   @apply font-sans;
 }
-
-/*Tipografia*/
-
-.gd-text-black {
-  color: #1f2a37;
-  font-size: 14px;
-}
-
-.gd-text-gray {
-  color: #b7b7b7;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.gd-text-blue {
-  color: #1a82d9;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.gd-text-green {
-  color: #37c989;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.gd-text-link {
-  color: #3f98d4;
-  font-size: 12px;
-  font-weight: 400;
-}

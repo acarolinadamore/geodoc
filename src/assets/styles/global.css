@@ -1,0 +1,63 @@
+/*Card*/
+
+.card-span {
+  font-size: 12px;
+  color: #b7b7b7;
+}
+
+@media (max-width: 1279px) {
+  .header-cards-title {
+    display: none;
+  }
+}
+/*Tipografia*/
+
+.gd-text-black {
+  color: #1f2a37;
+}
+
+.gd-text-gray {
+  color: #b7b7b7;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.gd-text-blue {
+  color: #1a82d9;
+  font-weight: 400;
+}
+
+.gd-text-green {
+  color: #37c989;
+  font-weight: 400;
+}
+
+.gd-text-link {
+  color: #3f98d4;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Scrollbar */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #e9ecef;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #dee2e6;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

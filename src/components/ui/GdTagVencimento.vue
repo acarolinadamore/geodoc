@@ -51,7 +51,7 @@ export default {
   justify-content: center;
   padding: 4px 16px;
   border-radius: 2px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
   min-height: 36px;
@@ -63,7 +63,7 @@ export default {
 }
 
 .card-vencimento.vencendo {
-  background-color: #ffd856;
-  color: #8b5a00; /* Cor escura para contraste no amarelo */
+  background-color: #edbd1f;
+  color: #ffffff; /* Cor escura para contraste no amarelo */
 }
 </style>

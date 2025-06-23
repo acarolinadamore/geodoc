@@ -1,7 +1,7 @@
 <template>
-  <div class="mb-2 text-left flex flex-col gap-1">
-    <p class="font-semibold gd-text-black">{{ remetente.nome }}</p>
-    <p class="gd-text-gray">{{ remetente.funcao }}</p>
+  <div class="mb-2 ml-3 text-left flex flex-col">
+    <p class="gd-text-black remetente">{{ remetente.nome }}</p>
+    <p class="card-span">{{ remetente.funcao }}</p>
   </div>
 </template>
 
@@ -22,4 +22,9 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.remetente {
+  font-size: 16px;
+  font-weight: 400;
+}
+</style>

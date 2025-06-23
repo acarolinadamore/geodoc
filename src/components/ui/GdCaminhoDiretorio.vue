@@ -16,7 +16,7 @@
         alt="Seta"
         class="gd-arrow-icon"
       />
-      <span class="gd-text-link">{{ titleCase(segment) }}</span>
+      <span class="gd-text-link text-left">{{ titleCase(segment) }}</span>
     </span>
   </div>
 </template>
@@ -74,8 +74,8 @@ export default {
 
 <style scoped>
 .gd-folder-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   position: relative;
   top: 1px;
 }

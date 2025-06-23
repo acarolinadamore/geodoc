@@ -2,50 +2,45 @@
   <div class="mt-3 text-sm text-left bg-aqua rounded-lg">
     <div class="space-y-1">
       <div class="flex items-center">
-        <span
-          class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Modelo:</span
-        >
+        <span class="card-span w-32 text-right flex-shrink-0 whitespace-nowrap">
+          Modelo
+        </span>
         <div class="ml-2">
           <GdTag :text="projeto.modelo" />
         </div>
       </div>
 
       <div class="flex items-center">
-        <span
-          class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Projeto:</span
-        >
+        <span class="card-span w-32 text-right flex-shrink-0 whitespace-nowrap">
+          Projeto
+        </span>
         <div class="ml-2">
           <GdTag :text="projeto.projeto" />
         </div>
       </div>
 
       <div class="flex items-center">
-        <span
-          class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Prestador de Serviço:</span
-        >
+        <span class="card-span w-32 text-right flex-shrink-0 whitespace-nowrap">
+          Prestador de Serviço
+        </span>
         <div class="ml-2">
           <GdTag :text="projeto.prestadorServico" />
         </div>
       </div>
 
       <div class="flex items-center">
-        <span
-          class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Data de Pagamento:</span
-        >
+        <span class="card-span w-32 text-right flex-shrink-0 whitespace-nowrap">
+          Data de Pagamento
+        </span>
         <div class="ml-2">
           <GdTag :text="projeto.dataPagamento" />
         </div>
       </div>
 
       <div class="flex items-center">
-        <span
-          class="gd-text-gray w-32 text-right flex-shrink-0 whitespace-nowrap"
-          >Unidade:</span
-        >
+        <span class="card-span w-32 text-right flex-shrink-0 whitespace-nowrap">
+          Unidade
+        </span>
         <div class="ml-2">
           <GdTag :text="projeto.unidade" />
         </div>

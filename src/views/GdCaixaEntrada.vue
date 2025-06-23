@@ -4,186 +4,248 @@
     :show-header-notification="true"
   >
     <div class="caixa-entrada-container">
-      <!-- Header Fixo -->
-      <div class="caixa-entrada-header-fixo">
-        <!-- Linha 1: Título da Página -->
-        <div class="page-title-container">
-          <h1 class="titulo-pagina">Caixa de Entrada</h1>
-        </div>
+      <!-- Header Fixo com Padding -->
+      <div class="header-fixo">
+        <div class="header-content">
+          <!-- Título da Página -->
+          <div class="flex pt-2">
+            <h1 class="text-xl font-semibold text-gray-700 m-0">
+              Caixa de Entrada
+            </h1>
+          </div>
 
-        <!-- Linha 2: Filtros de Clique -->
-        <div class="filters-container">
-          <GdFilterBar class="espacamento-xs" />
-          <GdFilterBarBadge
-            class="espacamento-xs"
-            :initial-tabs="filterTabs"
-            @filter-change="handleFilterChange"
-            @marker-added="handleMarkerAdded"
-          />
-        </div>
-
-        <!-- Linha 3: Botões com Search e DatePicker -->
-        <div class="buttons-container">
-          <div class="grupo-botoes">
-            <GdButton
-              label="Atribuir a mim"
-              variant="outlined"
-              border-color="#37c989"
-              text-color="#37c989"
-              @click="handleAtribuirMim"
-            />
-            <GdButton
-              label="Aprovar"
-              icon="fa-check"
-              variant="filled"
-              bg-color="#37c989"
-              text-color="#ffffff"
-              @click="handleAprovar"
-            />
-            <GdButton
-              label="Agrupar"
-              variant="filled"
-              bg-color="#1a82d9"
-              text-color="#ffffff"
-              @click="handleAgrupar"
-            />
-            <GdButton
-              label="Mais Ações"
-              variant="outlined"
-              border-color="#6b7280"
-              text-color="#6b7280"
-              @click="handleMaisAcoes"
+          <!-- Filtros de Clique -->
+          <div class="flex flex-col">
+            <GdFilterBar />
+            <GdFilterBarBadge
+              :initial-tabs="filterTabs"
+              @filter-change="alterarFiltro"
+              @marker-added="adicionarMarcador"
             />
           </div>
 
-          <div class="grupo-busca-data">
-            <GdSearchBar
-              v-model="searchTerm"
-              @search="handleSearch"
-              @clear="handleClearSearch"
-            />
-            <GdDatePicker
-              v-model="dateRange"
-              :placeholder="'Selecionar período'"
-              @change="handleDateChange"
-            />
-          </div>
-        </div>
+          <!-- Botoes - Search e DatePicker -->
+          <div class="flex justify-between items-center gap-4 mt-2">
+            <div class="flex gap-2 flex-wrap">
+              <GdButton
+                label="Atribuir em Lotes"
+                variant="outlined"
+                border-color="#37c989"
+                text-color="#37c989"
+                @click="atribuirEmLotes"
+              />
+              <GdButton
+                label="Atribuir a mim"
+                variant="outlined"
+                border-color="#37c989"
+                text-color="#37c989"
+                @click="atribuirAMim"
+              />
+              <GdButton
+                label="Aprovar"
+                icon="fa-check"
+                variant="filled"
+                bg-color="#37c989"
+                text-color="#ffffff"
+                @click="aprovar"
+              />
+              <GdButton
+                label="Agrupar"
+                variant="filled"
+                bg-color="#1a82d9"
+                text-color="#ffffff"
+                @click="agrupar"
+              />
+            </div>
 
-        <!-- Linha 4: Indicador de filtros ativos -->
-        <div
-          v-if="hasActiveFilters"
-          class="filtros-ativos"
-          role="status"
-          aria-live="polite"
-        >
-          <div class="indicadores-filtro">
-            <span v-if="searchTerm" class="badge-filtro">
-              <span class="sr-only">Filtro de busca ativo:</span>
-              🔍 "{{ searchTerm }}"
-              <button
-                @click="clearSearch"
-                class="limpar-filtro"
-                :aria-label="`Remover filtro de busca: ${searchTerm}`"
-              >
-                ×
-              </button>
-            </span>
-            <span
-              v-if="dateRange && dateRange.length === 2"
-              class="badge-filtro"
-            >
-              <span class="sr-only">Filtro de data ativo:</span>
-              📅 {{ formatDateRange(dateRange) }}
-              <button
-                @click="clearDateFilter"
-                class="limpar-filtro"
-                :aria-label="`Remover filtro de data: ${formatDateRange(
-                  dateRange
-                )}`"
-              >
-                ×
-              </button>
-            </span>
+            <div class="flex gap-3 items-center">
+              <GdSearchBar
+                v-model="termoBusca"
+                @search="buscar"
+                @clear="limparBusca"
+              />
+              <GdDatePicker
+                v-model="intervaloData"
+                :placeholder="'Selecionar período'"
+                @change="alterarData"
+              />
+            </div>
           </div>
-          <button
-            @click="clearAllFilters"
-            class="limpar-todos-filtros"
-            aria-label="Limpar todos os filtros ativos"
+
+          <!-- Indicador de filtros ativos -->
+          <div
+            v-if="temFiltrosAtivos"
+            class="flex justify-between items-center p-2 bg-gray-50 border border-gray-200 rounded-md gap-3"
+            role="status"
+            aria-live="polite"
           >
-            Limpar todos os filtros
-          </button>
+            <div class="flex gap-2 flex-wrap">
+              <span
+                v-if="termoBusca"
+                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs"
+              >
+                <span class="texto-acessibilidade">Filtro de busca ativo:</span>
+                🔍 "{{ termoBusca }}"
+                <button
+                  @click="limparBusca"
+                  class="bg-transparent border-0 text-white cursor-pointer text-sm p-0.5 hover:bg-white hover:bg-opacity-20 rounded"
+                  :aria-label="`Remover filtro de busca: ${termoBusca}`"
+                >
+                  ×
+                </button>
+              </span>
+              <span
+                v-if="intervaloData && intervaloData.length === 2"
+                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs"
+              >
+                <span class="texto-acessibilidade">Filtro de data ativo:</span>
+                📅 {{ formatarIntervaloData(intervaloData) }}
+                <button
+                  @click="limparFiltroData"
+                  class="bg-transparent border-0 text-white cursor-pointer text-sm p-0.5 hover:bg-white hover:bg-opacity-20 rounded"
+                  :aria-label="`Remover filtro de data: ${formatarIntervaloData(
+                    intervaloData
+                  )}`"
+                >
+                  ×
+                </button>
+              </span>
+            </div>
+            <button
+              @click="limparTodosFiltros"
+              class="px-2 py-1 bg-transparent border border-red-600 text-red-600 rounded text-xs cursor-pointer hover:bg-red-600 hover:text-white transition-all"
+              aria-label="Limpar todos os filtros ativos"
+            >
+              Limpar todos os filtros
+            </button>
+          </div>
         </div>
 
-        <!-- Linha 5: Título dos Cards com Dropdowns -->
-        <div class="title-card-container">
-          <div class="dropdowns-titulo">
-            <GdCheckboxDropdown
-              :checked-all="allCardsSelected"
-              :actions="checkboxActions"
-              @toggle-all="handleToggleAll"
-              @action="handleCheckboxAction"
-            />
-            <GdEnviarParaDropdown
-              :markers="enviarParaOptions"
-              @select-marker="handleEnviarPara"
-            />
-          </div>
-          <div class="titulos-colunas">
-            <div class="coluna-titulo"><span>Remetente</span></div>
-            <div class="coluna-titulo"><span>Documento</span></div>
-            <div class="coluna-titulo"><span>Âncora</span></div>
-            <div class="coluna-titulo"><span>Ações</span></div>
+        <!-- Linha separadora sem padding -->
+        <div class="separador-linha"></div>
+
+        <!-- Título dos Cards com Dropdowns - Com padding -->
+        <div class="header-cards-title">
+          <div class="flex items-center gap-4 py-2">
+            <div class="flex gap-2 items-center">
+              <GdCheckboxDropdown
+                :checked-all="todosCardsSelecionados"
+                :actions="acaoesCheckbox"
+                @toggle-all="alternarTodos"
+                @action="executarAcaoCheckbox"
+              />
+              <GdEnviarParaDropdown
+                :markers="opcoesEnviarPara"
+                @select-marker="enviarPara"
+              />
+            </div>
+            <div class="flex flex-1 gap-4 title-cards-container">
+              <div class="flex-1">
+                <span>Remetente</span>
+              </div>
+              <div class="flex-1">
+                <span>Documento</span>
+              </div>
+              <div class="flex-1">
+                <span>Âncora</span>
+              </div>
+              <div class="flex-1">
+                <span>Ações</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Área de Rolagem - Apenas Lista de Cards -->
-      <div class="area-rolagem">
-        <!-- Loading -->
-        <div v-if="loading" class="estado-carregamento">
-          <div class="spinner-carregamento" aria-label="Carregando"></div>
-          <p>Carregando documentos...</p>
-          <div v-if="retryCount > 0" class="retry-info">
-            Tentativa {{ retryCount }} de {{ maxRetries }}
+      <div class="area-scroll">
+        <!-- Conteúdo com padding -->
+        <div class="scroll-content">
+          <!-- Loading -->
+          <div
+            v-if="carregando"
+            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
+          >
+            <div
+              class="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4"
+              aria-label="Carregando"
+            ></div>
+            <p>Carregando documentos...</p>
+            <div
+              v-if="contadorTentativas > 0"
+              class="mt-3 text-xs text-gray-400"
+            >
+              Tentativa {{ contadorTentativas }} de {{ maximoTentativas }}
+            </div>
           </div>
-        </div>
 
-        <!-- Estado de Erro -->
-        <div v-else-if="error" class="estado-erro">
-          <div class="icone-erro">⚠️</div>
-          <h3>Ops! Algo deu errado</h3>
-          <p>{{ error }}</p>
-          <div class="acoes-erro">
-            <button @click="loadCards" class="botao-tentar-novamente">
-              Tentar novamente
-            </button>
-            <button @click="clearError" class="botao-limpar-erro">
-              Limpar erro
+          <!-- Estado de Erro -->
+          <div
+            v-else-if="erro"
+            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center bg-red-50 border border-red-200 rounded-lg m-5"
+          >
+            <div class="text-5xl mb-4">⚠️</div>
+            <h3 class="text-red-600 mb-2 text-lg font-semibold">
+              Ops! Algo deu errado
+            </h3>
+            <p class="mb-5 text-gray-600">{{ erro }}</p>
+            <div class="flex gap-3 justify-center flex-wrap">
+              <button
+                @click="carregarCards"
+                class="px-4 py-2 rounded-md border-0 cursor-pointer font-medium transition-all text-sm bg-red-600 text-white hover:bg-red-700"
+              >
+                Tentar novamente
+              </button>
+              <button
+                @click="limparErro"
+                class="px-4 py-2 rounded-md cursor-pointer font-medium transition-all text-sm bg-transparent text-red-600 border border-red-600 hover:bg-red-600 hover:text-white"
+              >
+                Limpar erro
+              </button>
+            </div>
+          </div>
+
+          <!-- Estados Vazios -->
+          <div
+            v-else-if="cardsFiltrados.length === 0 && todosCards.length === 0"
+            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
+          >
+            <div class="text-5xl mb-4">📄</div>
+            <h3 class="text-gray-700 mb-2 text-lg font-semibold">
+              Nenhum documento encontrado
+            </h3>
+            <p class="mb-5 text-gray-600">
+              Sua caixa de entrada está vazia no momento.
+            </p>
+          </div>
+          <div
+            v-else-if="cardsFiltrados.length === 0"
+            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
+          >
+            <div class="text-5xl mb-4">🔍</div>
+            <h3 class="text-gray-700 mb-2 text-lg font-semibold">
+              Nenhum resultado encontrado
+            </h3>
+            <p class="mb-5 text-gray-600">
+              Nenhum documento encontrado com os filtros aplicados.
+            </p>
+            <button
+              @click="limparTodosFiltros"
+              class="px-4 py-2 bg-transparent border border-red-600 text-red-600 rounded text-xs cursor-pointer hover:bg-red-600 hover:text-white transition-all"
+            >
+              Limpar filtros
             </button>
           </div>
-        </div>
 
-        <!-- Estados Vazios -->
-        <div
-          v-else-if="filteredCards.length === 0 && allCards.length === 0"
-          class="estado-vazio"
-        >
-          <div class="icone-vazio">📄</div>
-          <h3>Nenhum documento encontrado</h3>
-          <p>Sua caixa de entrada está vazia no momento.</p>
+          <!-- Lista de Cards - ADICIONADOS OS EVENTOS E PROPS -->
+          <GdCardList
+            v-else
+            :cards="cardsFiltrados"
+            :selected-cards="cardsSelecionados"
+            @toggle-card-selection="alternarSelecaoCard"
+            @modelo-action="executarAcaoModelo"
+          />
         </div>
-        <div v-else-if="filteredCards.length === 0" class="estado-vazio">
-          <div class="icone-vazio">🔍</div>
-          <h3>Nenhum resultado encontrado</h3>
-          <p>Nenhum documento encontrado com os filtros aplicados.</p>
-          <button @click="clearAllFilters" class="botao-limpar-filtros">
-            Limpar filtros
-          </button>
-        </div>
-
-        <!-- Lista de Cards -->
-        <GdCardList v-else :cards="filteredCards" />
       </div>
     </div>
   </layout-sidebar-header>
@@ -257,7 +319,7 @@ export default {
       ],
 
       // Opções do dropdown checkbox
-      checkboxActions: [
+      acaoesCheckbox: [
         { label: 'Marcar como não lido', value: 'marcar-nao-lido' },
         { label: 'Aprovar', value: 'aprovar' },
         { label: 'Atualizar Fluxo', value: 'atualizar-fluxo' },
@@ -271,7 +333,7 @@ export default {
       ],
 
       // Opções do dropdown enviar para (marcações/pastas)
-      enviarParaOptions: [
+      opcoesEnviarPara: [
         { label: 'Diretoria', value: 'diretoria', color: '#2563eb' },
         { label: 'Negócios', value: 'negocios', color: '#16a34a' },
         { label: 'Financeiro', value: 'financeiro', color: '#f59e0b' },
@@ -280,81 +342,176 @@ export default {
         { label: 'Operações', value: 'operacoes', color: '#06b6d4' },
       ],
 
-      allCards: [],
-      loading: false,
-      error: null,
-      retryCount: 0,
-      maxRetries: 3,
-      searchTerm: '',
-      dateRange: null,
-      activeTabFilter: 'todos',
-      allCardsSelected: false,
+      todosCards: [],
+      cardsSelecionados: [], // ✅ Array para gerenciar cards selecionados
+      carregando: false,
+      erro: null,
+      contadorTentativas: 0,
+      maximoTentativas: 3,
+      termoBusca: '',
+      intervaloData: null,
+      filtroAbaAtiva: 'todos',
+      todosCardsSelecionados: false,
     }
   },
   computed: {
-    hasActiveFilters() {
+    temFiltrosAtivos() {
       return (
-        !!(this.searchTerm && this.searchTerm.trim()) ||
-        !!(this.dateRange && this.dateRange.length === 2)
+        !!(this.termoBusca && this.termoBusca.trim()) ||
+        !!(this.intervaloData && this.intervaloData.length === 2)
       )
     },
 
-    filteredCards() {
-      return this.getFilteredCards()
+    cardsFiltrados() {
+      return this.obterCardsFiltrados()
     },
   },
 
   async mounted() {
-    await this.loadCards()
+    await this.carregarCards()
   },
 
   methods: {
+    // ✅ Handler para seleção individual de cards
+    alternarSelecaoCard(cardId) {
+      console.log('🔄 Alternar seleção do card:', cardId)
+
+      const indice = this.cardsSelecionados.indexOf(cardId)
+
+      if (indice > -1) {
+        // Card já está selecionado, remove da seleção
+        this.cardsSelecionados.splice(indice, 1)
+        console.log('➖ Card desselecionado:', cardId)
+      } else {
+        // Card não está selecionado, adiciona à seleção
+        this.cardsSelecionados.push(cardId)
+        console.log('➕ Card selecionado:', cardId)
+      }
+
+      console.log('📋 Cards selecionados:', this.cardsSelecionados)
+
+      // Atualizar estado do checkbox "selecionar todos"
+      this.atualizarEstadoTodosSelecionados()
+    },
+
+    // ✅ Handler para ações em grupo por modelo
+    executarAcaoModelo({ action, modelo, cardIds }) {
+      console.log('🎯 Ação do modelo:', { action, modelo, cardIds })
+
+      switch (action) {
+        case 'atribuir':
+          console.log(`📌 Atribuindo todos os cards do modelo "${modelo}"`)
+          break
+        case 'aprovar':
+          console.log(`✅ Aprovando todos os cards do modelo "${modelo}"`)
+          break
+        case 'processar':
+          console.log(`⚙️ Processando conciliação para modelo "${modelo}"`)
+          break
+        default:
+          console.log(`🔧 Executando ação "${action}" para modelo "${modelo}"`)
+      }
+    },
+
+    // ✅ Atualizar estado do checkbox "selecionar todos"
+    atualizarEstadoTodosSelecionados() {
+      const totalCardsVisiveis = this.cardsFiltrados.length
+      const cardsVisiveisSelecionados = this.cardsFiltrados.filter(card =>
+        this.cardsSelecionados.includes(card.id)
+      ).length
+
+      this.todosCardsSelecionados =
+        totalCardsVisiveis > 0 &&
+        cardsVisiveisSelecionados === totalCardsVisiveis
+
+      console.log(
+        `📊 Estado "todos selecionados": ${this.todosCardsSelecionados} (${cardsVisiveisSelecionados}/${totalCardsVisiveis})`
+      )
+    },
+
+    // ✅ Handler do checkbox "selecionar todos" do header
+    alternarTodos() {
+      console.log(
+        '🔄 Alternar todos os cards - Estado atual:',
+        this.todosCardsSelecionados
+      )
+
+      if (this.todosCardsSelecionados) {
+        // Desselecionar todos os cards visíveis
+        this.cardsFiltrados.forEach(card => {
+          const indice = this.cardsSelecionados.indexOf(card.id)
+          if (indice > -1) {
+            this.cardsSelecionados.splice(indice, 1)
+          }
+        })
+        console.log('➖ Todos os cards visíveis foram desselecionados')
+      } else {
+        // Selecionar todos os cards visíveis
+        this.cardsFiltrados.forEach(card => {
+          if (!this.cardsSelecionados.includes(card.id)) {
+            this.cardsSelecionados.push(card.id)
+          }
+        })
+        console.log('➕ Todos os cards visíveis foram selecionados')
+      }
+
+      this.atualizarEstadoTodosSelecionados()
+      console.log(
+        '📋 Cards selecionados após alternar todos:',
+        this.cardsSelecionados
+      )
+    },
+
     // === CARREGAMENTO DE DADOS ===
-    async loadCards() {
+    async carregarCards() {
       try {
-        this.loading = true
-        this.error = null
+        this.carregando = true
+        this.erro = null
 
         const cards = await cardService.getCards()
-        this.allCards = Array.isArray(cards) ? cards : []
+        this.todosCards = Array.isArray(cards) ? cards : []
 
         // Atualizar contadores dos modelos
-        this.updateModeloCounters()
+        this.atualizarContadoresModelo()
 
-        this.retryCount = 0
+        // ✅ Limpar seleções ao recarregar
+        this.cardsSelecionados = []
+        this.todosCardsSelecionados = false
+
+        this.contadorTentativas = 0
       } catch (error) {
         console.error('Erro ao carregar cards:', error)
-        this.error = this.getErrorMessage(error)
-        this.allCards = []
+        this.erro = this.obterMensagemErro(error)
+        this.todosCards = []
 
-        if (this.retryCount < this.maxRetries) {
-          this.retryCount++
-          setTimeout(() => this.loadCards(), 2000 * this.retryCount)
+        if (this.contadorTentativas < this.maximoTentativas) {
+          this.contadorTentativas++
+          setTimeout(() => this.carregarCards(), 2000 * this.contadorTentativas)
         }
       } finally {
-        this.loading = false
+        this.carregando = false
       }
     },
 
     // Atualizar contadores baseado nos modelos dos cards
-    updateModeloCounters() {
+    atualizarContadoresModelo() {
       // Contar total
-      const totalCount = this.allCards.length
-      const todosTab = this.filterTabs.find(tab => tab.id === 'todos')
-      if (todosTab) todosTab.count = totalCount
+      const totalContador = this.todosCards.length
+      const abaTotal = this.filterTabs.find(tab => tab.id === 'todos')
+      if (abaTotal) abaTotal.count = totalContador
 
       // Contar por modelo
       this.filterTabs.forEach(tab => {
         if (tab.modelo) {
-          const count = this.allCards.filter(
+          const contador = this.todosCards.filter(
             card => card.documento?.modelo === tab.modelo
           ).length
-          tab.count = count
+          tab.count = contador
         }
       })
     },
 
-    getErrorMessage(error) {
+    obterMensagemErro(error) {
       if (error.response?.status === 404) {
         return 'Serviço não encontrado. Tente novamente mais tarde.'
       }
@@ -367,48 +524,48 @@ export default {
       return error.message || 'Erro desconhecido ao carregar documentos'
     },
 
-    clearError() {
-      this.error = null
-      this.retryCount = 0
+    limparErro() {
+      this.erro = null
+      this.contadorTentativas = 0
     },
 
     // === LÓGICA DE FILTROS ===
-    getFilteredCards() {
-      let filtered = [...this.allCards]
+    obterCardsFiltrados() {
+      let filtrados = [...this.todosCards]
 
       // Filtro por modelo (aba ativa)
-      if (this.activeTabFilter && this.activeTabFilter !== 'todos') {
-        filtered = this.filterByModelo(filtered)
+      if (this.filtroAbaAtiva && this.filtroAbaAtiva !== 'todos') {
+        filtrados = this.filtrarPorModelo(filtrados)
       }
 
-      if (this.searchTerm?.trim()) {
-        filtered = this.filterBySearch(filtered)
+      if (this.termoBusca?.trim()) {
+        filtrados = this.filtrarPorBusca(filtrados)
       }
 
-      if (this.dateRange?.length === 2) {
-        filtered = this.filterByDate(filtered)
+      if (this.intervaloData?.length === 2) {
+        filtrados = this.filtrarPorData(filtrados)
       }
 
-      return this.sortCardsByVencimento(filtered)
+      return this.ordenarCardsPorVencimento(filtrados)
     },
 
     // Filtro por modelo do documento
-    filterByModelo(cards) {
-      const activeTab = this.filterTabs.find(
-        tab => tab.id === this.activeTabFilter
+    filtrarPorModelo(cards) {
+      const abaAtiva = this.filterTabs.find(
+        tab => tab.id === this.filtroAbaAtiva
       )
-      if (!activeTab || !activeTab.modelo) return cards
+      if (!abaAtiva || !abaAtiva.modelo) return cards
 
       return cards.filter(card => {
-        return card.documento?.modelo === activeTab.modelo
+        return card.documento?.modelo === abaAtiva.modelo
       })
     },
 
-    filterBySearch(cards) {
-      const searchLower = this.searchTerm.toLowerCase().trim()
+    filtrarPorBusca(cards) {
+      const buscaMinuscula = this.termoBusca.toLowerCase().trim()
 
       return cards.filter(card => {
-        const searchableFields = [
+        const camposPesquisaveis = [
           card.remetente?.nome || '',
           card.remetente?.funcao || '',
           card.documento?.modelo || '',
@@ -420,158 +577,204 @@ export default {
           card.ancora?.unidade || '',
         ]
 
-        return searchableFields.some(field =>
-          field.toLowerCase().includes(searchLower)
+        return camposPesquisaveis.some(campo =>
+          campo.toLowerCase().includes(buscaMinuscula)
         )
       })
     },
 
-    filterByDate(cards) {
-      const [startDate, endDate] = this.dateRange
+    filtrarPorData(cards) {
+      const [dataInicio, dataFim] = this.intervaloData
 
       return cards.filter(card => {
-        const cardDataInicio = this.parseCardDate(card.documento?.dataInicio)
-        const cardVencimento = this.parseCardVencimento(card)
-        const cardDataPagamento = this.parseCardDateBR(
+        const dataInicioCard = this.analisarDataCard(card.documento?.dataInicio)
+        const vencimentoCard = this.analisarVencimentoCard(card)
+        const dataPagamentoCard = this.analisarDataBR(
           card.ancora?.dataPagamento
         )
 
         return (
-          this.isDateInRange(cardDataInicio, startDate, endDate) ||
-          this.isDateInRange(cardVencimento, startDate, endDate) ||
-          this.isDateInRange(cardDataPagamento, startDate, endDate)
+          this.dataEstaNoIntervalo(dataInicioCard, dataInicio, dataFim) ||
+          this.dataEstaNoIntervalo(vencimentoCard, dataInicio, dataFim) ||
+          this.dataEstaNoIntervalo(dataPagamentoCard, dataInicio, dataFim)
         )
       })
     },
 
-    sortCardsByVencimento(cards) {
+    ordenarCardsPorVencimento(cards) {
       return cards.sort((a, b) => {
-        const dateA = this.parseCardVencimento(a)
-        const dateB = this.parseCardVencimento(b)
+        const dataA = this.analisarVencimentoCard(a)
+        const dataB = this.analisarVencimentoCard(b)
 
         // Cards sem data vão para o final
-        if (!dateA && !dateB) return 0
-        if (!dateA) return 1
-        if (!dateB) return -1
+        if (!dataA && !dataB) return 0
+        if (!dataA) return 1
+        if (!dataB) return -1
 
         // Ordenação crescente (mais vencidos primeiro)
-        return dateA - dateB
+        return dataA - dataB
       })
     },
 
     // === HANDLERS DE FILTROS ===
-    handleSearch(term) {
-      this.searchTerm = term || ''
+    buscar(termo) {
+      this.termoBusca = termo || ''
+      // Atualizar estado de seleção após filtro
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
-    handleClearSearch() {
-      this.searchTerm = ''
+    limparBusca() {
+      this.termoBusca = ''
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
-    handleDateChange({ date }) {
-      this.dateRange = Array.isArray(date) && date.length === 2 ? date : null
+    alterarData({ date }) {
+      this.intervaloData =
+        Array.isArray(date) && date.length === 2 ? date : null
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
-    clearSearch() {
-      this.searchTerm = ''
+    limparFiltroData() {
+      this.intervaloData = null
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
-    clearDateFilter() {
-      this.dateRange = null
-    },
-
-    clearAllFilters() {
-      this.searchTerm = ''
-      this.dateRange = null
+    limparTodosFiltros() {
+      this.termoBusca = ''
+      this.intervaloData = null
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
     // === HANDLERS DOS DROPDOWNS ===
-    handleToggleAll() {
-      this.allCardsSelected = !this.allCardsSelected
-      console.log('Toggle all cards:', this.allCardsSelected)
-    },
+    executarAcaoCheckbox(acao) {
+      console.log(
+        '🔧 Ação do checkbox:',
+        acao,
+        'Cards selecionados:',
+        this.cardsSelecionados
+      )
 
-    handleCheckboxAction(action) {
-      console.log('Checkbox action:', action)
-    },
+      if (this.cardsSelecionados.length === 0) {
+        console.log('⚠️ Nenhum card selecionado para executar a ação')
+        return
+      }
 
-    handleEnviarPara(marker) {
-      console.log('Enviar para:', marker)
-    },
-
-    // === UTILITÁRIOS DE DATA ===
-    parseCardDate(dateString) {
-      if (!dateString) return null
-
-      try {
-        // Para formato ISO: "2025-04-15T08:30:00"
-        if (dateString.includes('T')) {
-          return new Date(dateString)
-        }
-
-        // Para formato BR: "15/04/2025"
-        const parts = dateString.split('/')
-        if (parts.length !== 3) return null
-
-        const [day, month, year] = parts.map(part => parseInt(part, 10))
-
-        if (isNaN(day) || isNaN(month) || isNaN(year)) return null
-        if (day < 1 || day > 31 || month < 1 || month > 12) return null
-
-        return new Date(year, month - 1, day)
-      } catch (error) {
-        console.warn('Erro ao parsear data:', dateString, error)
-        return null
+      // Aqui você pode implementar as ações específicas
+      switch (acao) {
+        case 'aprovar':
+          console.log(
+            '✅ Aprovando cards selecionados:',
+            this.cardsSelecionados
+          )
+          break
+        case 'atribuir-mim':
+          console.log('📌 Atribuindo cards a mim:', this.cardsSelecionados)
+          break
+        default:
+          console.log(
+            `🔧 Executando ação "${acao}" nos cards:`,
+            this.cardsSelecionados
+          )
       }
     },
 
-    parseCardDateBR(dateString) {
-      if (!dateString || typeof dateString !== 'string') return null
-
-      try {
-        const parts = dateString.split('/')
-        if (parts.length !== 3) return null
-
-        const [day, month, year] = parts.map(part => parseInt(part, 10))
-
-        if (isNaN(day) || isNaN(month) || isNaN(year)) return null
-        if (day < 1 || day > 31 || month < 1 || month > 12) return null
-
-        return new Date(year, month - 1, day)
-      } catch (error) {
-        console.warn('Erro ao parsear data BR:', dateString, error)
-        return null
-      }
-    },
-
-    parseCardVencimento(card) {
-      return this.parseCardDateBR(card?.vencimento?.data)
-    },
-
-    isDateInRange(date, startDate, endDate) {
-      if (!date || !startDate || !endDate) return false
-
-      const normalizeDate = d =>
-        new Date(d.getFullYear(), d.getMonth(), d.getDate())
-
-      const normalizedDate = normalizeDate(date)
-      const normalizedStart = normalizeDate(startDate)
-      const normalizedEnd = normalizeDate(endDate)
-
-      return (
-        normalizedDate >= normalizedStart && normalizedDate <= normalizedEnd
+    enviarPara(marcador) {
+      console.log(
+        '📤 Enviar para:',
+        marcador,
+        'Cards selecionados:',
+        this.cardsSelecionados
       )
     },
 
-    formatDateRange(dateRange) {
-      if (!dateRange || !Array.isArray(dateRange) || dateRange.length !== 2) {
+    // === UTILITÁRIOS DE DATA ===
+    analisarDataCard(stringData) {
+      if (!stringData) return null
+
+      try {
+        // Para formato ISO: "2025-04-15T08:30:00"
+        if (stringData.includes('T')) {
+          return new Date(stringData)
+        }
+
+        // Para formato BR: "15/04/2025"
+        const partes = stringData.split('/')
+        if (partes.length !== 3) return null
+
+        const [dia, mes, ano] = partes.map(parte => parseInt(parte, 10))
+
+        if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null
+        if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null
+
+        return new Date(ano, mes - 1, dia)
+      } catch (error) {
+        console.warn('Erro ao analisar data:', stringData, error)
+        return null
+      }
+    },
+
+    analisarDataBR(stringData) {
+      if (!stringData || typeof stringData !== 'string') return null
+
+      try {
+        const partes = stringData.split('/')
+        if (partes.length !== 3) return null
+
+        const [dia, mes, ano] = partes.map(parte => parseInt(parte, 10))
+
+        if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null
+        if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null
+
+        return new Date(ano, mes - 1, dia)
+      } catch (error) {
+        console.warn('Erro ao analisar data BR:', stringData, error)
+        return null
+      }
+    },
+
+    analisarVencimentoCard(card) {
+      return this.analisarDataBR(card?.vencimento?.data)
+    },
+
+    dataEstaNoIntervalo(data, dataInicio, dataFim) {
+      if (!data || !dataInicio || !dataFim) return false
+
+      const normalizarData = d =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate())
+
+      const dataNormalizada = normalizarData(data)
+      const inicioNormalizado = normalizarData(dataInicio)
+      const fimNormalizado = normalizarData(dataFim)
+
+      return (
+        dataNormalizada >= inicioNormalizado &&
+        dataNormalizada <= fimNormalizado
+      )
+    },
+
+    formatarIntervaloData(intervaloData) {
+      if (
+        !intervaloData ||
+        !Array.isArray(intervaloData) ||
+        intervaloData.length !== 2
+      ) {
         return ''
       }
 
-      const [start, end] = dateRange
-      const formatDate = date => {
+      const [inicio, fim] = intervaloData
+      const formatarData = data => {
         try {
-          return date.toLocaleDateString('pt-BR', {
+          return data.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -581,336 +784,97 @@ export default {
         }
       }
 
-      return `${formatDate(start)} - ${formatDate(end)}`
+      return `${formatarData(inicio)} - ${formatarData(fim)}`
     },
 
     // === OUTROS HANDLERS ===
-    handleFilterChange(tabId) {
-      this.activeTabFilter = tabId
-      console.log('Filtro ativo por modelo:', tabId)
+    alterarFiltro(idAba) {
+      this.filtroAbaAtiva = idAba
+      console.log('Filtro ativo por modelo:', idAba)
+      this.$nextTick(() => {
+        this.atualizarEstadoTodosSelecionados()
+      })
     },
 
-    handleMarkerAdded(newTab) {
-      console.log('Novo marcador adicionado:', newTab)
+    adicionarMarcador(novaAba) {
+      console.log('Novo marcador adicionado:', novaAba)
     },
 
-    handleAtribuirMim() {
+    atribuirEmLotes() {
+      console.log('Atribuir em lotes')
+    },
+
+    atribuirAMim() {
       console.log('Atribuir a mim')
     },
 
-    handleAprovar() {
+    aprovar() {
       console.log('Aprovar')
     },
 
-    handleAgrupar() {
+    agrupar() {
       console.log('Agrupar')
-    },
-
-    handleMaisAcoes() {
-      console.log('Mais ações')
     },
   },
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
-/* Variáveis CSS */
-:root {
-  --primary-color: #1a82d9;
-  --success-color: #37c989;
-  --danger-color: #dc2626;
-  --warning-color: #f59e0b;
-  --text-primary: #4b5563;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border-color: #e5e7eb;
-  --background-light: #f8fafc;
-  --background-error: #fef2f2;
-  --border-error: #fecaca;
-}
-
+/* Layout principal */
 .caixa-entrada-container {
-  font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  max-height: 100vh;
   overflow: hidden;
 }
 
-/* Header Fixo */
-.caixa-entrada-header-fixo {
+/* Header fixo - não rola */
+.header-fixo {
+  flex-shrink: 0;
+  background-color: white;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
-  border-bottom: 1px solid var(--border-color);
-  gap: 8px;
-  flex-shrink: 0;
+  z-index: 20;
 }
 
-/* Linha 1: Título */
-.page-title-container {
+/* Conteúdo do header com padding */
+.header-content {
+  padding: 0 16px;
+  gap: 0.5rem;
   display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
 }
 
-.titulo-pagina {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text-primary);
+/* Linha separadora que vai de canto a canto */
+.separador-linha {
+  height: 1px;
+  background-color: #e5e7eb;
+  width: 100%;
   margin: 0;
 }
 
-/* Linha 2: Filtros */
-.filters-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Título dos cards com padding */
+.header-cards-title {
+  padding: 0 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-/* Linha 3: Botões */
-.buttons-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.grupo-botoes {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.grupo-busca-data {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Linha 4: Filtros Ativos */
-.filtros-ativos {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: var(--background-light);
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  gap: 12px;
-}
-
-.indicadores-filtro {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.badge-filtro {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background-color: var(--primary-color);
-  color: white;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.limpar-filtro {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 2px;
-  transition: background-color 0.2s ease;
-  border-radius: 2px;
-}
-
-.limpar-filtro:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.limpar-todos-filtros,
-.botao-limpar-filtros {
-  padding: 4px 8px;
-  background: none;
-  border: 1px solid var(--danger-color);
-  color: var(--danger-color);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s ease;
-}
-
-.limpar-todos-filtros:hover,
-.botao-limpar-filtros:hover {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-/* Linha 5: Título dos Cards */
-.title-card-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 0;
-  border-top: 1px solid var(--border-color);
-}
-
-.dropdowns-titulo {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.titulos-colunas {
-  display: flex;
-  flex: 1;
-  gap: 16px;
-}
-
-.coluna-titulo {
-  flex: 1;
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* Área de Rolagem */
-.area-rolagem {
+/* Área de scroll - apenas lista de cards */
+.area-scroll {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
-/* Estados */
-.estado-carregamento,
-.estado-vazio,
-.estado-erro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: var(--text-muted);
-  text-align: center;
+/* Conteúdo da área de scroll com padding */
+.scroll-content {
+  padding: 0 16px;
 }
 
-.estado-erro {
-  background-color: var(--background-error);
-  border: 1px solid var(--border-error);
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.icone-erro,
-.icone-vazio {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.estado-erro h3,
-.estado-vazio h3 {
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.estado-erro h3 {
-  color: var(--danger-color);
-}
-
-.estado-erro p,
-.estado-vazio p {
-  margin-bottom: 20px;
-  color: var(--text-muted);
-}
-
-.retry-info {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.acoes-erro {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.botao-tentar-novamente,
-.botao-limpar-erro {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.botao-tentar-novamente {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-.botao-tentar-novamente:hover {
-  background-color: #b91c1c;
-}
-
-.botao-limpar-erro {
-  background-color: transparent;
-  color: var(--danger-color);
-  border: 1px solid var(--danger-color);
-}
-
-.botao-limpar-erro:hover {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-/* Spinner */
-.spinner-carregamento {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: girar 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes girar {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Classes utilitárias para espaçamento */
-.espacamento-xs {
-  margin-bottom: 4px;
-}
-
-.espacamento-sm {
-  margin-bottom: 8px;
-}
-
-.espacamento-md {
-  margin-bottom: 12px;
-}
-
-.espacamento-lg {
-  margin-bottom: 16px;
-}
-
-/* Acessibilidade */
-.sr-only {
+/* Classe para acessibilidade */
+.texto-acessibilidade {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -922,67 +886,15 @@ export default {
   border: 0;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-  .caixa-entrada-header-fixo {
-    padding: 12px 16px;
-    gap: 8px;
-  }
-
-  .buttons-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .grupo-botoes {
-    justify-content: center;
-  }
-
-  .grupo-busca-data {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .title-card-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .dropdowns-titulo {
-    justify-content: center;
-  }
-
-  .area-rolagem {
-    padding: 0 16px 16px;
-  }
-
-  /* Responsivo para vencimento */
-  .card-vencimento-responsivo {
-    display: flex;
-    flex-direction: column-reverse;
-  }
+.title-cards-container span {
+  color: #b7b7b7;
+  font-size: 12px;
+  font-weight: 400;
 }
 
-@media (max-width: 640px) {
-  .titulo-pagina {
-    font-size: 20px;
-  }
-
-  .grupo-botoes {
-    flex-direction: column;
-  }
-
-  .estado-carregamento,
-  .estado-vazio,
-  .estado-erro {
-    padding: 24px 16px;
-  }
-
-  .icone-erro,
-  .icone-vazio {
-    font-size: 36px;
+@media (max-width: 1024px) and (min-width: 769px) {
+  .header-cards-title {
+    display: none;
   }
 }
 </style>
