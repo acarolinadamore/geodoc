@@ -39,7 +39,6 @@
             }}</span>
           </li>
         </ul>
-        <!-- Botão para simular nova notificação -->
         <button @click.stop="addNotification">Simular Nova Notificação</button>
       </div>
     </div>
@@ -47,7 +46,12 @@
 </template>
 
 <script>
-import notificationsData from '@/mocks/data/notifications.json'
+// ✅ Importar do serviço em vez do JSON
+import {
+  getNotifications,
+  markAllAsRead as markAllNotificationsAsRead,
+  addNotification as addNewNotification,
+} from '@/mocks/notifications'
 import notificationIcon from '@/assets/icons/notification.svg'
 import notificationIconWhite from '@/assets/icons/notification-branco.svg'
 
@@ -64,8 +68,9 @@ export default {
       unreadCount: 0,
       useWhiteIcon: false,
       dropdownOpen: false,
-      notifications: notificationsData,
+      notifications: [],
       currentTab: 'inbox',
+      loading: false,
     }
   },
   computed: {
@@ -79,49 +84,88 @@ export default {
         } else if (this.currentTab === 'alerts') {
           return notification.type === 'alert'
         }
+        return false
       })
     },
   },
-  created() {
-    this.updateUnreadCount()
+  async created() {
+    await this.loadNotifications()
     document.addEventListener('click', this.handleClickOutside)
   },
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutside)
   },
   methods: {
+    async loadNotifications() {
+      try {
+        this.loading = true
+        this.notifications = await getNotifications()
+        this.updateUnreadCount()
+      } catch (error) {
+        console.error('Erro ao carregar notificações:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen
     },
+
     toggleIconColor() {
       this.useWhiteIcon = !this.useWhiteIcon
     },
+
     updateUnreadCount() {
       this.unreadCount = this.notifications.filter(n => !n.read).length
     },
-    markAllAsRead() {
-      this.notifications.forEach(n => (n.read = true))
-      this.updateUnreadCount()
+
+    async markAllAsRead() {
+      try {
+        await markAllNotificationsAsRead(this.currentTab)
+        // Atualizar localmente
+        this.notifications.forEach(n => {
+          if (n.type === this.currentTab) {
+            n.read = true
+          }
+        })
+        this.updateUnreadCount()
+      } catch (error) {
+        console.error('Erro ao marcar como lidas:', error)
+      }
     },
+
     handleClickOutside(event) {
-      if (this.dropdownOpen && !this.$refs.dropdown.contains(event.target)) {
+      if (
+        this.dropdownOpen &&
+        this.$refs.dropdown &&
+        !this.$refs.dropdown.contains(event.target)
+      ) {
         this.dropdownOpen = false
       }
     },
-    addNotification() {
-      const newNotification = {
-        id: this.notifications.length + 1,
-        title: 'Nova notificação recebida!',
-        read: false,
-        type: this.currentTab === 'inbox' ? 'inbox' : 'alert',
+
+    async addNotification() {
+      try {
+        const newNotification = {
+          title: 'Nova notificação recebida!',
+          message: 'Esta é uma notificação de teste',
+          type: this.currentTab === 'inbox' ? 'inbox' : 'alert',
+          priority: 'normal',
+        }
+
+        const created = await addNewNotification(newNotification)
+        this.notifications.unshift(created)
+        this.updateUnreadCount()
+      } catch (error) {
+        console.error('Erro ao adicionar notificação:', error)
       }
-      this.notifications.push(newNotification)
-      this.updateUnreadCount()
     },
   },
 }
 </script>
 
+<!-- Estilos mantidos iguais -->
 <style scoped>
 .notification-icon {
   position: relative;
@@ -162,7 +206,6 @@ export default {
   background-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  /* Ajuste se necessário para evitar overflow */
   overflow: hidden;
 }
 

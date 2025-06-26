@@ -2,61 +2,58 @@
   <layout-sidebar-header
     :show-header-date="false"
     :show-header-notification="true"
+    ref="caixaEntradaRef"
   >
     <div class="caixa-entrada-container">
-      <!-- Header Fixo com Padding -->
+      <!-- Header Fixo -->
       <div class="header-fixo">
         <div class="header-content">
           <!-- Título da Página -->
-          <div class="flex pt-3 pb-1">
-            <h1 class="text-xl font-semibold text-gray-700 m-0">
-              Caixa de Entrada
-            </h1>
+          <div class="page-title text-left">
+            <h1>{{ tituloPagina }}</h1>
           </div>
 
-          <!-- Filtros de Clique -->
-          <div class="flex flex-col gap-1">
-            <GdFilterBar />
+          <!-- Filtros de Abas -->
+          <div class="filtros-container">
+            <GdFilterBar
+              :initial-tabs="abasIniciais"
+              :initial-active-tab-id="filtroAbaAtiva"
+              @atualizar-aba="alterarFiltroAba"
+              @adicionar-marcador="adicionarMarcador"
+            />
             <GdFilterBarBadge
               :initial-tabs="abasFiltro"
-              @filter-change="alterarFiltro"
-              @marker-added="adicionarMarcador"
+              :active-model="filtroModeloAtivo"
+              @filter-change="alterarFiltroModelo"
             />
           </div>
 
-          <!-- Botoes - Search e DatePicker -->
-          <div
-            class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mt-2"
-          >
-            <!-- Search e DatePicker - aparecem primeiro no mobile -->
-            <div
-              class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto order-1 lg:order-2"
-            >
+          <!-- Controles de Busca e Ações -->
+          <div class="controles-container">
+            <div class="busca-container">
               <GdSearchBar
                 v-model="termoBusca"
-                @search="buscar"
-                @clear="limparBusca"
-                class="w-full lg:w-auto"
+                class="busca-input"
+                placeholder="Buscar..."
               />
+
               <GdDatePicker
                 v-model="intervaloData"
-                :placeholder="'Selecionar período'"
+                placeholder="Selecionar período"
                 @change="alterarData"
-                class="w-full lg:w-auto"
+                class="data-picker"
               />
             </div>
 
-            <!-- Botões - aparecem depois no mobile -->
-            <div
-              class="flex gap-2 flex-wrap w-full lg:w-auto order-2 lg:order-1"
-            >
+            <!-- ✅ BOTÕES DEPOIS (fica embaixo no mobile) -->
+            <div class="botoes-container">
               <GdButton
                 label="Atribuir em Lotes"
                 variant="outlined"
                 border-color="#37c989"
                 text-color="#37c989"
                 @click="atribuirEmLotes"
-                class="flex-1 lg:flex-none"
+                class="acao-button"
               />
               <GdButton
                 label="Atribuir a mim"
@@ -64,7 +61,7 @@
                 border-color="#37c989"
                 text-color="#37c989"
                 @click="atribuirAMim"
-                class="flex-1 lg:flex-none"
+                class="acao-button"
               />
               <GdButton
                 label="Aprovar"
@@ -73,7 +70,7 @@
                 bg-color="#37c989"
                 text-color="#ffffff"
                 @click="aprovar"
-                class="flex-1 lg:flex-none"
+                class="acao-button"
               />
               <GdButton
                 label="Agrupar"
@@ -81,176 +78,102 @@
                 bg-color="#1a82d9"
                 text-color="#ffffff"
                 @click="agrupar"
-                class="flex-1 lg:flex-none"
+                class="acao-button"
               />
             </div>
           </div>
-          <!-- Indicador de filtros ativos -->
-          <div
-            v-if="possuiFiltrosAtivos"
-            class="flex justify-between items-center p-2 bg-gray-50 border border-gray-200 rounded-md gap-3"
-            role="status"
-            aria-live="polite"
-          >
-            <div class="flex gap-2 flex-wrap">
-              <span
-                v-if="termoBusca"
-                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs"
-              >
-                <span class="texto-acessibilidade">Filtro de busca ativo:</span>
+
+          <!-- Indicador de Filtros Ativos -->
+          <div v-if="possuiFiltrosAtivos" class="filtros-ativos">
+            <div class="filtros-badges">
+              <span v-if="termoBusca" class="filtro-badge">
                 🔍 "{{ termoBusca }}"
-                <button
-                  @click="limparBusca"
-                  class="bg-transparent border-0 text-white cursor-pointer text-sm p-0.5 hover:bg-white hover:bg-opacity-20 rounded"
-                  :aria-label="`Remover filtro de busca: ${termoBusca}`"
-                >
-                  ×
-                </button>
+                <button @click="limparBusca" class="filtro-remove">×</button>
               </span>
-              <span
-                v-if="intervaloData && intervaloData.length === 2"
-                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs"
-              >
-                <span class="texto-acessibilidade">Filtro de data ativo:</span>
-                📅 {{ formatarIntervaloData(intervaloData) }}
-                <button
-                  @click="limparFiltroData"
-                  class="bg-transparent border-0 text-white cursor-pointer text-sm p-0.5 hover:bg-white hover:bg-opacity-20 rounded"
-                  :aria-label="`Remover filtro de data: ${formatarIntervaloData(
-                    intervaloData
-                  )}`"
-                >
+              <span v-if="intervaloDataFormatado" class="filtro-badge">
+                📅 {{ intervaloDataFormatado }}
+                <button @click="limparFiltroData" class="filtro-remove">
                   ×
                 </button>
               </span>
             </div>
-            <button
-              @click="limparTodosFiltros"
-              class="px-2 py-1 bg-transparent border border-red-600 text-red-600 rounded text-xs cursor-pointer hover:bg-red-600 hover:text-white transition-all"
-              aria-label="Limpar todos os filtros ativos"
-            >
+            <button @click="limparTodosFiltros" class="limpar-filtros">
               Limpar todos os filtros
             </button>
           </div>
         </div>
 
-        <!-- Linha separadora sem padding -->
+        <!-- Separador -->
         <div class="separador-linha"></div>
 
-        <!-- Título dos Cards com Dropdowns - Com padding -->
-        <div class="header-cards-title">
-          <div class="flex items-center gap-4 py-2">
-            <div class="flex gap-2 items-center">
-              <GdCheckboxDropdown
-                :checked-all="todosCardsSelecionados"
-                :actions="acoesCheckbox"
-                @toggle-all="alternarTodos"
-                @action="executarAcaoCheckbox"
-              />
-              <GdEnviarParaDropdown
-                :markers="opcoesEnviarPara"
-                @select-marker="enviarPara"
-              />
-            </div>
-            <div class="flex flex-1 gap-4 title-cards-container">
-              <div class="flex-1">
-                <span>Remetente</span>
-              </div>
-              <div class="flex-1">
-                <span>Documento</span>
-              </div>
-              <div class="flex-1">
-                <span>Âncora</span>
-              </div>
-              <div class="flex-1">
-                <span>Ações</span>
-              </div>
-            </div>
+        <!-- Cabeçalho dos Cards -->
+        <div class="header-cards">
+          <div class="cards-controls">
+            <GdCheckboxDropdown
+              :checked-all="todosCardsSelecionados"
+              :actions="acoesCheckbox"
+              @toggle-all="alternarTodos"
+              @action="executarAcaoCheckbox"
+            />
+            <GdEnviarParaDropdown
+              :markers="opcoesEnviarPara"
+              @select-marker="enviarPara"
+            />
+          </div>
+          <div class="cards-headers">
+            <span>Remetente</span>
+            <span>Documento</span>
+            <span>Âncora</span>
+            <span>Ações</span>
           </div>
         </div>
       </div>
 
-      <!-- Área de Rolagem - Apenas Lista de Cards -->
+      <!-- Área de Conteúdo -->
       <div class="area-scroll">
-        <!-- Conteúdo com padding -->
         <div class="scroll-content">
           <!-- Loading -->
-          <div
-            v-if="carregando"
-            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
-          >
-            <div
-              class="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4"
-              aria-label="Carregando"
-            ></div>
+          <div v-if="carregando" class="estado-loading">
+            <div class="loading-spinner"></div>
             <p>Carregando documentos...</p>
-            <div
-              v-if="contadorTentativas > 0"
-              class="mt-3 text-xs text-gray-400"
-            >
+            <div v-if="contadorTentativas > 0" class="loading-tentativas">
               Tentativa {{ contadorTentativas }} de {{ maximoTentativas }}
             </div>
           </div>
 
           <!-- Estado de Erro -->
-          <div
-            v-else-if="erro"
-            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center bg-red-50 border border-red-200 rounded-lg m-5"
-          >
-            <div class="text-5xl mb-4">⚠️</div>
-            <h3 class="text-red-600 mb-2 text-lg font-semibold">
-              Ops! Algo deu errado
-            </h3>
-            <p class="mb-5 text-gray-600">{{ erro }}</p>
-            <div class="flex gap-3 justify-center flex-wrap">
-              <button
-                @click="carregarCards"
-                class="px-4 py-2 rounded-md border-0 cursor-pointer font-medium transition-all text-sm bg-red-600 text-white hover:bg-red-700"
-              >
+          <div v-else-if="erro" class="estado-erro">
+            <div class="erro-icon">⚠️</div>
+            <h3>Ops! Algo deu errado</h3>
+            <p>{{ erro }}</p>
+            <div class="erro-acoes">
+              <button @click="carregarCards" class="btn-tentar-novamente">
                 Tentar novamente
               </button>
-              <button
-                @click="limparErro"
-                class="px-4 py-2 rounded-md cursor-pointer font-medium transition-all text-sm bg-transparent text-red-600 border border-red-600 hover:bg-red-600 hover:text-white"
-              >
+              <button @click="limparErro" class="btn-limpar-erro">
                 Limpar erro
               </button>
             </div>
           </div>
 
-          <!-- Estados Vazios -->
-          <div
-            v-else-if="cardsFiltrados.length === 0 && todosCards.length === 0"
-            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
-          >
-            <div class="text-5xl mb-4">📄</div>
-            <h3 class="text-gray-700 mb-2 text-lg font-semibold">
-              Nenhum documento encontrado
-            </h3>
-            <p class="mb-5 text-gray-600">
-              Sua caixa de entrada está vazia no momento.
-            </p>
+          <!-- Estado Vazio -->
+          <div v-else-if="!temCards" class="estado-vazio">
+            <div class="vazio-icon">📄</div>
+            <h3>Nenhum documento encontrado</h3>
+            <p>Sua caixa de entrada está vazia no momento.</p>
           </div>
-          <div
-            v-else-if="cardsFiltrados.length === 0"
-            class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
-          >
-            <div class="text-5xl mb-4">🔍</div>
-            <h3 class="text-gray-700 mb-2 text-lg font-semibold">
-              Nenhum resultado encontrado
-            </h3>
-            <p class="mb-5 text-gray-600">
-              Nenhum documento encontrado com os filtros aplicados.
-            </p>
-            <button
-              @click="limparTodosFiltros"
-              class="px-4 py-2 bg-transparent border border-red-600 text-red-600 rounded text-xs cursor-pointer hover:bg-red-600 hover:text-white transition-all"
-            >
+
+          <!-- Sem Resultados -->
+          <div v-else-if="!temResultados" class="estado-sem-resultados">
+            <div class="vazio-icon">🔍</div>
+            <h3>Nenhum resultado encontrado</h3>
+            <p>Nenhum documento encontrado com os filtros aplicados.</p>
+            <button @click="limparTodosFiltros" class="btn-limpar-filtros">
               Limpar filtros
             </button>
           </div>
 
-          <!-- Lista de Cards - ADICIONADOS OS EVENTOS E PROPS -->
+          <!-- Lista de Cards -->
           <GdCardList
             v-else
             :cards="cardsFiltrados"
@@ -274,7 +197,7 @@ import GdEnviarParaDropdown from '@/components/ui/GdEnviarParaDropdown.vue'
 import GdButton from '@/components/ui/GdButton.vue'
 import GdSearchBar from '@/components/ui/GdSearchBar.vue'
 import GdDatePicker from '@/components/ui/GdDatePicker.vue'
-import { cardService } from '@/services/index.js'
+import { caixaEntradaService } from '@/services/index.js'
 
 export default {
   name: 'GdCaixaEntrada',
@@ -289,29 +212,40 @@ export default {
     GdSearchBar,
     GdDatePicker,
   },
-  data() {
+  data: function () {
     return {
+      // ========================================
+      // CONFIGURAÇÃO DE ABAS E FILTROS
+      // ========================================
+      abasIniciais: [
+        { id: 'todos', label: 'Todos' },
+        { id: 'a-configurar', label: 'A Configurar' },
+        { id: 'recebidos', label: 'Recebidos' },
+        { id: 'solicitados', label: 'Solicitados' },
+        { id: 'lembretes', label: 'Lembretes' },
+      ],
+
       abasFiltro: [
         { id: 'todos', label: 'Todos', count: 10, color: '#1a82d9' },
         {
-          id: 'solicitacao-fabrica-software',
-          label: 'Solicitação à Fábrica de Software',
+          id: 'solicitacao-sistema-gestao',
+          label: 'Solicitação de Sistema de Gestão',
           count: 2,
-          color: '#10b981',
-          modelo: 'Solicitação à Fábrica de Software',
+          color: '#3b82f6',
+          modelo: 'Solicitação de Sistema de Gestão',
         },
         {
           id: 'solicitacao-orcamento',
           label: 'Solicitação de Orçamento',
           count: 2,
-          color: '#f59e0b',
+          color: '#10b981',
           modelo: 'Solicitação de Orçamento',
         },
         {
           id: 'relatorio-progresso',
           label: 'Relatório de Progresso',
           count: 2,
-          color: '#8b5cf6',
+          color: '#f59e0b',
           modelo: 'Relatório de Progresso',
         },
         {
@@ -325,7 +259,7 @@ export default {
           id: 'conciliacao-bancaria',
           label: 'Conciliação Bancária',
           count: 2,
-          color: '#06b6d4',
+          color: '#8b5cf6',
           modelo: 'Conciliação Bancária',
         },
       ],
@@ -352,6 +286,19 @@ export default {
         { label: 'Operações', value: 'operacoes', color: '#06b6d4' },
       ],
 
+      // ========================================
+      // ESTADO DA APLICAÇÃO
+      // ========================================
+      filtroAbaAtiva: 'todos',
+      filtroModeloAtivo: null,
+      marcadoresCustomizados: [],
+
+      usuarioAtual: {
+        id: 'user001',
+        setor: 'FINANCEIRO',
+        nome: 'Arthur Affonso',
+      },
+
       todosCards: [],
       cardsSelecionados: [],
       carregando: false,
@@ -360,251 +307,354 @@ export default {
       maximoTentativas: 3,
       termoBusca: '',
       intervaloData: null,
-      filtroAbaAtiva: 'todos',
       todosCardsSelecionados: false,
     }
   },
+
   computed: {
-    possuiFiltrosAtivos() {
+    // ========================================
+    // COMPUTED PROPERTIES
+    // ========================================
+    possuiFiltrosAtivos: function () {
       return (
-        !!(this.termoBusca && this.termoBusca.trim()) ||
-        !!(
-          this.intervaloData &&
-          ((Array.isArray(this.intervaloData) &&
-            this.intervaloData.length > 0) ||
-            this.intervaloData instanceof Date)
-        )
+        !!(this.termoBusca && this.termoBusca.trim()) || !!this.intervaloData
       )
     },
 
-    cardsFiltrados() {
-      return this.obterCardsFiltrados()
+    intervaloDataFormatado: function () {
+      return this.formatarIntervaloData(this.intervaloData)
+    },
+
+    cardsFiltrados: function () {
+      console.log('🔍 Aplicando filtros...')
+      console.log('📦 Total de cards:', this.todosCards.length)
+      console.log('🔤 Termo de busca:', this.termoBusca)
+      console.log('🎨 Modelo ativo:', this.filtroModeloAtivo)
+      console.log('📅 Intervalo de data:', this.intervaloData)
+
+      var filtrados = this.todosCards.slice()
+
+      // Filtrar por modelo se selecionado
+      if (this.filtroModeloAtivo && this.filtroModeloAtivo !== 'todos') {
+        console.log('🎨 Aplicando filtro de modelo...')
+        filtrados = this.aplicarFiltroModelo(filtrados)
+        console.log('📦 Após filtro modelo:', filtrados.length)
+      }
+
+      // ✅ FILTRAR POR BUSCA
+      if (this.termoBusca && this.termoBusca.trim()) {
+        console.log('🔍 Aplicando filtro de busca...')
+        filtrados = this.filtrarPorBusca(filtrados)
+        console.log('📦 Após filtro busca:', filtrados.length)
+      }
+
+      // Filtrar por data
+      if (this.intervaloData) {
+        console.log('📅 Aplicando filtro de data...')
+        filtrados = this.filtrarPorData(filtrados)
+        console.log('📦 Após filtro data:', filtrados.length)
+      }
+
+      var resultado = this.ordenarCardsPorVencimento(filtrados)
+      console.log('✅ Cards filtrados final:', resultado.length)
+
+      return resultado
+    },
+
+    tituloPagina: function () {
+      var titulos = {
+        todos: 'Caixa de Entrada',
+        'a-configurar': 'A Configurar',
+        recebidos: 'Recebidos',
+        solicitados: 'Solicitados',
+        lembretes: 'Lembretes',
+      }
+      return (
+        titulos[this.filtroAbaAtiva] ||
+        this.formatarTituloMarcador(this.filtroAbaAtiva)
+      )
+    },
+
+    temCards: function () {
+      return this.todosCards.length > 0
+    },
+
+    temResultados: function () {
+      return this.cardsFiltrados.length > 0
     },
   },
 
+  watch: {
+    termoBusca: {
+      handler: function (novoTermo, termoAnterior) {
+        console.log('👀 Watch termoBusca ativado:', {
+          anterior: termoAnterior,
+          novo: novoTermo,
+          totalCards: this.todosCards.length,
+        })
+
+        // ✅ LIMPAR SELEÇÕES QUANDO BUSCA MUDA
+        this.limparSelecoes()
+      },
+      immediate: false,
+    },
+
+    // ✅ WATCH CORRIGIDO PARA CARDS FILTRADOS
+    cardsFiltrados: {
+      handler: function (novosCards) {
+        // ✅ VERIFICAR SE novosCards É VÁLIDO ANTES DE ACESSAR .length
+        if (novosCards && Array.isArray(novosCards)) {
+          console.log('👀 Cards filtrados mudaram:', novosCards.length)
+          // Atualizar estado de seleção quando filtros mudam
+          this.atualizarEstadoTodosSelecionados()
+        } else {
+          console.log('👀 Cards filtrados mudaram: dados inválidos')
+        }
+      },
+      immediate: false,
+    },
+  },
   async mounted() {
+    console.log('🚀 GdCaixaEntrada montado')
+    this.detectarFiltroInicialPorURL()
     await this.carregarCards()
   },
 
   methods: {
-    alternarSelecaoCard(cardId) {
-      console.log('Alternar seleção do card:', cardId)
+    // ========================================
+    // GERENCIAMENTO DE FILTROS
+    // ========================================
+    alterarFiltroAba: function (novaAba) {
+      if (!novaAba) return
 
-      const indice = this.cardsSelecionados.indexOf(cardId)
-
-      if (indice > -1) {
-        this.cardsSelecionados.splice(indice, 1)
-        console.log('Card desselecionado:', cardId)
-      } else {
-        this.cardsSelecionados.push(cardId)
-        console.log('Card selecionado:', cardId)
-      }
-
-      console.log('Cards selecionados:', this.cardsSelecionados)
-      this.atualizarEstadoTodosSelecionados()
+      console.log('🔄 Alterando filtro de aba para:', novaAba)
+      this.filtroAbaAtiva = novaAba
+      this.atualizarURL(novaAba)
+      this.limparSelecoes()
+      this.carregarCards()
     },
 
-    executarAcaoModelo({ action, modelo, cardIds }) {
-      console.log('Ação do modelo:', { action, modelo, cardIds })
-
-      switch (action) {
-        case 'atribuir':
-          console.log(`Atribuindo todos os cards do modelo "${modelo}"`)
-          break
-        case 'aprovar':
-          console.log(`Aprovando todos os cards do modelo "${modelo}"`)
-          break
-        case 'processar':
-          console.log(`Processando conciliação para modelo "${modelo}"`)
-          break
-        default:
-          console.log(`Executando ação "${action}" para modelo "${modelo}"`)
-      }
+    alterarFiltroModelo: function (modeloId) {
+      console.log('🎨 Alterando filtro de modelo para:', modeloId)
+      this.filtroModeloAtivo = modeloId
+      this.limparSelecoes()
     },
 
-    atualizarEstadoTodosSelecionados() {
-      const totalCardsVisiveis = this.cardsFiltrados.length
-      const cardsVisiveisSelecionados = this.cardsFiltrados.filter(card =>
-        this.cardsSelecionados.includes(card.id)
-      ).length
+    adicionarMarcador: function (novoMarcador) {
+      console.log('🏷️ Adicionando novo marcador:', novoMarcador)
 
-      this.todosCardsSelecionados =
-        totalCardsVisiveis > 0 &&
-        cardsVisiveisSelecionados === totalCardsVisiveis
-
-      console.log(
-        `Estado "todos selecionados": ${this.todosCardsSelecionados} (${cardsVisiveisSelecionados}/${totalCardsVisiveis})`
-      )
-    },
-
-    alternarTodos() {
-      console.log(
-        'Alternar todos os cards - Estado atual:',
-        this.todosCardsSelecionados
-      )
-
-      if (this.todosCardsSelecionados) {
-        this.cardsFiltrados.forEach(card => {
-          const indice = this.cardsSelecionados.indexOf(card.id)
-          if (indice > -1) {
-            this.cardsSelecionados.splice(indice, 1)
-          }
+      if (
+        !this.abasIniciais.find(function (aba) {
+          return aba.id === novoMarcador.id
         })
-        console.log('Todos os cards visíveis foram desselecionados')
-      } else {
-        this.cardsFiltrados.forEach(card => {
-          if (!this.cardsSelecionados.includes(card.id)) {
-            this.cardsSelecionados.push(card.id)
-          }
-        })
-        console.log('Todos os cards visíveis foram selecionados')
+      ) {
+        this.abasIniciais.push(novoMarcador)
       }
 
-      this.atualizarEstadoTodosSelecionados()
-      console.log(
-        'Cards selecionados após alternar todos:',
-        this.cardsSelecionados
-      )
+      if (this.marcadoresCustomizados.indexOf(novoMarcador.id) === -1) {
+        this.marcadoresCustomizados.push(novoMarcador.id)
+      }
+
+      this.alterarFiltroAba(novoMarcador.id)
     },
 
-    async carregarCards() {
+    // ========================================
+    // CARREGAMENTO DE DADOS
+    // ========================================
+    carregarCards: async function () {
       try {
         this.carregando = true
         this.erro = null
 
-        const cards = await cardService.getCards()
-        this.todosCards = Array.isArray(cards) ? cards : []
+        console.log('📥 Iniciando carregamento de cards...')
+        console.log('👤 Usuário atual:', this.usuarioAtual.id)
+        console.log('🔍 Filtro ativo:', this.filtroAbaAtiva)
+
+        var filtros = this.prepararFiltros()
+        console.log('🔧 Filtros preparados:', filtros)
+
+        var tipoFiltro = this.mapearTipoFiltro(this.filtroAbaAtiva)
+        console.log('📋 Tipo de filtro:', tipoFiltro)
+
+        this.todosCards = await caixaEntradaService.getDocumentos(
+          tipoFiltro,
+          filtros
+        )
+
+        console.log('📦 Cards carregados:', this.todosCards.length)
+        console.log('📄 Dados dos cards:', this.todosCards)
 
         this.atualizarContadoresModelo()
-        this.cardsSelecionados = []
-        this.todosCardsSelecionados = false
+        this.limparSelecoes()
         this.contadorTentativas = 0
       } catch (error) {
-        console.error('Erro ao carregar cards:', error)
+        console.error('❌ Erro ao carregar cards:', error)
         this.erro = this.obterMensagemErro(error)
         this.todosCards = []
 
         if (this.contadorTentativas < this.maximoTentativas) {
           this.contadorTentativas++
-          setTimeout(() => this.carregarCards(), 2000 * this.contadorTentativas)
+          setTimeout(() => {
+            this.carregarCards()
+          }, 2000 * this.contadorTentativas)
         }
       } finally {
         this.carregando = false
       }
     },
 
-    atualizarContadoresModelo() {
-      const totalContador = this.todosCards.length
-      const abaTotal = this.abasFiltro.find(tab => tab.id === 'todos')
-      if (abaTotal) abaTotal.count = totalContador
+    prepararFiltros: function () {
+      return {
+        usuarioId: this.usuarioAtual.id,
+        // ✅ NÃO INCLUIR BUSCA NOS FILTROS DA API
+        data_inicial:
+          this.intervaloData && this.intervaloData[0]
+            ? this.formatarDataParaAPI(this.intervaloData[0])
+            : null,
+        data_final:
+          this.intervaloData && this.intervaloData[1]
+            ? this.formatarDataParaAPI(this.intervaloData[1])
+            : null,
+        modelo_documento_id: this.obterModeloIdSelecionado(),
+      }
+    },
 
-      this.abasFiltro.forEach(tab => {
-        if (tab.modelo) {
-          const contador = this.todosCards.filter(
-            card => card.documento?.modelo === tab.modelo
-          ).length
-          tab.count = contador
-        }
+    mapearTipoFiltro: function (aba) {
+      var mapa = {
+        todos: 'todos',
+        'a-configurar': 'configurar',
+        recebidos: 'recebidos',
+        solicitados: 'solicitados',
+        lembretes: 'lembretes',
+      }
+      return mapa[aba] || 'todos'
+    },
+
+    // ========================================
+    // FILTROS LOCAIS
+    // ========================================
+    aplicarFiltroModelo: function (cards) {
+      var modeloSelecionado = this.abasFiltro.find(aba => {
+        return aba.id === this.filtroModeloAtivo
       })
-    },
 
-    obterMensagemErro(error) {
-      if (error.response?.status === 404) {
-        return 'Serviço não encontrado. Tente novamente mais tarde.'
-      }
-      if (error.response?.status >= 500) {
-        return 'Erro interno do servidor. Tente novamente mais tarde.'
-      }
-      if (error.code === 'NETWORK_ERROR') {
-        return 'Erro de conexão. Verifique sua internet.'
-      }
-      return error.message || 'Erro desconhecido ao carregar documentos'
-    },
-
-    limparErro() {
-      this.erro = null
-      this.contadorTentativas = 0
-    },
-
-    obterCardsFiltrados() {
-      let filtrados = [...this.todosCards]
-
-      if (this.filtroAbaAtiva && this.filtroAbaAtiva !== 'todos') {
-        filtrados = this.filtrarPorModelo(filtrados)
+      if (!modeloSelecionado || !modeloSelecionado.modelo) {
+        return cards
       }
 
-      if (this.termoBusca?.trim()) {
-        filtrados = this.filtrarPorBusca(filtrados)
-      }
-
-      if (
-        this.intervaloData &&
-        ((Array.isArray(this.intervaloData) && this.intervaloData.length > 0) ||
-          this.intervaloData instanceof Date)
-      ) {
-        filtrados = this.filtrarPorData(filtrados)
-      }
-
-      return this.ordenarCardsPorVencimento(filtrados)
-    },
-
-    filtrarPorModelo(cards) {
-      const abaAtiva = this.abasFiltro.find(
-        tab => tab.id === this.filtroAbaAtiva
-      )
-      if (!abaAtiva || !abaAtiva.modelo) return cards
-
-      return cards.filter(card => {
-        return card.documento?.modelo === abaAtiva.modelo
-      })
-    },
-
-    filtrarPorBusca(cards) {
-      const buscaMinuscula = this.termoBusca.toLowerCase().trim()
-
-      return cards.filter(card => {
-        const camposPesquisaveis = [
-          card.remetente?.nome || '',
-          card.remetente?.funcao || '',
-          card.documento?.modelo || '',
-          card.documento?.id || '',
-          card.documento?.fluxo || '',
-          card.documento?.dirPath || '',
-          card.ancora?.projeto || '',
-          card.ancora?.prestadorServico || '',
-          card.ancora?.unidade || '',
-        ]
-
-        return camposPesquisaveis.some(campo =>
-          campo.toLowerCase().includes(buscaMinuscula)
+      return cards.filter(function (card) {
+        return (
+          card.documento && card.documento.modelo === modeloSelecionado.modelo
         )
       })
     },
 
-    filtrarPorData(cards) {
-      let dataInicio, dataFim
+    // ✅ FILTRO DE BUSCA CORRIGIDO COM VALIDAÇÃO DE TIPOS
+    filtrarPorBusca: function (cards) {
+      var buscaMinuscula = this.termoBusca.toLowerCase().trim()
+      console.log('🔍 Buscando por:', buscaMinuscula)
 
-      if (this.intervaloData instanceof Date) {
-        dataInicio = dataFim = this.intervaloData
-      } else if (
-        Array.isArray(this.intervaloData) &&
-        this.intervaloData.length === 1
-      ) {
-        dataInicio = dataFim = this.intervaloData[0]
-      } else if (
-        Array.isArray(this.intervaloData) &&
-        this.intervaloData.length === 2
-      ) {
-        ;[dataInicio, dataFim] = this.intervaloData
-      } else {
+      if (!buscaMinuscula) {
         return cards
       }
 
+      var resultado = cards.filter(function (card) {
+        // ✅ FUNÇÃO AUXILIAR PARA CONVERTER VALORES EM STRING SEGURA
+        var converterParaString = function (valor) {
+          if (valor === null || valor === undefined) {
+            return ''
+          }
+          if (typeof valor === 'string') {
+            return valor
+          }
+          if (typeof valor === 'number') {
+            return valor.toString()
+          }
+          if (typeof valor === 'boolean') {
+            return valor.toString()
+          }
+          if (Array.isArray(valor)) {
+            return valor.join(' ')
+          }
+          if (typeof valor === 'object') {
+            return JSON.stringify(valor)
+          }
+          return String(valor)
+        }
+
+        // ✅ CAMPOS PESQUISÁVEIS COM CONVERSÃO SEGURA
+        var camposPesquisaveis = [
+          // Remetente
+          converterParaString(card.remetente && card.remetente.nome),
+          converterParaString(card.remetente && card.remetente.funcao),
+          converterParaString(card.remetente && card.remetente.setor),
+
+          // Documento
+          converterParaString(card.documento && card.documento.modelo),
+          converterParaString(card.documento && card.documento.titulo),
+          converterParaString(card.documento && card.documento.id),
+          converterParaString(card.documento && card.documento.fluxo),
+          converterParaString(card.documento && card.documento.tipo),
+          converterParaString(card.documento && card.documento.status),
+
+          // Âncora
+          converterParaString(card.ancora && card.ancora.projeto),
+          converterParaString(card.ancora && card.ancora.prestadorServico),
+          converterParaString(card.ancora && card.ancora.unidade),
+          converterParaString(card.ancora && card.ancora.pastaDigital),
+
+          // Vencimento
+          converterParaString(card.vencimento && card.vencimento.data),
+          converterParaString(card.vencimento && card.vencimento.status),
+
+          // Outros campos que podem existir
+          converterParaString(card.observacoes),
+          converterParaString(card.descricao),
+          converterParaString(card.id),
+        ]
+
+        // ✅ BUSCA MAIS INTELIGENTE - SUPORTA MÚLTIPLAS PALAVRAS
+        var palavrasBusca = buscaMinuscula
+          .split(' ')
+          .filter(function (palavra) {
+            return palavra.length > 0
+          })
+
+        return palavrasBusca.every(function (palavra) {
+          return camposPesquisaveis.some(function (campo) {
+            // ✅ AGORA TODOS OS CAMPOS SÃO STRINGS GARANTIDAS
+            return campo.toLowerCase().includes(palavra)
+          })
+        })
+      })
+
+      console.log('🔍 Resultados da busca:', resultado.length)
+      return resultado
+    },
+
+    filtrarPorData: function (cards) {
+      var dataInicio, dataFim
+
+      if (this.intervaloData instanceof Date) {
+        dataInicio = dataFim = this.intervaloData
+      } else if (Array.isArray(this.intervaloData)) {
+        if (this.intervaloData.length === 1) {
+          dataInicio = dataFim = this.intervaloData[0]
+        } else if (this.intervaloData.length === 2) {
+          dataInicio = this.intervaloData[0]
+          dataFim = this.intervaloData[1]
+        }
+      }
+
+      if (!dataInicio || !dataFim) return cards
+
       return cards.filter(card => {
-        const dataInicioCard = this.analisarDataCard(card.documento?.dataInicio)
-        const vencimentoCard = this.analisarVencimentoCard(card)
-        const dataPagamentoCard = this.analisarDataBR(
-          card.ancora?.dataPagamento
+        var dataInicioCard = this.analisarDataCard(
+          card.documento && card.documento.dataInicio
+        )
+        var vencimentoCard = this.analisarVencimentoCard(card)
+        var dataPagamentoCard = this.analisarDataBR(
+          card.ancora && card.ancora.dataPagamento
         )
 
         return (
@@ -615,10 +665,10 @@ export default {
       })
     },
 
-    ordenarCardsPorVencimento(cards) {
+    ordenarCardsPorVencimento: function (cards) {
       return cards.sort((a, b) => {
-        const dataA = this.analisarVencimentoCard(a)
-        const dataB = this.analisarVencimentoCard(b)
+        var dataA = this.analisarVencimentoCard(a)
+        var dataB = this.analisarVencimentoCard(b)
 
         if (!dataA && !dataB) return 0
         if (!dataA) return 1
@@ -628,71 +678,110 @@ export default {
       })
     },
 
-    buscar(termo) {
-      this.termoBusca = termo || ''
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
+    // ========================================
+    // SELEÇÃO DE CARDS
+    // ========================================
+    alternarSelecaoCard: function (cardId) {
+      var indice = this.cardsSelecionados.indexOf(cardId)
+
+      if (indice > -1) {
+        this.cardsSelecionados.splice(indice, 1)
+      } else {
+        this.cardsSelecionados.push(cardId)
+      }
+
+      this.atualizarEstadoTodosSelecionados()
     },
 
-    limparBusca() {
+    alternarTodos: function () {
+      if (this.todosCardsSelecionados) {
+        // Desselecionar todos os visíveis
+        this.cardsFiltrados.forEach(card => {
+          var indice = this.cardsSelecionados.indexOf(card.id)
+          if (indice > -1) {
+            this.cardsSelecionados.splice(indice, 1)
+          }
+        })
+      } else {
+        // Selecionar todos os visíveis
+        this.cardsFiltrados.forEach(card => {
+          if (this.cardsSelecionados.indexOf(card.id) === -1) {
+            this.cardsSelecionados.push(card.id)
+          }
+        })
+      }
+
+      this.atualizarEstadoTodosSelecionados()
+    },
+
+    atualizarEstadoTodosSelecionados: function () {
+      var totalCardsVisiveis = this.cardsFiltrados.length
+      var cardsVisiveisSelecionados = this.cardsFiltrados.filter(card => {
+        return this.cardsSelecionados.indexOf(card.id) !== -1
+      }).length
+
+      this.todosCardsSelecionados =
+        totalCardsVisiveis > 0 &&
+        cardsVisiveisSelecionados === totalCardsVisiveis
+    },
+
+    limparSelecoes: function () {
+      this.cardsSelecionados = []
+      this.todosCardsSelecionados = false
+    },
+
+    // ========================================
+    // EVENTOS DE BUSCA
+    // ========================================
+    buscar: function (termo) {
+      console.log('📥 GdCaixaEntrada - Buscar chamado:', termo)
+      console.log('📥 GdCaixaEntrada - termoBusca antes:', this.termoBusca)
+      console.log('📥 GdCaixaEntrada - termoBusca depois:', this.termoBusca)
+      this.limparSelecoes()
+    },
+
+    limparBusca: function () {
+      console.log('🗑️ Limpando busca')
       this.termoBusca = ''
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
+      this.limparSelecoes()
     },
 
-    alterarData({ date }) {
-      this.intervaloData = date
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
+    alterarData: function (event) {
+      console.log('📅 Alterando data:', event.date)
+      this.intervaloData = event.date
+      this.limparSelecoes()
     },
 
-    limparFiltroData() {
+    limparFiltroData: function () {
+      console.log('🗑️ Limpando filtro de data')
       this.intervaloData = null
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
+      this.limparSelecoes()
     },
 
-    limparTodosFiltros() {
+    limparTodosFiltros: function () {
+      console.log('🗑️ Limpando todos os filtros')
       this.termoBusca = ''
       this.intervaloData = null
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
+      this.limparSelecoes()
     },
 
-    executarAcaoCheckbox(acao) {
+    // ========================================
+    // AÇÕES DOS CARDS
+    // ========================================
+    executarAcaoCheckbox: function (acao) {
       console.log(
         'Ação do checkbox:',
         acao,
         'Cards selecionados:',
         this.cardsSelecionados
       )
-
-      if (this.cardsSelecionados.length === 0) {
-        console.log('Nenhum card selecionado para executar a ação')
-        return
-      }
-
-      switch (acao) {
-        case 'aprovar':
-          console.log('Aprovando cards selecionados:', this.cardsSelecionados)
-          break
-        case 'atribuir-mim':
-          console.log('Atribuindo cards a mim:', this.cardsSelecionados)
-          break
-        default:
-          console.log(
-            `Executando ação "${acao}" nos cards:`,
-            this.cardsSelecionados
-          )
-      }
     },
 
-    enviarPara(marcador) {
+    executarAcaoModelo: function (params) {
+      console.log('Ação do modelo:', params)
+    },
+
+    enviarPara: function (marcador) {
       console.log(
         'Enviar para:',
         marcador,
@@ -701,7 +790,137 @@ export default {
       )
     },
 
-    analisarDataCard(stringData) {
+    atribuirEmLotes: function () {
+      console.log('Atribuir em lotes')
+    },
+
+    atribuirAMim: function () {
+      console.log('Atribuir a mim')
+    },
+
+    aprovar: function () {
+      console.log('Aprovar')
+    },
+
+    agrupar: function () {
+      console.log('Agrupar')
+    },
+
+    // ========================================
+    // UTILITÁRIOS
+    // ========================================
+    detectarFiltroInicialPorURL: function () {
+      var path = window.location.pathname
+
+      if (path.includes('/configurar')) {
+        this.filtroAbaAtiva = 'a-configurar'
+      } else if (path.includes('/recebidos')) {
+        this.filtroAbaAtiva = 'recebidos'
+      } else if (path.includes('/solicitados')) {
+        this.filtroAbaAtiva = 'solicitados'
+      } else if (path.includes('/lembretes')) {
+        this.filtroAbaAtiva = 'lembretes'
+      } else {
+        this.filtroAbaAtiva = 'todos'
+      }
+    },
+
+    atualizarURL: function (aba) {
+      var novaURL = '/caixa-entrada'
+      var urls = {
+        'a-configurar': '/configurar',
+        recebidos: '/recebidos',
+        solicitados: '/solicitados',
+        lembretes: '/lembretes',
+        todos: '/caixa-entrada',
+      }
+
+      novaURL = urls[aba] || '/' + aba
+
+      if (window.history && window.history.pushState) {
+        window.history.pushState({}, '', novaURL)
+      }
+    },
+
+    formatarTituloMarcador: function (marcador) {
+      if (!marcador) return 'Caixa de Entrada'
+      return marcador.charAt(0).toUpperCase() + marcador.slice(1)
+    },
+
+    atualizarContadoresModelo: function () {
+      var cardsParaContar = this.todosCards
+
+      // Atualizar contador total
+      var abaTotal = this.abasFiltro.find(function (tab) {
+        return tab.id === 'todos'
+      })
+      if (abaTotal) {
+        abaTotal.count = cardsParaContar.length
+      }
+
+      // Atualizar contadores por modelo
+      this.abasFiltro.forEach(function (tab) {
+        if (tab.modelo) {
+          var contador = cardsParaContar.filter(function (card) {
+            return card.documento && card.documento.modelo === tab.modelo
+          }).length
+          tab.count = contador
+        }
+      })
+    },
+
+    obterModeloIdSelecionado: function () {
+      if (!this.filtroModeloAtivo || this.filtroModeloAtivo === 'todos') {
+        return null
+      }
+
+      var modeloSelecionado = this.abasFiltro.find(aba => {
+        return aba.id === this.filtroModeloAtivo
+      })
+
+      var mapeamentoModelos = {
+        'Solicitação de Sistema de Gestão': 1,
+        'Solicitação de Orçamento': 2,
+        'Relatório de Progresso': 3,
+        'Auditoria de Processo': 4,
+        'Conciliação Bancária': 5,
+      }
+
+      return (
+        mapeamentoModelos[modeloSelecionado && modeloSelecionado.modelo] || null
+      )
+    },
+
+    formatarDataParaAPI: function (data) {
+      if (!data) return null
+      var ano = data.getFullYear()
+      var mes = String(data.getMonth() + 1).padStart(2, '0')
+      var dia = String(data.getDate()).padStart(2, '0')
+      return ano + '-' + mes + '-' + dia
+    },
+
+    obterMensagemErro: function (error) {
+      if (error.response && error.response.status === 404) {
+        return 'Serviço não encontrado. Tente novamente mais tarde.'
+      }
+      if (error.response && error.response.status >= 500) {
+        return 'Erro interno do servidor. Tente novamente mais tarde.'
+      }
+      if (error.code === 'NETWORK_ERROR') {
+        return 'Erro de conexão. Verifique sua internet.'
+      }
+      return error.message || 'Erro desconhecido ao carregar documentos'
+    },
+
+    limparErro: function () {
+      this.erro = null
+      this.contadorTentativas = 0
+    },
+
+    // ========================================
+    // UTILITÁRIOS DE DATA
+    // ========================================
+    analisarDataCard: function (stringData) {
       if (!stringData) return null
 
       try {
@@ -709,53 +928,58 @@ export default {
           return new Date(stringData)
         }
 
-        const partes = stringData.split('/')
+        var partes = stringData.split('/')
         if (partes.length !== 3) return null
 
-        const [dia, mes, ano] = partes.map(parte => parseInt(parte, 10))
+        var dia = parseInt(partes[0], 10)
+        var mes = parseInt(partes[1], 10)
+        var ano = parseInt(partes[2], 10)
 
         if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null
         if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null
 
         return new Date(ano, mes - 1, dia)
       } catch (error) {
-        console.warn('Erro ao analisar data:', stringData, error)
         return null
       }
     },
 
-    analisarDataBR(stringData) {
+    analisarDataBR: function (stringData) {
       if (!stringData || typeof stringData !== 'string') return null
 
       try {
-        const partes = stringData.split('/')
+        var partes = stringData.split('/')
         if (partes.length !== 3) return null
 
-        const [dia, mes, ano] = partes.map(parte => parseInt(parte, 10))
+        var dia = parseInt(partes[0], 10)
+        var mes = parseInt(partes[1], 10)
+        var ano = parseInt(partes[2], 10)
 
         if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null
         if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null
 
         return new Date(ano, mes - 1, dia)
       } catch (error) {
-        console.warn('Erro ao analisar data BR:', stringData, error)
         return null
       }
     },
 
-    analisarVencimentoCard(card) {
-      return this.analisarDataBR(card?.vencimento?.data)
+    analisarVencimentoCard: function (card) {
+      return this.analisarDataBR(
+        card && card.vencimento && card.vencimento.data
+      )
     },
 
-    dataEstaNoIntervalo(data, dataInicio, dataFim) {
+    dataEstaNoIntervalo: function (data, dataInicio, dataFim) {
       if (!data || !dataInicio || !dataFim) return false
 
-      const normalizarData = d =>
-        new Date(d.getFullYear(), d.getMonth(), d.getDate())
+      var normalizarData = function (d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+      }
 
-      const dataNormalizada = normalizarData(data)
-      const inicioNormalizado = normalizarData(dataInicio)
-      const fimNormalizado = normalizarData(dataFim)
+      var dataNormalizada = normalizarData(data)
+      var inicioNormalizado = normalizarData(dataInicio)
+      var fimNormalizado = normalizarData(dataFim)
 
       return (
         dataNormalizada >= inicioNormalizado &&
@@ -763,7 +987,7 @@ export default {
       )
     },
 
-    formatarIntervaloData(intervaloData) {
+    formatarIntervaloData: function (intervaloData) {
       if (
         !intervaloData ||
         (!Array.isArray(intervaloData) && !(intervaloData instanceof Date))
@@ -771,11 +995,11 @@ export default {
         return ''
       }
 
-      const formatarData = data => {
+      var formatarData = function (data) {
         try {
-          const dia = String(data.getDate()).padStart(2, '0')
-          const mes = String(data.getMonth() + 1).padStart(2, '0')
-          return `${dia}/${mes}`
+          var dia = String(data.getDate()).padStart(2, '0')
+          var mes = String(data.getMonth() + 1).padStart(2, '0')
+          return dia + '/' + mes
         } catch (error) {
           return 'Data inválida'
         }
@@ -790,47 +1014,24 @@ export default {
           return formatarData(intervaloData[0])
         }
         if (intervaloData.length === 2) {
-          const [inicio, fim] = intervaloData
-          return `${formatarData(inicio)} - ${formatarData(fim)}`
+          return (
+            formatarData(intervaloData[0]) +
+            ' - ' +
+            formatarData(intervaloData[1])
+          )
         }
       }
 
       return ''
-    },
-
-    alterarFiltro(idAba) {
-      this.filtroAbaAtiva = idAba
-      console.log('Filtro ativo por modelo:', idAba)
-      this.$nextTick(() => {
-        this.atualizarEstadoTodosSelecionados()
-      })
-    },
-
-    adicionarMarcador(novaAba) {
-      console.log('Novo marcador adicionado:', novaAba)
-    },
-
-    atribuirEmLotes() {
-      console.log('Atribuir em lotes')
-    },
-
-    atribuirAMim() {
-      console.log('Atribuir a mim')
-    },
-
-    aprovar() {
-      console.log('Aprovar')
-    },
-
-    agrupar() {
-      console.log('Agrupar')
     },
   },
 }
 </script>
 
 <style scoped>
-/* Layout principal */
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
 .caixa-entrada-container {
   display: flex;
   flex-direction: column;
@@ -839,7 +1040,6 @@ export default {
   overflow: hidden;
 }
 
-/* Header fixo - não rola */
 .header-fixo {
   flex-shrink: 0;
   background-color: white;
@@ -848,16 +1048,14 @@ export default {
   z-index: 20;
 }
 
-/* Conteúdo do header com padding */
 .header-content {
   padding: 0 16px;
-  gap: 0.5rem;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
-/* Linha separadora que vai de canto a canto */
 .separador-linha {
   height: 1px;
   background-color: #e5e7eb;
@@ -865,50 +1063,304 @@ export default {
   margin: 0;
 }
 
-/* Título dos cards com padding */
-.header-cards-title {
+.header-cards {
   padding: 0 16px;
   border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
-/* Área de scroll - apenas lista de cards */
 .area-scroll {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
 }
 
-/* Conteúdo da área de scroll com padding */
 .scroll-content {
   padding: 0 16px;
 }
 
-.texto-acessibilidade {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+/* ========================================
+   HEADER COMPONENTS
+   ======================================== */
+.page-title {
+  padding-top: 12px;
+  padding-bottom: 4px;
 }
 
-.title-cards-container span {
-  color: #b7b7b7;
-  font-size: 12px;
-  font-weight: 400;
+.page-title h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
 }
 
-.inline-flex span {
-  display: inline-flex;
-  align-items: center;
+.filtros-container {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
 }
 
+/* ========================================
+   RESPONSIVE - MOBILE FIRST
+   ======================================== */
+.controles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.busca-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  order: 1; /* ✅ BUSCA PRIMEIRO NO MOBILE */
+}
+
+.botoes-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  order: 2; /* ✅ BOTÕES DEPOIS NO MOBILE */
+}
+
+.busca-input,
+.data-picker {
+  width: 100%;
+}
+
+.acao-button {
+  flex: 1;
+}
+
+.cards-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cards-headers {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+}
+
+.cards-headers span {
+  color: #b7b7b7;
+  font-size: 12px;
+  font-weight: 400;
+  flex: 1;
+}
+
+/* ========================================
+   FILTROS ATIVOS
+   ======================================== */
+.filtros-ativos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  gap: 12px;
+}
+
+.filtros-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filtro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.filtro-remove {
+  background: transparent;
+  border: 0;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.filtro-remove:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.limpar-filtros {
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.limpar-filtros:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* ========================================
+   ESTADOS DA APLICAÇÃO
+   ======================================== */
+.estado-loading,
+.estado-erro,
+.estado-vazio,
+.estado-sem-resultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-tentativas {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.erro-icon,
+.vazio-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.estado-erro h3,
+.estado-vazio h3,
+.estado-sem-resultados h3 {
+  color: #374151;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.estado-erro p,
+.estado-vazio p,
+.estado-sem-resultados p {
+  margin-bottom: 20px;
+  color: #6b7280;
+}
+
+.erro-acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-tentar-novamente {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-size: 14px;
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-tentar-novamente:hover {
+  background-color: #dc2626;
+}
+
+.btn-limpar-erro,
+.btn-limpar-filtros {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-size: 14px;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.btn-limpar-erro:hover,
+.btn-limpar-filtros:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* ========================================
+   RESPONSIVE - DESKTOP (1024px+)
+   ======================================== */
+@media (min-width: 1024px) {
+  .controles-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .busca-container {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    order: 2; /* ✅ BUSCA À DIREITA NO DESKTOP */
+  }
+
+  .botoes-container {
+    width: auto;
+    order: 1; /* ✅ BOTÕES À ESQUERDA NO DESKTOP */
+  }
+
+  .busca-input,
+  .data-picker {
+    width: auto;
+  }
+
+  .acao-button {
+    flex: none;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - TABLET
+   ======================================== */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .header-cards-title {
+  .cards-headers {
     display: none;
   }
 }

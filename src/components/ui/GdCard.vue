@@ -3,57 +3,46 @@
     :class="['card-container', { 'card-selected': selected }]"
     @click="handleCardClick"
   >
-    <!-- Coluna Data/Vencimento - Mobile (topo) -->
-    <div class="w-full xl:hidden overflow-visible">
+    <!-- Data/Vencimento - Mobile (topo) -->
+    <div class="w-full xl:hidden">
       <GdCardColunaData
-        :dataInicio="card.documento?.dataInicio"
-        :dataVencimento="card.vencimento"
+        :data-inicio="card.documento.dataInicio"
+        :data-vencimento="card.vencimento"
       />
     </div>
 
-    <!-- Container principal com overflow controlado -->
-    <div class="overflow-hidden w-full">
-      <div
-        class="flex flex-col xl:flex-row w-full p-3 gap-2 xl:gap-2 min-h-[120px]"
-      >
-        <!-- Coluna 1 - Data/Vencimento (Desktop) -->
-        <div class="hidden xl:flex flex-1 flex-col justify-center items-center">
+    <!-- Container principal -->
+    <div class="card-content">
+      <div class="card-grid">
+        <!-- Data/Vencimento - Desktop -->
+        <div class="hidden xl:flex card-column card-column-data">
           <GdCardColunaData
-            :dataInicio="card.documento?.dataInicio"
-            :dataVencimento="card.vencimento"
+            :data-inicio="card.documento.dataInicio"
+            :data-vencimento="card.vencimento"
           />
         </div>
 
-        <!-- Coluna 2 - Remetente -->
-        <div class="flex flex-1 flex-col justify-start xl:justify-center">
+        <!-- Remetente -->
+        <div class="card-column card-column-remetente">
           <GdCardColunaRemetente
             :remetente="card.remetente"
-            :type="card.documento?.modelo"
+            :type="card.documento.modelo"
           />
         </div>
 
-        <!-- Coluna 3 - Documento -->
-        <div
-          class="flex w-full xl:w-1/3 flex-col justify-start xl:justify-center"
-        >
+        <!-- Documento -->
+        <div class="card-column card-column-documento">
           <GdCardColunaDocumento :documento="card.documento" />
         </div>
 
-        <!-- Coluna 4 - Âncoras -->
-        <div class="flex flex-1 flex-col justify-start xl:justify-center">
+        <!-- Âncoras -->
+        <div class="card-column card-column-ancora">
           <GdCardColunaAncora :projeto="card.ancora" />
         </div>
 
-        <!-- Coluna 5 - Ações -->
-        <div
-          class="flex flex-1 flex-col gap-3 xl:gap-2 justify-start xl:justify-center items-stretch xl:items-center pt-4 xl:pt-0 border-t xl:border-t-0 border-gray-200"
-          @click.stop
-        >
-          <GdButton
-            v-for="acao in card.acoes"
-            :key="acao"
-            class="w-full xl:w-auto xl:min-w-[120px]"
-          >
+        <!-- Ações -->
+        <div class="card-column card-column-acoes" @click.stop>
+          <GdButton v-for="acao in card.acoes" :key="acao" class="card-button">
             {{ acao }}
           </GdButton>
         </div>
@@ -82,7 +71,9 @@ export default {
     card: {
       type: Object,
       required: true,
-      default: () => ({}),
+      default: function () {
+        return {}
+      },
     },
     selected: {
       type: Boolean,
@@ -100,6 +91,9 @@ export default {
 <style scoped>
 .card-container {
   --card-border-width: 1.6px;
+  --card-border-color: #e5e7eb;
+  --card-border-color-hover: #489be1;
+  --card-border-color-selected: #489be1;
 }
 
 .card-container {
@@ -108,37 +102,127 @@ export default {
   width: 100%;
   display: flex;
   flex-direction: column;
-  border: var(--card-border-width) solid #e5e7eb;
+  border: var(--card-border-width) solid var(--card-border-color);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
 }
 
+/* ========================================
+   ESTADOS DO CARD
+   ======================================== */
+.card-container:hover:not(.card-selected) {
+  border-color: var(--card-border-color-hover);
+  transform: translateY(-1px);
+}
+
+.card-container.card-selected {
+  border-color: var(--card-border-color-selected);
+}
+
+.card-container.card-selected:hover {
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   LAYOUT INTERNO
+   ======================================== */
+.card-content {
+  overflow: hidden;
+  width: 100%;
+}
+
+.card-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 12px;
+  gap: 8px;
+  min-height: 120px;
+}
+
+.card-column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.card-column-acoes {
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  align-items: stretch;
+}
+
+.card-button {
+  width: 100%;
+}
+
+/* ========================================
+   RESPONSIVE - DESKTOP
+   ======================================== */
 @media (min-width: 1280px) {
   .card-container {
     flex-direction: row;
   }
+
+  .card-grid {
+    flex-direction: row;
+    gap: 8px;
+    align-items: stretch;
+    min-height: 160px;
+  }
+
+  .card-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .card-column-data {
+    width: 12%;
+    min-width: 120px;
+  }
+
+  .card-column-remetente {
+    width: 10%;
+    min-width: 120px;
+  }
+
+  .card-column-documento {
+    width: 40%;
+    min-width: 320px;
+  }
+
+  .card-column-ancora {
+    width: 25%;
+    min-width: 250px;
+  }
+
+  .card-column-acoes {
+    width: 13%;
+    min-width: 130px;
+    gap: 8px;
+    padding-top: 0;
+    border-top: none;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card-button {
+    width: auto;
+    min-width: 120px;
+  }
 }
 
-.card-container.card-selected {
-  border-color: #489be1;
-  border-width: var(--card-border-width);
-  background-color: white;
-}
-
-.card-container:hover:not(.card-selected) {
-  border-color: #489be1;
-  border-width: var(--card-border-width);
-  background-color: white;
-  transform: translateY(-1px);
-}
-
-.card-container.card-selected:hover {
-  background-color: white;
-  transform: translateY(-1px);
-}
-
-.card-container > * {
-  background-color: transparent;
+/* ========================================
+   TABLET - OCULTAR TÍTULOS
+   ======================================== */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .title-cards-container {
+    display: none;
+  }
 }
 </style>

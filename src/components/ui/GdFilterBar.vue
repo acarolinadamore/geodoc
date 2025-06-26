@@ -81,7 +81,7 @@ export default {
       type: Array,
       default: () => [
         { id: 'todos', label: 'Todos' },
-        { id: 'aConfigurar', label: 'A Configurar' },
+        { id: 'a-configurar', label: 'A Configurar' },
         { id: 'recebidos', label: 'Recebidos' },
         { id: 'solicitados', label: 'Solicitados' },
         { id: 'lembretes', label: 'Lembretes' },
@@ -92,6 +92,7 @@ export default {
       default: 'todos',
     },
   },
+  emits: ['atualizar-aba', 'adicionar-marcador'], // ✅ Eventos em português
   data() {
     return {
       tabs: JSON.parse(JSON.stringify(this.initialTabs)),
@@ -139,24 +140,31 @@ export default {
   },
   methods: {
     definirTabAtiva(tabId) {
+      console.log('🔄 GdFilterBar - Clique na aba:', tabId) // ← Debug
+
       if (!this.estaArrastando) {
         this.activeTabId = tabId
-        this.$emit('filter-change', tabId)
+
+        console.log('📤 GdFilterBar - Emitindo evento atualizar-aba:', tabId) // ← Debug
+        this.$emit('atualizar-aba', tabId) // ✅ Evento em português
       }
     },
+
     abrirModal() {
       this.mostrarModal = true
       this.novoNomeMarcador = ''
     },
+
     fecharModal() {
       this.mostrarModal = false
       this.novoNomeMarcador = ''
     },
+
     adicionarMarcador() {
       if (!this.novoNomeMarcador.trim()) return
 
       const novaTab = {
-        id: `marker_${Date.now()}`,
+        id: `marcador_${Date.now()}`, // ✅ Prefixo em português
         label: this.novoNomeMarcador.trim(),
       }
 
@@ -165,15 +173,23 @@ export default {
       this.mostrarModal = false
       this.novoNomeMarcador = ''
 
-      this.$emit('filter-change', novaTab.id)
-      this.$emit('marker-added', novaTab)
+      console.log(
+        '📤 GdFilterBar - Emitindo atualizar-aba para novo marcador:',
+        novaTab.id
+      ) // ← Debug
+      console.log('📤 GdFilterBar - Emitindo adicionar-marcador:', novaTab) // ← Debug
+
+      this.$emit('atualizar-aba', novaTab.id) // ✅ Evento em português
+      this.$emit('adicionar-marcador', novaTab) // ✅ Evento em português
     },
+
     iniciarArrastar(evento) {
       this.estaArrastando = true
       this.inicioX = evento.pageX - this.$refs.tabsContainer.offsetLeft
       this.scrollEsquerda = this.$refs.tabsContainer.scrollLeft
       this.$refs.tabsContainer.style.cursor = 'grabbing'
     },
+
     aoArrastar(evento) {
       if (!this.estaArrastando) return
       evento.preventDefault()
@@ -181,6 +197,7 @@ export default {
       const movimento = (x - this.inicioX) * 2
       this.$refs.tabsContainer.scrollLeft = this.scrollEsquerda - movimento
     },
+
     finalizarArrastar() {
       this.estaArrastando = false
       this.$refs.tabsContainer.style.cursor = 'grab'
@@ -196,17 +213,17 @@ export default {
 .gd-filter-bar-component {
   display: flex;
   align-items: center;
-  gap: 8px; /* Reduzido de 12px */
+  gap: 8px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  padding: 2px 0; /* Reduzido de 4px */
+  padding: 2px 0;
   width: 100%;
 }
 
 .tabs-container {
   display: flex;
   align-items: center;
-  gap: 6px; /* Reduzido de 8px */
+  gap: 6px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -229,21 +246,21 @@ export default {
 }
 
 .filter-tab {
-  padding: 5px 12px; /* Reduzido de 7px 16px */
-  border-radius: 20px; /* Reduzido de 80px */
-  border-width: 1px; /* Reduzido de 1.5px */
+  padding: 5px 12px;
+  border-radius: 20px;
+  border-width: 1px;
   border-style: solid;
   cursor: pointer;
-  font-size: 13px; /* Reduzido de 14px */
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.4; /* Reduzido de 1.5 */
+  line-height: 1.4;
   text-align: center;
   transition: background-color 0.2s ease, color 0.2s ease,
     border-color 0.2s ease;
   background-color: #ffffff;
   border-color: #d1d5db;
   color: #656565;
-  height: 32px; /* Reduzido de 34px */
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,15 +289,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px; /* Reduzido de 36px */
-  height: 32px; /* Reduzido de 36px */
-  min-width: 32px; /* Reduzido de 36px */
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
   border-radius: 50%;
-  border: 1px solid #d1d5db; /* Reduzido de 1.5px */
+  border: 1px solid #d1d5db;
   background-color: #ffffff;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease;
-  font-size: 16px; /* Reduzido de 18px */
+  font-size: 16px;
   font-weight: 300;
   line-height: 1;
   color: #9ca3af;
@@ -433,14 +450,14 @@ export default {
   opacity: 0.6;
 }
 
-/* Responsivo ainda menor para mobile real */
+/* Responsivo */
 @media (max-width: 768px) {
   .gd-filter-bar-component {
-    gap: 4px; /* Reduzido de 8px */
+    gap: 4px;
   }
 
   .tabs-container {
-    gap: 4px; /* Reduzido de 6px */
+    gap: 4px;
   }
 
   .filter-tab {

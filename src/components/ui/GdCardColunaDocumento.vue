@@ -1,45 +1,57 @@
 <template>
-  <div class="rounded-lg text-sm flex flex-col space-y-2 bg-white">
+  <div class="documento-container">
     <div class="space-y-1">
-      <div class="flex">
+      <!-- Modelo -->
+      <div class="flex items-center">
         <span class="card-span w-24 text-right flex-shrink-0">Modelo</span>
-        <span class="gd-text-black ml-3">{{ documento.modelo }}</span>
+        <span class="ml-3 text-left gd-text-black">{{ documento.modelo }}</span>
       </div>
-      <div class="flex">
-        <span class="gd-text-black ml-3">{{ documento.data }}</span>
-      </div>
-      <div class="flex">
+
+      <!-- Fluxo -->
+      <div class="flex items-center">
         <span class="card-span w-24 text-right flex-shrink-0">Fluxo</span>
-        <span class="gd-text-black ml-3">{{ documento.fluxo }}</span>
+        <span class="ml-3 text-left gd-text-black">{{ documento.fluxo }}</span>
       </div>
-    </div>
-    <div class="flex mt-2">
-      <span class="card-span w-24 text-right flex-shrink-0">Etapa</span>
-      <div class="ml-3">
-        <GdCardEtapasResumo :etapas="documento.etapas" />
+
+      <!-- Etapas -->
+      <div class="flex items-center">
+        <span class="card-span w-24 text-right flex-shrink-0">Etapa</span>
+        <div class="ml-3">
+          <GdEtapasResumo :etapas="documento.etapas" />
+        </div>
       </div>
-    </div>
-    <div class="flex mt-2">
-      <span class="card-span w-24 text-right flex-shrink-0">Pasta Digital</span>
-      <div class="ml-3">
-        <GdCaminhoDiretorio :dir-path="documento.dirPath" />
+
+      <!-- Pasta Digital -->
+      <div class="flex items-center">
+        <span class="card-span w-24 text-right flex-shrink-0"
+          >Pasta Digital</span
+        >
+        <div class="ml-3">
+          <GdCaminhoDiretorio :caminho-digital="documento.pastaDigital" />
+        </div>
       </div>
-    </div>
-    <div class="flex">
-      <span class="card-span w-24 text-right flex-shrink-0">ID Documento</span>
-      <span class="gd-text-black ml-3">{{ documento.id }}</span>
+
+      <!-- ID do Documento -->
+      <div class="flex items-center">
+        <span class="card-span w-24 text-right flex-shrink-0"
+          >ID Documento</span
+        >
+        <span class="ml-3 text-left text-base font-normal gd-text-black">{{
+          documento.id
+        }}</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import GdCardEtapasResumo from '@/components/ui/GdCardEtapasResumo.vue'
+import GdEtapasResumo from '@/components/ui/GdEtapasResumo.vue'
 import GdCaminhoDiretorio from '@/components/ui/GdCaminhoDiretorio.vue'
 
 export default {
   name: 'GdCardColunaDocumento',
   components: {
-    GdCardEtapasResumo,
+    GdEtapasResumo,
     GdCaminhoDiretorio,
   },
   props: {
@@ -50,3 +62,32 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.documento-container {
+  font-size: 14px;
+  background-color: white;
+  border-radius: 8px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .documento-container .flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .documento-container .card-span {
+    width: auto;
+    text-align: left;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .documento-container .ml-3 {
+    margin-left: 0;
+  }
+}
+</style>

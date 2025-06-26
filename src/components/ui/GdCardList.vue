@@ -59,8 +59,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Separador fora do container com padding -->
       </div>
 
       <!-- Separador que toca o sidebar - fora dos grupos -->
@@ -86,22 +84,31 @@ export default {
     cards: {
       type: Array,
       required: true,
-      default: () => [],
+      default: function () {
+        return []
+      },
     },
     selectedCards: {
       type: Array,
-      default: () => [],
+      default: function () {
+        return []
+      },
     },
   },
 
   computed: {
-    cardsAgrupados() {
+    cardsAgrupados: function () {
+      console.log('🔄 GdCardList - cardsAgrupados executando')
+      console.log('📦 Cards recebidos:', this.cards)
+
       if (!this.cards || !Array.isArray(this.cards)) {
+        console.log('❌ Cards não é array válido')
         return {}
       }
 
-      return this.cards.reduce((grupos, card) => {
-        const modelo = card?.documento?.modelo || 'Sem Modelo'
+      var grupos = this.cards.reduce(function (grupos, card) {
+        var modelo = card?.documento?.modelo || 'Sem Modelo'
+        console.log('📋 Card modelo:', modelo, 'Card:', card)
 
         if (!grupos[modelo]) {
           grupos[modelo] = []
@@ -109,45 +116,57 @@ export default {
         grupos[modelo].push(card)
         return grupos
       }, {})
+
+      console.log('📊 Grupos finais:', grupos)
+      return grupos
     },
   },
 
   methods: {
-    alternarSelecaoCard(cardId) {
+    alternarSelecaoCard: function (cardId) {
       this.$emit('toggle-card-selection', cardId)
     },
 
-    alternarModelo(modelo) {
+    alternarModelo: function (modelo) {
       if (!this.cardsAgrupados[modelo]) return
 
-      const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
-      const todosSelecionados = cardsDoModelo.every(id =>
-        this.selectedCards.includes(id)
-      )
+      var cardsDoModelo = this.cardsAgrupados[modelo].map(function (card) {
+        return card.id
+      })
+      var self = this
+      var todosSelecionados = cardsDoModelo.every(function (id) {
+        return self.selectedCards.includes(id)
+      })
 
-      cardsDoModelo.forEach(cardId => {
-        const estaAtualmenteSelecionado = this.selectedCards.includes(cardId)
+      // ✅ CORRIGIDO - Usar o mesmo 'self' sem redeclarar
+      cardsDoModelo.forEach(function (cardId) {
+        var estaAtualmenteSelecionado = self.selectedCards.includes(cardId)
         if (todosSelecionados && estaAtualmenteSelecionado) {
-          this.$emit('toggle-card-selection', cardId)
+          self.$emit('toggle-card-selection', cardId)
         } else if (!todosSelecionados && !estaAtualmenteSelecionado) {
-          this.$emit('toggle-card-selection', cardId)
+          self.$emit('toggle-card-selection', cardId)
         }
       })
     },
 
-    temModeloSelecionado(modelo) {
+    temModeloSelecionado: function (modelo) {
       if (!this.cardsAgrupados[modelo]) return false
 
-      const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
+      var cardsDoModelo = this.cardsAgrupados[modelo].map(function (card) {
+        return card.id
+      })
+      var self = this
       return (
         cardsDoModelo.length > 0 &&
-        cardsDoModelo.every(id => this.selectedCards.includes(id))
+        cardsDoModelo.every(function (id) {
+          return self.selectedCards.includes(id)
+        })
       )
     },
 
-    obterAcoesModelo(modelo) {
-      const acoesPorModelo = {
-        'Solicitação à Fábrica de Software': [
+    obterAcoesModelo: function (modelo) {
+      var acoesPorModelo = {
+        'Solicitação de Sistema de Gestão': [
           { label: 'Atribuir todos', value: 'atribuir' },
           { label: 'Aprovar todos', value: 'aprovar' },
           { label: 'Enviar para desenvolvimento', value: 'desenvolvimento' },
@@ -182,20 +201,22 @@ export default {
       )
     },
 
-    manipularAcaoModelo(acao, modelo) {
+    manipularAcaoModelo: function (acao, modelo) {
       if (!this.cardsAgrupados[modelo]) return
 
-      const cardsDoModelo = this.cardsAgrupados[modelo].map(card => card.id)
+      var cardsDoModelo = this.cardsAgrupados[modelo].map(function (card) {
+        return card.id
+      })
       this.$emit('modelo-action', {
         action: acao,
-        modelo,
+        modelo: modelo,
         cardIds: cardsDoModelo,
       })
     },
 
-    obterCorModelo(modelo) {
-      const cores = {
-        'Solicitação à Fábrica de Software': '#3b82f6',
+    obterCorModelo: function (modelo) {
+      var cores = {
+        'Solicitação de Sistema de Gestão': '#3b82f6',
         'Solicitação de Orçamento': '#10b981',
         'Relatório de Progresso': '#f59e0b',
         'Auditoria de Processo': '#ef4444',
@@ -204,12 +225,14 @@ export default {
       return cores[modelo] || '#6b7280'
     },
 
-    obterIniciaisModelo(modelo) {
+    obterIniciaisModelo: function (modelo) {
       if (!modelo || typeof modelo !== 'string') return 'SM'
 
       return modelo
         .split(' ')
-        .map(palavra => palavra.charAt(0))
+        .map(function (palavra) {
+          return palavra.charAt(0)
+        })
         .join('')
         .substring(0, 2)
         .toUpperCase()

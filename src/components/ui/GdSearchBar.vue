@@ -14,7 +14,7 @@
         <path d="m21 21-4.35-4.35"></path>
       </svg>
       <input
-        v-model="searchTerm"
+        :value="value"
         type="text"
         :placeholder="placeholder"
         class="input-entrada"
@@ -24,7 +24,7 @@
         @blur="handleBlur"
       />
       <button
-        v-if="searchTerm"
+        v-if="value"
         @click="clearSearch"
         class="botao-limpar"
         type="button"
@@ -64,44 +64,66 @@ export default {
   },
   data() {
     return {
-      searchTerm: this.value,
       debounceTimer: null,
     }
   },
   methods: {
-    handleInput() {
+    handleInput(event) {
+      const inputValue = event.target.value
+      console.log('🔍 GdSearchBar - Input changed:', inputValue)
+
+      // ✅ LIMPAR TIMER ANTERIOR
       clearTimeout(this.debounceTimer)
+
+      // ✅ EMITIR IMEDIATAMENTE PARA V-MODEL
+      this.$emit('input', inputValue)
+
+      // ✅ DEBOUNCE APENAS PARA SEARCH EVENT
       this.debounceTimer = setTimeout(() => {
-        this.$emit('input', this.searchTerm)
-        this.$emit('search', this.searchTerm)
+        console.log('🔍 GdSearchBar - Emitindo search:', inputValue)
+        this.$emit('search', inputValue)
       }, this.debounce)
     },
-    handleEnter() {
-      this.$emit('enter', this.searchTerm)
-      this.$emit('search', this.searchTerm)
+
+    handleEnter(event) {
+      const inputValue = event.target.value
+      console.log('🔍 GdSearchBar - Enter pressed:', inputValue)
+      clearTimeout(this.debounceTimer)
+      this.$emit('input', inputValue)
+      this.$emit('search', inputValue)
+      this.$emit('enter', inputValue)
     },
+
     handleFocus() {
+      console.log('🔍 GdSearchBar - Focus')
       this.$emit('focus')
     },
+
     handleBlur() {
+      console.log('🔍 GdSearchBar - Blur')
       this.$emit('blur')
     },
+
     clearSearch() {
-      this.searchTerm = ''
+      console.log('🔍 GdSearchBar - Clear search')
+      clearTimeout(this.debounceTimer)
       this.$emit('input', '')
       this.$emit('search', '')
       this.$emit('clear')
     },
   },
-  watch: {
-    value(newValue) {
-      this.searchTerm = newValue
-    },
+
+  // ✅ LIMPAR TIMER AO DESTRUIR COMPONENTE
+  beforeDestroy() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+    }
   },
 }
 </script>
 
 <style scoped>
+/* Mantém o mesmo CSS */
 .searchbar {
   display: flex;
   width: 100%;
@@ -140,7 +162,7 @@ export default {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px; /* 👈 FONTE PADRÃO */
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   color: #374151;
   min-width: 0;

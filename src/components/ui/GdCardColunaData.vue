@@ -62,7 +62,7 @@ export default {
 .gd-card-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   gap: 12px;
   width: 100%;
 }
@@ -70,7 +70,8 @@ export default {
 /* Desktop - Data/hora em cima */
 .gd-data-hora-container {
   order: 1;
-  text-align: center;
+  text-align: start;
+  padding: 0 16px;
   width: 100%;
 }
 
@@ -79,7 +80,7 @@ export default {
   order: 2;
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: start;
   padding: 0 16px;
 }
 
@@ -98,8 +99,8 @@ export default {
   letter-spacing: 0.025em;
   margin: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: start;
+  justify-content: start;
   gap: 4px;
 }
 
