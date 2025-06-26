@@ -14,8 +14,8 @@
         :class="[
           'filter-tab-badge',
           {
-            active: activeTabId === tab.id,
-            'gd-text-gray': activeTabId !== tab.id,
+            active: isTabSelected(tab.id),
+            'gd-text-gray': !isTabSelected(tab.id),
           },
         ]"
         @click="definirTabAtiva(tab.id)"
@@ -38,7 +38,7 @@
         <div
           :class="[
             'count-badge',
-            { 'circulo-pequeno-ativo': activeTabId === tab.id },
+            { 'circulo-pequeno-ativo': isTabSelected(tab.id) },
           ]"
           v-if="tab.count !== undefined"
         >
@@ -68,15 +68,19 @@ export default {
         { id: 'lembretes', label: 'Lembretes', count: 1, color: '#ef4444' },
       ],
     },
-    initialActiveTabId: {
-      type: String,
-      default: 'todos',
+    selectedTabs: {
+      type: Array,
+      default: () => ['todos'],
+    },
+    multipleSelection: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
     return {
       tabs: JSON.parse(JSON.stringify(this.initialTabs)),
-      activeTabId: this.initialActiveTabId,
+      selectedTabIds: [...this.selectedTabs],
       estaArrastando: false,
       inicioX: 0,
       scrollEsquerda: 0,
@@ -86,19 +90,14 @@ export default {
     initialTabs: {
       handler(novasTabs) {
         this.tabs = JSON.parse(JSON.stringify(novasTabs))
-        if (
-          novasTabs.length > 0 &&
-          !novasTabs.find(tab => tab.id === this.activeTabId)
-        ) {
-          this.activeTabId = novasTabs[0].id
-        } else if (novasTabs.length === 0) {
-          this.activeTabId = null
-        }
       },
       deep: true,
     },
-    initialActiveTabId(novoId) {
-      this.activeTabId = novoId
+    selectedTabs: {
+      handler(newSelectedTabs) {
+        this.selectedTabIds = [...newSelectedTabs]
+      },
+      deep: true,
     },
   },
   methods: {
@@ -110,18 +109,68 @@ export default {
         .slice(0, 2)
         .join('')
     },
+
+    isTabSelected(tabId) {
+      return this.selectedTabIds.includes(tabId)
+    },
+
     definirTabAtiva(tabId) {
       if (!this.estaArrastando) {
-        this.activeTabId = tabId
+        console.log('🔄 GdFilterBarBadge - Clique na aba:', tabId)
+        console.log(
+          '🔄 GdFilterBarBadge - Seleção múltipla:',
+          this.multipleSelection
+        )
+        console.log(
+          '🔄 GdFilterBarBadge - Tabs selecionadas antes:',
+          this.selectedTabIds
+        )
+
+        if (this.multipleSelection) {
+          // Lógica de seleção múltipla
+          if (tabId === 'todos') {
+            // Se clicou em "todos", limpa outros e deixa só "todos"
+            this.selectedTabIds = ['todos']
+          } else {
+            // Remove "todos" se existir
+            let newSelection = this.selectedTabIds.filter(id => id !== 'todos')
+
+            // Toggle do tab específico
+            if (newSelection.includes(tabId)) {
+              newSelection = newSelection.filter(id => id !== tabId)
+            } else {
+              newSelection.push(tabId)
+            }
+
+            // Se não sobrou nenhum, volta para "todos"
+            if (newSelection.length === 0) {
+              newSelection = ['todos']
+            }
+
+            this.selectedTabIds = newSelection
+          }
+        } else {
+          // Seleção única
+          this.selectedTabIds = [tabId]
+        }
+
+        console.log(
+          '🔄 GdFilterBarBadge - Tabs selecionadas depois:',
+          this.selectedTabIds
+        )
+        console.log('📤 GdFilterBarBadge - Emitindo filter-change:', tabId)
+
         this.$emit('filter-change', tabId)
       }
     },
+
     iniciarArrastar(evento) {
       this.estaArrastando = true
       this.inicioX = evento.pageX - this.$refs.tabsContainer.offsetLeft
       this.scrollEsquerda = this.$refs.tabsContainer.scrollLeft
       this.$refs.tabsContainer.style.cursor = 'grabbing'
     },
+
     aoArrastar(evento) {
       if (!this.estaArrastando) return
       evento.preventDefault()
@@ -129,6 +178,7 @@ export default {
       const movimento = (x - this.inicioX) * 2
       this.$refs.tabsContainer.scrollLeft = this.scrollEsquerda - movimento
     },
+
     finalizarArrastar() {
       this.estaArrastando = false
       this.$refs.tabsContainer.style.cursor = 'grab'

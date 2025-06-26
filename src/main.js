@@ -5,8 +5,10 @@ import './assets/styles/tailwind.css'
 import './assets/styles/global.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
+import { cardService } from '@/services'
 
 Vue.config.productionTip = false
+Vue.prototype.$cardService = cardService
 
 // Registro automático global de componentes Vue
 const requireComponent = require.context('./components', true, /\.vue$/)

@@ -3,19 +3,11 @@
     :class="['card-container', { 'card-selected': selected }]"
     @click="handleCardClick"
   >
-    <!-- Data/Vencimento - Mobile (topo) -->
-    <div class="w-full xl:hidden">
-      <GdCardColunaData
-        :data-inicio="card.documento.dataInicio"
-        :data-vencimento="card.vencimento"
-      />
-    </div>
-
     <!-- Container principal -->
     <div class="card-content">
       <div class="card-grid">
         <!-- Data/Vencimento - Desktop -->
-        <div class="hidden xl:flex card-column card-column-data">
+        <div class="card-column card-column-data">
           <GdCardColunaData
             :data-inicio="card.documento.dataInicio"
             :data-vencimento="card.vencimento"
@@ -223,6 +215,18 @@ export default {
 @media (max-width: 1024px) and (min-width: 769px) {
   .title-cards-container {
     display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .card-grid {
+    flex-direction: column;
+  }
+
+  .card-column-data {
+    order: -1; /* Move a coluna de data para o topo */
+    width: 100%;
+    margin-bottom: 8px;
   }
 }
 </style>

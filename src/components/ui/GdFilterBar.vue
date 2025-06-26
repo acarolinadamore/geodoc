@@ -23,6 +23,16 @@
         type="button"
       >
         {{ tab.label }}
+        <!-- Badge contador numérico -->
+        <div
+          v-if="tab.count !== undefined"
+          :class="[
+            'count-badge',
+            { 'count-badge-active': activeTabId === tab.id },
+          ]"
+        >
+          {{ tab.count }}
+        </div>
       </button>
     </div>
 
@@ -92,7 +102,7 @@ export default {
       default: 'todos',
     },
   },
-  emits: ['atualizar-aba', 'adicionar-marcador'], // ✅ Eventos em português
+  emits: ['atualizar-aba', 'adicionar-marcador'],
   data() {
     return {
       tabs: JSON.parse(JSON.stringify(this.initialTabs)),
@@ -140,13 +150,13 @@ export default {
   },
   methods: {
     definirTabAtiva(tabId) {
-      console.log('🔄 GdFilterBar - Clique na aba:', tabId) // ← Debug
+      console.log('🔄 GdFilterBar - Clique na aba:', tabId)
 
       if (!this.estaArrastando) {
         this.activeTabId = tabId
 
-        console.log('📤 GdFilterBar - Emitindo evento atualizar-aba:', tabId) // ← Debug
-        this.$emit('atualizar-aba', tabId) // ✅ Evento em português
+        console.log('📤 GdFilterBar - Emitindo evento atualizar-aba:', tabId)
+        this.$emit('atualizar-aba', tabId)
       }
     },
 
@@ -164,7 +174,7 @@ export default {
       if (!this.novoNomeMarcador.trim()) return
 
       const novaTab = {
-        id: `marcador_${Date.now()}`, // ✅ Prefixo em português
+        id: `marcador_${Date.now()}`,
         label: this.novoNomeMarcador.trim(),
       }
 
@@ -176,11 +186,11 @@ export default {
       console.log(
         '📤 GdFilterBar - Emitindo atualizar-aba para novo marcador:',
         novaTab.id
-      ) // ← Debug
-      console.log('📤 GdFilterBar - Emitindo adicionar-marcador:', novaTab) // ← Debug
+      )
+      console.log('📤 GdFilterBar - Emitindo adicionar-marcador:', novaTab)
 
-      this.$emit('atualizar-aba', novaTab.id) // ✅ Evento em português
-      this.$emit('adicionar-marcador', novaTab) // ✅ Evento em português
+      this.$emit('atualizar-aba', novaTab.id)
+      this.$emit('adicionar-marcador', novaTab)
     },
 
     iniciarArrastar(evento) {
@@ -268,6 +278,7 @@ export default {
   flex-shrink: 0;
   min-width: fit-content;
   pointer-events: auto;
+  gap: 6px;
 }
 
 .filter-tab.active {
@@ -279,6 +290,29 @@ export default {
 .filter-tab:not(.active):hover {
   border-color: #1a82d9;
   color: #1a82d9;
+}
+
+/* Badge contador numérico */
+.count-badge {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.count-badge-active {
+  background-color: #4cb6f4 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 .add-button-wrapper {
@@ -465,6 +499,13 @@ export default {
     padding: 4px 10px;
     height: 26px;
     font-size: 12px;
+  }
+
+  .count-badge {
+    font-size: 10px;
+    padding: 1px 5px;
+    min-width: 14px;
+    height: 14px;
   }
 
   .add-button {
