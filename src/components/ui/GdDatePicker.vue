@@ -1,36 +1,33 @@
 <template>
-  <div class="gd-date-picker">
+  <div class="gd-date-picker" :class="{ 'is-expanded': isInputVisible }">
     <div class="date-input-wrapper">
       <input
+        v-show="isInputVisible"
         ref="entradaData"
         type="text"
-        :placeholder="placeholder"
-        :value="valorExibicao"
         class="date-input"
+        :value="valorExibicao"
         @input="aoDigitarData"
         @blur="aoPerderFoco"
-        @keydown.enter="aoApertarEnter"
-        @focus="aoFocarInput"
+        @keydown.enter.prevent="aoApertarEnter"
       />
       <svg
         class="calendar-icon"
-        width="16"
-        height="16"
+        width="18"
+        height="18"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
         stroke-width="2"
-        @click="abrirCalendario"
+        @click="togglePicker"
       >
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="16" y1="2" x2="16" y2="6"></line>
         <line x1="8" y1="2" x2="8" y2="6"></line>
         <line x1="3" y1="10" x2="21" y2="10"></line>
       </svg>
-
-      <!-- Botão de limpar quando há valor -->
       <button
-        v-if="valorExibicao"
+        v-if="isInputVisible && valorExibicao"
         @click="limpar"
         class="clear-button"
         type="button"
@@ -39,8 +36,6 @@
         ×
       </button>
     </div>
-
-    <!-- Mensagem de erro para formato inválido -->
     <div v-if="erroFormato" class="error-message">
       {{ erroFormato }}
     </div>
@@ -58,18 +53,15 @@ export default {
       type: [String, Array, Date],
       default: null,
     },
-    placeholder: {
-      type: String,
-      default: 'Digite dd, dd/mm ou dd/mm/aaaa',
-    },
   },
   data() {
     return {
       seletorData: null,
       valorExibicao: '',
       erroFormato: '',
+      isInputVisible: false,
       digitandoManualmente: false,
-      valorTemporario: '',
+      debounceTimer: null,
     }
   },
   mounted() {
@@ -79,16 +71,29 @@ export default {
     if (this.seletorData) {
       this.seletorData.destroy()
     }
+    clearTimeout(this.debounceTimer)
   },
   methods: {
+    togglePicker() {
+      if (!this.isInputVisible) {
+        this.isInputVisible = true
+        this.$nextTick(() => {
+          this.$refs.entradaData.focus()
+          this.seletorData.show()
+        })
+      } else {
+        this.seletorData.show()
+      }
+    },
     inicializarSeletorData() {
       this.seletorData = new AirDatepicker(this.$refs.entradaData, {
-        range: true,
+        range: false, // Changed to false to allow single date selection
+        multipleDates: false, // Ensure multiple dates are disabled
         multipleDatesSeparator: ' - ',
-        dateFormat: 'dd/MM',
-        autoClose: false,
-        position: 'bottom left',
-
+        dateFormat: 'dd/MM/yyyy',
+        autoClose: true,
+        position: 'bottom right',
+        offset: 5,
         locale: {
           days: [
             'Domingo',
@@ -131,170 +136,108 @@ export default {
           ],
           today: 'Hoje',
           clear: 'Limpar',
-          dateFormat: 'dd/MM',
+          dateFormat: 'dd/MM/yyyy',
           firstDay: 0,
         },
-
-        onSelect: ({ date, formattedDate }) => {
-          if (!this.digitandoManualmente) {
-            // Para data única, garantir formato correto
-            if (Array.isArray(date) && date.length === 1) {
-              this.valorExibicao = this.formatarDataUnica(date[0])
-            } else if (!Array.isArray(date)) {
-              this.valorExibicao = this.formatarDataUnica(date)
-            } else {
-              this.valorExibicao = formattedDate
-            }
-
-            this.erroFormato = ''
-            this.$emit('input', date)
-            this.$emit('change', { date, formattedDate: this.valorExibicao })
-          }
+        onSelect: ({ date }) => {
+          this.digitandoManualmente = false
+          // Handle both single date and array cases
+          const selectedDate = Array.isArray(date) ? date[0] : date
+          this.valorExibicao = this.formatarDataUnica(selectedDate)
+          this.erroFormato = ''
+          this.$emit('change', {
+            date: selectedDate,
+            formattedDate: this.valorExibicao,
+          })
         },
-
         onHide: () => {
-          if (
-            !this.digitandoManualmente &&
-            this.seletorData &&
-            this.seletorData.selectedDates.length === 1
-          ) {
-            const dataUnica = this.seletorData.selectedDates[0]
-            const dataFormatada = this.formatarDataUnica(dataUnica)
-            this.valorExibicao = dataFormatada
-            this.erroFormato = ''
-            this.$emit('input', dataUnica)
-            this.$emit('change', {
-              date: dataUnica,
-              formattedDate: dataFormatada,
-            })
+          if (!this.valorExibicao) {
+            this.isInputVisible = false
           }
           this.$emit('close')
-        },
-
-        onShow: () => {
-          this.$emit('open')
         },
       })
 
       if (this.value) {
-        this.seletorData.selectDate(this.value)
+        // Handle incoming value (could be single date or array)
+        const dateToSelect = Array.isArray(this.value)
+          ? this.value[0]
+          : this.value
+        this.seletorData.selectDate(dateToSelect)
+        this.valorExibicao = this.formatarDataUnica(dateToSelect)
+        this.isInputVisible = true
       }
     },
-
     aoDigitarData(event) {
       this.digitandoManualmente = true
-      this.valorTemporario = event.target.value
-      this.erroFormato = ''
+      clearTimeout(this.debounceTimer)
 
-      // Aplicar máscara de data automaticamente
-      const valorLimpo = event.target.value.replace(/\D/g, '')
-      let valorFormatado = valorLimpo
+      const input = event.target
+      let valor = input.value.replace(/\D/g, '')
+      let valorFormatado = ''
 
-      if (valorLimpo.length >= 2) {
-        valorFormatado =
-          valorLimpo.substring(0, 2) + '/' + valorLimpo.substring(2)
-      }
-      if (valorLimpo.length >= 4) {
-        valorFormatado =
-          valorLimpo.substring(0, 2) +
-          '/' +
-          valorLimpo.substring(2, 4) +
-          '/' +
-          valorLimpo.substring(4, 8)
-      }
-
-      // Limitar a 10 caracteres (dd/mm/aaaa)
-      if (valorFormatado.length > 10) {
-        valorFormatado = valorFormatado.substring(0, 10)
-      }
+      if (valor.length > 0) valorFormatado = valor.substring(0, 2)
+      if (valor.length >= 3) valorFormatado += '/' + valor.substring(2, 4)
+      if (valor.length >= 5) valorFormatado += '/' + valor.substring(4, 8)
 
       this.valorExibicao = valorFormatado
-      event.target.value = valorFormatado
+      this.$nextTick(() => {
+        input.value = valorFormatado
+      })
 
-      // NOVO: Filtrar progressivamente conforme digita
-      this.filtrarProgressivamente(valorFormatado)
+      this.debounceTimer = setTimeout(() => {
+        this.dispararFiltro()
+      }, 400)
     },
-
-    // NOVO: Método para filtrar progressivamente
-    filtrarProgressivamente(valor) {
-      if (!valor.trim()) {
-        // Se vazio, limpar filtro
-        this.$emit('input', null)
-        this.$emit('change', { date: null, formattedDate: '' })
+    aoPerderFoco() {
+      clearTimeout(this.debounceTimer)
+      if (this.digitandoManualmente) {
+        this.dispararFiltro()
+      }
+      setTimeout(() => {
+        if (!this.seletorData.visible && !this.valorExibicao) {
+          this.isInputVisible = false
+        }
+      }, 150)
+    },
+    aoApertarEnter() {
+      clearTimeout(this.debounceTimer)
+      this.dispararFiltro()
+      this.seletorData.hide()
+    },
+    dispararFiltro() {
+      this.digitandoManualmente = false
+      if (!this.valorExibicao.trim()) {
+        this.limpar(true)
         return
       }
 
-      // Tentar processar a data parcial
-      const dataProcessada = this.processarDataParcial(valor)
-
+      const dataProcessada = this.processarDataParcial(this.valorExibicao)
       if (dataProcessada.valida) {
         this.erroFormato = ''
-
-        // Atualizar o calendário se a data estiver completa
-        if (dataProcessada.completa && this.seletorData) {
-          this.seletorData.selectDate(dataProcessada.data)
-        }
-
-        this.$emit('input', dataProcessada.data)
+        const date = dataProcessada.data
+        this.seletorData.selectDate(date)
+        this.valorExibicao = this.formatarDataUnica(date)
         this.$emit('change', {
-          date: dataProcessada.data,
-          formattedDate: dataProcessada.formatada || valor,
+          date: date,
+          formattedDate: this.valorExibicao,
         })
+      } else {
+        this.erroFormato = 'Data inválida'
       }
     },
-
-    // NOVO: Processar data parcial (06, 06/06, 06/06/2025)
     processarDataParcial(valor) {
       const valorLimpo = valor.replace(/\D/g, '')
-      const anoAtual = new Date().getFullYear()
-      const mesAtual = new Date().getMonth() + 1
+      const hoje = new Date()
+      const anoAtual = hoje.getFullYear()
+      const mesAtual = hoje.getMonth()
 
-      // Apenas dia (06)
-      if (valorLimpo.length <= 2 && valorLimpo.length > 0) {
-        const dia = parseInt(valorLimpo, 10)
-        if (dia >= 1 && dia <= 31) {
-          // Usar mês e ano atual
-          const data = new Date(anoAtual, mesAtual - 1, dia)
-          return {
-            valida: true,
-            completa: false,
-            data: data,
-            formatada: this.formatarDataUnica(data),
-          }
-        }
-      }
+      let dia, mes, ano
 
-      // Dia e mês (06/06)
-      if (valorLimpo.length > 2 && valorLimpo.length <= 4) {
-        const dia = parseInt(valorLimpo.substring(0, 2), 10)
-        const mes = parseInt(valorLimpo.substring(2), 10)
-
-        if (dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12) {
-          // Usar ano atual
-          const data = new Date(anoAtual, mes - 1, dia)
-
-          // Verificar se a data é válida
-          if (data.getDate() === dia && data.getMonth() === mes - 1) {
-            return {
-              valida: true,
-              completa: false,
-              data: data,
-              formatada: this.formatarDataUnica(data),
-            }
-          }
-        }
-      }
-
-      // Data completa (06/06/2025)
-      if (valorLimpo.length > 4) {
-        const dia = parseInt(valorLimpo.substring(0, 2), 10)
-        const mes = parseInt(valorLimpo.substring(2, 4), 10)
-        const ano = parseInt(valorLimpo.substring(4), 10)
-
-        // Se ano tem menos de 4 dígitos, não processar ainda
-        if (valorLimpo.substring(4).length < 4) {
-          return { valida: false }
-        }
+      if (valorLimpo.length >= 1) {
+        dia = parseInt(valorLimpo.substring(0, 2), 10)
+        mes = parseInt(valorLimpo.substring(2, 4), 10) || mesAtual + 1
+        ano = parseInt(valorLimpo.substring(4, 8), 10) || anoAtual
 
         if (
           dia >= 1 &&
@@ -305,139 +248,51 @@ export default {
           ano <= 2100
         ) {
           const data = new Date(ano, mes - 1, dia)
-
-          // Verificar se a data é válida
-          if (
-            data.getDate() === dia &&
-            data.getMonth() === mes - 1 &&
-            data.getFullYear() === ano
-          ) {
-            return {
-              valida: true,
-              completa: true,
-              data: data,
-              formatada: this.formatarDataUnica(data),
-            }
+          if (data.getDate() === dia && data.getMonth() === mes - 1) {
+            return { valida: true, data: data }
           }
         }
       }
-
       return { valida: false }
     },
-
-    aoPerderFoco() {
-      this.digitandoManualmente = false
-
-      const valor = this.valorExibicao.trim()
-
-      if (!valor) {
-        this.limpar()
-        return
-      }
-
-      // Verificar se é um período (contém " - ")
-      if (valor.includes(' - ')) {
-        this.processarPeriodoDigitado(valor)
-        return
-      }
-
-      // Para data única, manter o valor atual se for válido
-      const dataProcessada = this.processarDataParcial(valor)
-      if (dataProcessada.valida && dataProcessada.formatada) {
-        this.valorExibicao = dataProcessada.formatada
-        this.erroFormato = ''
-      }
-    },
-
-    aoApertarEnter(event) {
-      event.preventDefault()
-      this.digitandoManualmente = false
-      event.target.blur()
-    },
-
-    aoFocarInput() {
-      // Não abrir calendário automaticamente quando focando para digitar
-    },
-
-    abrirCalendario() {
-      if (this.seletorData) {
-        this.seletorData.show()
-      }
-    },
-
-    processarPeriodoDigitado(valor) {
-      const partes = valor.split(' - ')
-      if (partes.length !== 2) {
-        this.erroFormato = 'Formato de período inválido'
-        return
-      }
-
-      const dataInicio = this.processarDataParcial(partes[0].trim())
-      const dataFim = this.processarDataParcial(partes[1].trim())
-
-      if (dataInicio.valida && dataFim.valida) {
-        if (dataInicio.data > dataFim.data) {
-          this.erroFormato = 'Data de início deve ser anterior à data de fim'
-          return
-        }
-
-        const periodo = [dataInicio.data, dataFim.data]
-        this.valorExibicao = `${dataInicio.formatada} - ${dataFim.formatada}`
-        this.erroFormato = ''
-
-        // Atualizar o calendário
-        if (this.seletorData) {
-          this.seletorData.selectDate(periodo)
-        }
-
-        this.$emit('input', periodo)
-        this.$emit('change', {
-          date: periodo,
-          formattedDate: this.valorExibicao,
-        })
-      } else {
-        this.erroFormato = 'Período com datas inválidas'
-      }
-    },
-
-    formatarDataUnica(data) {
-      const dia = String(data.getDate()).padStart(2, '0')
-      const mes = String(data.getMonth() + 1).padStart(2, '0')
-      return `${dia}/${mes}`
-    },
-
-    limpar() {
-      if (this.seletorData) {
-        this.seletorData.clear()
-      }
+    limpar(naoFocar = false) {
+      clearTimeout(this.debounceTimer)
+      if (this.seletorData) this.seletorData.clear()
       this.valorExibicao = ''
       this.erroFormato = ''
-      this.valorTemporario = ''
-      this.$emit('input', null)
       this.$emit('change', { date: null, formattedDate: '' })
-    },
-
-    definirDatas(datas) {
-      if (this.seletorData && datas) {
-        this.seletorData.selectDate(datas)
+      if (!naoFocar) {
+        this.$refs.entradaData.focus()
       }
     },
+    formatarDataUnica(data) {
+      if (!(data instanceof Date)) return ''
+      const dia = String(data.getDate()).padStart(2, '0')
+      const mes = String(data.getMonth() + 1).padStart(2, '0')
+      const ano = data.getFullYear()
+      return `${dia}/${mes}/${ano}`
+    },
+    formatarValorExibicao(date) {
+      if (!date) return ''
+      if (Array.isArray(date)) {
+        if (date.length === 0) return ''
+        return this.formatarDataUnica(date[0])
+      }
+      return this.formatarDataUnica(date)
+    },
   },
-
   watch: {
     value(novoValor) {
-      if (this.seletorData && !this.digitandoManualmente) {
-        if (novoValor) {
-          if (
-            JSON.stringify(novoValor) !==
-            JSON.stringify(this.seletorData.selectedDates)
-          ) {
-            this.seletorData.selectDate(novoValor)
-          }
-        } else {
-          this.seletorData.clear()
-          this.valorExibicao = ''
-        }
+      if (this.digitandoManualmente) return
+      if (novoValor) {
+        const dateToSelect = Array.isArray(novoValor) ? novoValor[0] : novoValor
+        this.seletorData.selectDate(dateToSelect)
+        this.valorExibicao = this.formatarDataUnica(dateToSelect)
+        this.isInputVisible = true
+      } else {
+        this.seletorData.clear()
+        this.valorExibicao = ''
+        this.isInputVisible = false
       }
     },
   },
@@ -448,58 +303,63 @@ export default {
 .gd-date-picker {
   position: relative;
   display: inline-block;
-  min-width: 200px;
+  width: 45px;
+  height: 45px;
+  transition: width 0.3s ease;
+}
+
+.gd-date-picker.is-expanded {
+  width: 160px;
 }
 
 .date-input-wrapper {
-  position: relative;
   display: flex;
   align-items: center;
-}
-
-.date-input {
+  justify-content: center;
   width: 100%;
-  padding: 8px 12px;
-  padding-right: 60px; /* Espaço para ícone e botão limpar */
+  height: 100%;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background-color: #ffffff;
-  cursor: text;
-  transition: border-color 0.2s ease;
-  color: #374151;
+  padding: 0 8px;
+  cursor: pointer;
+  overflow: hidden;
 }
 
-.date-input:hover {
+.gd-date-picker.is-expanded .date-input-wrapper {
+  justify-content: flex-start;
+  cursor: default;
+}
+
+.date-input-wrapper:hover {
   border-color: #9ca3af;
 }
 
-.date-input:focus {
+.date-input-wrapper:focus-within {
   outline: none;
   border-color: #1a82d9;
   box-shadow: 0 0 0 3px rgba(26, 130, 217, 0.1);
 }
 
-.date-input::placeholder {
-  color: #9ca3af;
-}
-
-.date-input.error {
-  border-color: #ef4444;
-}
-
-.date-input.error:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+.date-input {
+  width: 100px;
+  padding: 0 4px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background-color: transparent;
+  color: #374151;
+  min-width: 0;
 }
 
 .calendar-icon {
-  position: absolute;
-  right: 32px;
   color: #1a82d9;
   cursor: pointer;
   transition: color 0.2s ease;
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .calendar-icon:hover {
@@ -507,21 +367,19 @@ export default {
 }
 
 .clear-button {
-  position: absolute;
-  right: 12px;
   background: none;
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   padding: 0;
-  width: 16px;
-  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .clear-button:hover {
@@ -529,10 +387,13 @@ export default {
 }
 
 .error-message {
-  margin-top: 4px;
+  position: absolute;
+  bottom: -20px;
+  left: 0;
   font-size: 12px;
   color: #ef4444;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 :global(.air-datepicker) {
@@ -540,7 +401,8 @@ export default {
   border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-  z-index: 1000 !important;
+  margin-top: 15px;
+  margin-left: 10px;
 }
 
 :global(.air-datepicker-cell.-selected-) {
@@ -587,15 +449,5 @@ export default {
 
 :global(.air-datepicker-nav--action:hover) {
   color: #1a82d9 !important;
-}
-
-@media (max-width: 640px) {
-  .gd-date-picker {
-    min-width: 100%;
-  }
-
-  .date-input {
-    font-size: 16px;
-  }
 }
 </style>

@@ -67,7 +67,7 @@ export default {
 .gd-button {
   @apply inline-flex items-center justify-center rounded-lg font-medium text-sm cursor-pointer;
   padding: 0 12px;
-  width: 180px; /* Largura padrão via CSS */
+  min-width: 160px; /* Largura padrão via CSS */
   transition: transform 0.1s ease, background-color 0.2s ease,
     box-shadow 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);

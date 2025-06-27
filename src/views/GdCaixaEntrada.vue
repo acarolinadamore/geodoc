@@ -33,14 +33,6 @@
             />
           </div>
 
-          <!-- DEBUG: Mostrar contadores -->
-          <div v-if="showDebug" class="debug-contadores">
-            <p><strong>🔢 DEBUG Contadores:</strong></p>
-            <pre>{{ JSON.stringify(cardsState.contadores, null, 2) }}</pre>
-            <p><strong>📋 Modelos da Caixa Atual:</strong></p>
-            <pre>{{ JSON.stringify(modelosDaCaixaAtual, null, 2) }}</pre>
-          </div>
-
           <!-- Controles Simplificados -->
           <div
             class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mt-2"
@@ -50,14 +42,13 @@
               class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto order-1 lg:order-2"
             >
               <GdSearchBar
-                v-model="cardsState.filtros.busca"
-                @search="alterarFiltroBusca"
+                :initial-value="cardsState.filtros.busca"
+                @search-changed="alterarFiltroBusca"
                 @clear="limparFiltroBusca"
                 class="w-full lg:w-auto"
               />
               <GdDatePicker
-                v-model="intervaloDataLocal"
-                placeholder="Selecionar período"
+                :value="intervaloDataLocal"
                 @change="alterarFiltroData"
                 class="w-full lg:w-auto"
               />
@@ -68,16 +59,18 @@
               class="flex gap-2 flex-wrap w-full lg:w-auto order-2 lg:order-1"
             >
               <GdButton
-                label="Atribuir em Lotes"
-                variant="outlined"
-                border-color="#37c989"
-                text-color="#37c989"
+                label="Atribuir Documentos em Lotes"
+                icon="fa-users"
+                variant="filled"
+                bg-color="#1a82d9"
+                text-color="#fff"
                 :disabled="cardsState.cardsSelecionados.length === 0"
                 @click="atribuirEmLotes"
                 class="flex-1 lg:flex-none"
               />
               <GdButton
                 label="Atribuir a mim"
+                :iconSrc="handIcon"
                 variant="outlined"
                 border-color="#37c989"
                 text-color="#37c989"
@@ -363,6 +356,7 @@ import GdButton from '@/components/ui/GdButton.vue'
 import GdSearchBar from '@/components/ui/GdSearchBar.vue'
 import GdDatePicker from '@/components/ui/GdDatePicker.vue'
 import { useCards } from '@/composables/useCards'
+import handIcon from '@/assets/icons/hand.svg'
 
 export default {
   name: 'GdCaixaEntrada',
@@ -381,9 +375,8 @@ export default {
   data() {
     return {
       intervaloDataLocal: null,
-      showDebug: false, // DESATIVAR DEBUG APÓS CORREÇÃO
-
-      // Abas do primeiro filtro (Tipo de Caixa)
+      handIcon,
+      showDebug: false,
       abasTipoCaixa: [
         { id: 'todos', label: 'Todos' },
         { id: 'a-configurar', label: 'A Configurar' },
@@ -391,8 +384,6 @@ export default {
         { id: 'solicitados', label: 'Solicitados' },
         { id: 'lembretes', label: 'Lembretes' },
       ],
-
-      // Modelos disponíveis (para o segundo filtro) - INCLUINDO FOLHA DE PAGAMENTO
       modelosDisponiveis: [
         { id: 'todos', label: 'Todos', color: '#1a82d9' },
         {
@@ -426,7 +417,6 @@ export default {
           color: '#f97316',
         },
       ],
-
       acoesCheckbox: [
         { label: 'Aprovar', value: 'aprovar' },
         { label: 'Atribuir a Mim', value: 'atribuir-mim' },
@@ -434,7 +424,6 @@ export default {
         { label: 'Agrupar', value: 'agrupar' },
         { label: 'Cancelar', value: 'cancelar' },
       ],
-
       opcoesEnviarPara: [
         { label: 'Diretoria', value: 'diretoria', color: '#2563eb' },
         { label: 'Negócios', value: 'negocios', color: '#16a34a' },
@@ -451,12 +440,9 @@ export default {
   },
 
   computed: {
-    // Alias para facilitar acesso no template
     cardsState() {
       return this.state
     },
-
-    // Título dinâmico baseado no tipo de caixa
     tituloAtual() {
       const titulos = {
         todos: 'Caixa de Entrada',
@@ -467,75 +453,35 @@ export default {
       }
       return titulos[this.cardsState.filtros.tipoCaixa] || 'Caixa de Entrada'
     },
-
-    // Abas do tipo de caixa com contadores
     abasTipoCaixaComContadores() {
-      console.log('🔄 COMPUTED - abasTipoCaixaComContadores')
-      console.log(
-        '🔄 COMPUTED - contadores disponíveis:',
-        this.cardsState.contadores
-      )
-
-      const result = this.abasTipoCaixa.map(aba => ({
+      return this.abasTipoCaixa.map(aba => ({
         ...aba,
         count: this.cardsState.contadores[aba.id] || 0,
       }))
-
-      console.log('🔄 COMPUTED - abas com contadores:', result)
-      return result
     },
-
-    // Modelos disponíveis na caixa atual (com contadores) - SEMPRE MOSTRA TODAS AS ABAS
     modelosDaCaixaAtual() {
-      console.log('🔄 COMPUTED - modelosDaCaixaAtual')
-      console.log(
-        '🔄 COMPUTED - contadores disponíveis:',
-        this.cardsState.contadores
-      )
-
-      const result = this.modelosDisponiveis.map(modelo => {
-        let count = 0
-        if (modelo.id === 'todos') {
-          // O total de "Todos" para modelos é o total de cards após todos os filtros
-          count = this.cardsState.total
-        } else {
-          // Para outros modelos, pega a contagem específica dos cards filtrados
-          count = this.cardsState.contadores[modelo.id] || 0
-        }
-        return {
-          ...modelo,
-          count: count,
-        }
-      })
-
-      console.log('🔄 COMPUTED - modelos com contadores:', result)
-      return result
+      return this.modelosDisponiveis.map(modelo => ({
+        ...modelo,
+        count:
+          modelo.id === 'todos'
+            ? this.cardsState.total
+            : this.cardsState.contadores[modelo.id] || 0,
+      }))
     },
-
-    // Texto dos modelos selecionados para o indicador
     modelosSelecionadosTexto() {
       if (
         !this.cardsState.filtros.modelos ||
         this.cardsState.filtros.modelos.includes('todos')
-      ) {
+      )
         return null
-      }
-
-      const nomesSelecionados = this.cardsState.filtros.modelos
-        .map(id => {
-          const modelo = this.modelosDisponiveis.find(m => m.id === id)
-          return modelo ? modelo.label : id
-        })
+      const nomes = this.cardsState.filtros.modelos
+        .map(id => this.modelosDisponiveis.find(m => m.id === id)?.label)
         .filter(Boolean)
-
-      if (nomesSelecionados.length === 0) return null
-      if (nomesSelecionados.length === 1) return nomesSelecionados[0]
-      if (nomesSelecionados.length <= 3) return nomesSelecionados.join(', ')
-      return `${nomesSelecionados.slice(0, 2).join(', ')} e mais ${
-        nomesSelecionados.length - 2
-      }`
+      if (nomes.length === 0) return null
+      if (nomes.length === 1) return nomes[0]
+      if (nomes.length <= 3) return nomes.join(', ')
+      return `${nomes.slice(0, 2).join(', ')} e mais ${nomes.length - 2}`
     },
-
     paginasVisiveis() {
       const pages = []
       const start = Math.max(1, this.cardsState.filtros.page - 2)
@@ -543,18 +489,12 @@ export default {
         this.cardsState.totalPages,
         this.cardsState.filtros.page + 2
       )
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-
+      for (let i = start; i <= end; i++) pages.push(i)
       return pages
     },
   },
 
   async mounted() {
-    console.log('📱 CAIXA ENTRADA - Mounted')
-    console.log('$cardService disponível:', !!this.$cardService)
     if (this.$cardService) {
       await this.buscarCards(this.$cardService)
     } else {
@@ -563,193 +503,132 @@ export default {
   },
 
   methods: {
-    // Métodos de filtros
     async alterarTipoCaixa(tipoCaixa) {
-      console.log('📥 CAIXA ENTRADA - Alterando tipo de caixa para:', tipoCaixa)
-      this.alterarFiltros({ tipoCaixa, modelos: ['todos'] }) // Reset modelos ao trocar caixa
+      this.alterarFiltros({ tipoCaixa, modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
     },
-
     async alterarFiltroModelo(modeloId) {
-      console.log('📥 CAIXA ENTRADA - Toggle modelo:', modeloId)
       this.toggleModelo(modeloId)
       await this.buscarCards(this.$cardService)
     },
-
     async alterarFiltroBusca(busca) {
       this.alterarFiltros({ busca })
       await this.buscarCards(this.$cardService)
     },
-
     async alterarFiltroData(event) {
       const { date } = event
-      let dataInicio = null
-      let dataFim = null
-
+      let dataInicio = null,
+        dataFim = null
       if (Array.isArray(date) && date.length === 2) {
-        dataInicio = date[0]
-        dataFim = date[1]
+        ;[dataInicio, dataFim] = date
       } else if (date instanceof Date) {
         dataInicio = dataFim = date
       }
-
       this.alterarFiltros({ dataInicio, dataFim })
       await this.buscarCards(this.$cardService)
     },
-
     async limparFiltroBusca() {
       this.alterarFiltros({ busca: '' })
       await this.buscarCards(this.$cardService)
     },
-
     async limparFiltroData() {
       this.intervaloDataLocal = null
       this.alterarFiltros({ dataInicio: null, dataFim: null })
       await this.buscarCards(this.$cardService)
     },
-
     async limparFiltroModelos() {
       this.alterarFiltros({ modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
     },
-
     async limparTodosFiltros() {
       this.intervaloDataLocal = null
       this.limparFiltros()
       await this.buscarCards(this.$cardService)
     },
-
     async alterarPagina(page) {
       this.alterarFiltros({ page })
       await this.buscarCards(this.$cardService)
     },
-
-    // Métodos de seleção
     alternarTodosCards() {
-      if (this.todosCardsSelecionados()) {
-        this.deselectAllVisible()
-      } else {
-        this.selectAllVisible()
-      }
+      this.todosCardsSelecionados()
+        ? this.deselectAllVisible()
+        : this.selectAllVisible()
     },
-
-    // Ações com cards selecionados
     async aprovarSelecionados() {
       if (this.cardsState.cardsSelecionados.length === 0) return
-
       try {
-        const response = await this.$cardService.aprovarCards(
+        const res = await this.$cardService.aprovarCards(
           this.cardsState.cardsSelecionados
         )
-        this.showToast(response.message, 'success')
+        this.showToast(res.message, 'success')
         this.clearSelections()
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao aprovar cards', 'error')
-        console.error('Erro ao aprovar:', error)
       }
     },
-
     async atribuirAMim() {
       if (this.cardsState.cardsSelecionados.length === 0) return
-
       try {
-        const response = await this.$cardService.atribuirCards(
+        const res = await this.$cardService.atribuirCards(
           this.cardsState.cardsSelecionados,
           'eu'
         )
-        this.showToast(response.message, 'success')
+        this.showToast(res.message, 'success')
         this.clearSelections()
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao atribuir cards', 'error')
-        console.error('Erro ao atribuir:', error)
       }
     },
-
     async agruparSelecionados() {
       if (this.cardsState.cardsSelecionados.length === 0) return
-
       try {
-        const response = await this.$cardService.agruparCards(
+        const res = await this.$cardService.agruparCards(
           this.cardsState.cardsSelecionados,
           'grupo-padrao'
         )
-        this.showToast(response.message, 'success')
+        this.showToast(res.message, 'success')
         this.clearSelections()
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao agrupar cards', 'error')
-        console.error('Erro ao agrupar:', error)
       }
     },
-
     atribuirEmLotes() {
       console.log('Atribuir em lotes:', this.cardsState.cardsSelecionados)
     },
-
     executarAcaoCheckbox(acao) {
-      switch (acao) {
-        case 'aprovar':
-          this.aprovarSelecionados()
-          break
-        case 'atribuir-mim':
-          this.atribuirAMim()
-          break
-        case 'agrupar':
-          this.agruparSelecionados()
-          break
-        default:
-          console.log('Ação:', acao, this.cardsState.cardsSelecionados)
+      const actions = {
+        aprovar: this.aprovarSelecionados,
+        'atribuir-mim': this.atribuirAMim,
+        agrupar: this.agruparSelecionados,
       }
+      actions[acao]?.()
     },
-
     executarAcaoModelo({ action, modelo, cardIds }) {
       console.log('Ação do modelo:', { action, modelo, cardIds })
     },
-
     enviarPara(destino) {
       console.log('Enviar para:', destino, this.cardsState.cardsSelecionados)
     },
-
     adicionarMarcador(marcador) {
-      console.log('Novo marcador:', marcador)
-      // Adicionar à lista de abas do tipo caixa
-      this.abasTipoCaixa.push({
-        id: marcador.id,
-        label: marcador.label,
-      })
+      this.abasTipoCaixa.push({ id: marcador.id, label: marcador.label })
     },
-
     formatarIntervaloData(dataInicio, dataFim) {
-      const formatarData = data => {
+      const formatar = data => {
         if (!data) return ''
-        try {
-          const d = new Date(data)
-          const dia = String(d.getDate()).padStart(2, '0')
-          const mes = String(d.getMonth() + 1).padStart(2, '0')
-          return `${dia}/${mes}`
-        } catch (error) {
-          return 'Data inválida'
-        }
+        const d = new Date(data)
+        return `${String(d.getDate()).padStart(2, '0')}/${String(
+          d.getMonth() + 1
+        ).padStart(2, '0')}`
       }
-
-      if (dataInicio && dataFim) {
-        const inicioFormatado = formatarData(dataInicio)
-        const fimFormatado = formatarData(dataFim)
-
-        if (inicioFormatado === fimFormatado) {
-          return inicioFormatado
-        }
-        return `${inicioFormatado} - ${fimFormatado}`
-      }
-
-      return formatarData(dataInicio || dataFim)
+      const inicioF = formatar(dataInicio),
+        fimF = formatar(dataFim)
+      return inicioF === fimF ? inicioF : `${inicioF} - ${fimF}`
     },
-
     showToast(message, type = 'info') {
       console.log(`Toast ${type}:`, message)
-      // Implementar sistema de toast
     },
   },
 }
@@ -761,9 +640,8 @@ export default {
   flex-direction: column;
   height: 100%;
   max-height: 100vh;
-  overflow: hidden;
+  max-width: 100%;
 }
-
 .header-fixo {
   flex-shrink: 0;
   background-color: white;
@@ -771,7 +649,6 @@ export default {
   flex-direction: column;
   z-index: 20;
 }
-
 .header-content {
   padding: 0 16px;
   gap: 0.5rem;
@@ -779,35 +656,29 @@ export default {
   flex-direction: column;
   margin-bottom: 8px;
 }
-
 .separador-linha {
   height: 1px;
   background-color: #e5e7eb;
   width: 100%;
   margin: 0;
 }
-
 .header-cards-title {
   padding: 0 16px;
   border-bottom: 1px solid #e5e7eb;
 }
-
 .area-scroll {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
 }
-
 .scroll-content {
   padding: 0 16px;
 }
-
 .title-cards-container span {
   color: #b7b7b7;
   font-size: 12px;
   font-weight: 400;
 }
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -819,8 +690,6 @@ export default {
   white-space: nowrap;
   border: 0;
 }
-
-/* DEBUG STYLES */
 .debug-contadores {
   background: #f0f0f0;
   border: 2px solid #ff0000;
@@ -828,14 +697,12 @@ export default {
   margin: 10px 0;
   font-size: 12px;
 }
-
 .debug-contadores pre {
   background: white;
   padding: 5px;
   border-radius: 4px;
   overflow-x: auto;
 }
-
 @media (max-width: 1024px) and (min-width: 769px) {
   .header-cards-title {
     display: none;

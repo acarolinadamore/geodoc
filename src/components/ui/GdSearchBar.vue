@@ -1,45 +1,33 @@
 <template>
-  <div class="searchbar">
-    <div class="container-entrada">
+  <div class="search-container">
+    <div class="search-input-wrapper">
       <svg
-        class="icone-busca"
-        width="14"
-        height="14"
+        class="search-icon"
+        xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
+        width="18"
+        height="18"
+        fill="currentColor"
       >
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
+        <path
+          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+        />
       </svg>
       <input
-        :value="value"
         type="text"
+        class="search-input"
         :placeholder="placeholder"
-        class="input-entrada"
-        @input="handleInput"
-        @keyup.enter="handleEnter"
-        @focus="handleFocus"
-        @blur="handleBlur"
+        v-model="localSearchTerm"
+        @input="onSearchInput"
       />
       <button
-        v-if="value"
+        v-if="localSearchTerm"
         @click="clearSearch"
-        class="botao-limpar"
+        class="clear-button"
         type="button"
+        title="Limpar busca"
       >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+        ×
       </button>
     </div>
   </div>
@@ -49,7 +37,7 @@
 export default {
   name: 'GdSearchBar',
   props: {
-    value: {
+    initialValue: {
       type: String,
       default: '',
     },
@@ -57,140 +45,104 @@ export default {
       type: String,
       default: 'Buscar...',
     },
-    debounce: {
-      type: Number,
-      default: 300,
-    },
   },
   data() {
     return {
+      localSearchTerm: this.initialValue,
       debounceTimer: null,
     }
   },
-  methods: {
-    handleInput(event) {
-      const inputValue = event.target.value
-      console.log('🔍 GdSearchBar - Input changed:', inputValue)
-
-      // ✅ LIMPAR TIMER ANTERIOR
-      clearTimeout(this.debounceTimer)
-
-      // ✅ EMITIR IMEDIATAMENTE PARA V-MODEL
-      this.$emit('input', inputValue)
-
-      // ✅ DEBOUNCE APENAS PARA SEARCH EVENT
-      this.debounceTimer = setTimeout(() => {
-        console.log('🔍 GdSearchBar - Emitindo search:', inputValue)
-        this.$emit('search', inputValue)
-      }, this.debounce)
-    },
-
-    handleEnter(event) {
-      const inputValue = event.target.value
-      console.log('🔍 GdSearchBar - Enter pressed:', inputValue)
-      clearTimeout(this.debounceTimer)
-      this.$emit('input', inputValue)
-      this.$emit('search', inputValue)
-      this.$emit('enter', inputValue)
-    },
-
-    handleFocus() {
-      console.log('🔍 GdSearchBar - Focus')
-      this.$emit('focus')
-    },
-
-    handleBlur() {
-      console.log('🔍 GdSearchBar - Blur')
-      this.$emit('blur')
-    },
-
-    clearSearch() {
-      console.log('🔍 GdSearchBar - Clear search')
-      clearTimeout(this.debounceTimer)
-      this.$emit('input', '')
-      this.$emit('search', '')
-      this.$emit('clear')
+  watch: {
+    initialValue(newValue) {
+      this.localSearchTerm = newValue
     },
   },
-
-  // ✅ LIMPAR TIMER AO DESTRUIR COMPONENTE
   beforeDestroy() {
-    if (this.debounceTimer) {
+    clearTimeout(this.debounceTimer)
+  },
+  methods: {
+    onSearchInput() {
       clearTimeout(this.debounceTimer)
-    }
+      this.debounceTimer = setTimeout(() => {
+        this.$emit('search-changed', this.localSearchTerm)
+      }, 400)
+    },
+    clearSearch() {
+      this.localSearchTerm = ''
+      this.$emit('clear')
+    },
   },
 }
 </script>
 
 <style scoped>
-/* Mantém o mesmo CSS */
-.searchbar {
-  display: flex;
-  width: 100%;
+.search-container {
+  position: relative;
+  display: inline-block;
+  width: 160px; /* Largura reduzida */
+  max-width: 100%;
 }
 
-.container-entrada {
+.search-input-wrapper {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 40px;
+  height: 45px; /* Altura fixa */
   border: 1px solid #d1d5db;
   border-radius: 6px;
+  padding: 0 12px; /* Ajuste no padding horizontal */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background-color: #ffffff;
-  transition: border-color 0.2s ease;
-  gap: 6px;
-  padding: 0 8px;
 }
 
-.container-entrada:hover {
+.search-input-wrapper:hover {
   border-color: #9ca3af;
 }
 
-.container-entrada:focus-within {
+.search-input-wrapper:focus-within {
+  outline: none;
   border-color: #1a82d9;
   box-shadow: 0 0 0 3px rgba(26, 130, 217, 0.1);
 }
 
-.icone-busca {
+.search-icon {
+  color: #9ca3af;
+  margin-right: 8px;
   flex-shrink: 0;
-  color: #6b7280;
 }
 
-.input-entrada {
-  flex: 1;
-  height: 100%;
+.search-input {
+  flex-grow: 1;
   border: none;
   outline: none;
-  background: transparent;
+  padding: 8px 4px 8px 0;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
+  background-color: transparent;
   color: #374151;
   min-width: 0;
 }
 
-.input-entrada::placeholder {
+.search-input::placeholder {
   color: #9ca3af;
-  font-size: 14px;
 }
 
-.botao-limpar {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
+.clear-button {
   background: none;
   border: none;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
-  border-radius: 3px;
-  transition: background-color 0.2s ease;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  margin-left: 4px;
 }
 
-.botao-limpar:hover {
-  background-color: #f3f4f6;
-  color: #374151;
+.clear-button:hover {
+  color: #ef4444;
 }
 </style>

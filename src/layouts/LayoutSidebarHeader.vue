@@ -104,7 +104,6 @@ export default {
 /* Conteúdo da página - área intercambiável */
 .layout-content {
   flex: 1;
-  overflow: hidden;
   min-height: 0;
 }
 
