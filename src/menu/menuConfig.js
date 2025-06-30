@@ -27,18 +27,4 @@ export default [
       },
     ],
   },
-  {
-    group: 'CONFIGURAÇÕES',
-    items: [
-      { name: 'Cadastrar', route: '/inicio', icon: 'plus.svg' },
-      { name: 'Impressora', route: '/', icon: 'printer.svg' },
-    ],
-  },
-  {
-    group: 'EXEMPLOS',
-    items: [
-      { name: 'Pagina nova', route: '/inicio', icon: 'plus.svg' },
-      { name: 'Pagina nova', route: '/exemplo-usuario', icon: 'plus.svg' },
-    ],
-  },
 ]

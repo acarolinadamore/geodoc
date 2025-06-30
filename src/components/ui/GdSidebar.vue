@@ -1,15 +1,15 @@
 <template>
-  <div class="container-sidebar">
-    <transition name="deslizar-sidebar" mode="out-in">
-      <nav v-if="isExpanded" class="barra-lateral" @click="handleSidebarClick">
+  <div class="container-barra-lateral">
+    <transition name="deslizar-barra" mode="out-in">
+      <nav v-if="expandida" class="barra-lateral" @click="clicarBarraLateral">
         <div class="container-conteudo">
-          <!-- Sidebar - Cabeçalho -->
-          <div class="cabecalho">
+          <!-- Superior -->
+          <div class="header">
             <div class="barra-superior">
               <div class="logo">
-                <img :src="logoPath" alt="GeoDoc Logo" class="imagem-logo" />
+                <img :src="caminhoLogo" alt="GeoDoc Logo" class="imagem-logo" />
               </div>
-              <button class="botao-colapsar" @click.stop="toggleSidebar">
+              <button class="botao-colapsar" @click.stop="alternarSidebar">
                 <i class="fas fa-chevron-left"></i>
               </button>
             </div>
@@ -20,25 +20,25 @@
             <div class="divisor especial"></div>
           </div>
 
-          <!-- Sidebar - Content -->
+          <!-- Meio -->
           <div class="menu">
             <div
-              v-for="(section, sectionIndex) in menuConfig"
-              :key="`section-${section.group}-${sectionIndex}`"
+              v-for="(secao, indiceSecao) in configMenu"
+              :key="`secao-${secao.group}-${indiceSecao}`"
               class="secao"
             >
-              <h2 class="titulo-secao">{{ section.group }}</h2>
+              <h2 class="titulo-secao">{{ secao.group }}</h2>
               <ul>
                 <li
-                  v-for="(item, itemIndex) in section.items"
-                  :key="`item-${section.group}-${
+                  v-for="(item, indiceItem) in secao.items"
+                  :key="`item-${secao.group}-${
                     item.route || item.name
-                  }-${itemIndex}`"
-                  @click="navigate(item.route)"
+                  }-${indiceItem}`"
+                  @click="navegar(item.route)"
                   class="item-menu"
                 >
                   <img
-                    :src="getIconPath(item.icon)"
+                    :src="obterCaminhoIcone(item.icon)"
                     :alt="item.name"
                     class="icone"
                   />
@@ -51,15 +51,17 @@
             </div>
           </div>
 
-          <!-- Sidebar - Rodapé fixo -->
-          <div class="rodape">
-            <div class="logo-rodape">
-              <img
-                :src="grupoImagetechPath"
-                alt="Grupo Imagetech"
-                class="imagem-grupo"
-              />
-            </div>
+          <!-- Rodapé fixo -->
+          <div class="rodape flex flex-col gap-1">
+            <GdNotificacao
+              :unread="2"
+              @abrirNotificacoes="abrirPainelNotificacoes"
+            />
+            <GdDropdownUsuario
+              fullName="Ana Carolina"
+              email="e-mail@com.br"
+              :userImage="fotoUsuario"
+            />
           </div>
         </div>
       </nav>
@@ -67,9 +69,9 @@
 
     <!-- Transição para o logo mini -->
     <transition name="aparecer-logo" mode="out-in">
-      <div v-if="!isExpanded" class="logo-mini" @click="expandSidebar">
+      <div v-if="!expandida" class="logo-mini" @click="expandirBarra">
         <img
-          :src="logoMiniPath"
+          :src="caminhoLogoMini"
           alt="GeoDoc Logo Mini"
           class="imagem-logo-mini"
         />
@@ -79,52 +81,62 @@
 </template>
 
 <script>
-import menuConfig from '@/config/menuConfig'
+import configMenu from '@/menu/menuConfig'
+import GdNotificacao from '@/components/ui/GdNotificacao.vue'
+import GdDropdownUsuario from '@/components/ui/GdDropdownUsuario.vue'
 
 export default {
   name: 'GdSidebar',
+  components: {
+    GdNotificacao,
+    GdDropdownUsuario,
+  },
   data() {
     return {
-      menuConfig,
-      logoPath: require('@/assets/logos/logo.svg'),
-      logoMiniPath: require('@/assets/logos/g.svg'),
-      grupoImagetechPath: require('@/assets/logos/grupoimagetech.png'),
-      isExpanded: true,
+      configMenu,
+      caminhoLogo: require('@/assets/logos/logo.svg'),
+      caminhoLogoMini: require('@/assets/logos/g.svg'),
+      caminhoGrupoImagetech: require('@/assets/logos/grupoimagetech.png'),
+      expandida: true,
+      fotoUsuario: '', // coloque o caminho da foto aqui se tiver
     }
   },
   methods: {
-    toggleSidebar() {
-      this.isExpanded = !this.isExpanded
-      this.$emit('sidebar-toggle', this.isExpanded)
+    alternarSidebar() {
+      this.expandida = !this.expandida
+      this.$emit('sidebar-toggle', this.expandida)
     },
-    expandSidebar() {
-      if (!this.isExpanded) {
-        this.isExpanded = true
-        this.$emit('sidebar-toggle', this.isExpanded)
+    expandirBarra() {
+      if (!this.expandida) {
+        this.expandida = true
+        this.$emit('sidebar-toggle', this.expandida)
       }
     },
-    handleSidebarClick() {
-      // Removido para evitar expansão acidental
+    clicarBarraLateral() {
+      // Método vazio para evitar expansão acidental
     },
-    navigate(route) {
-      if (route) {
-        this.$router.push(route)
+    navegar(rota) {
+      if (rota) {
+        this.$router.push(rota)
       }
     },
-    getIconPath(iconName) {
+    obterCaminhoIcone(nomeIcone) {
       try {
-        return require(`@/assets/icons/${iconName}`)
-      } catch (e) {
-        console.error(`Icon not found: ${iconName}`)
+        return require(`@/assets/icons/${nomeIcone}`)
+      } catch (erro) {
+        console.error(`Ícone não encontrado: ${nomeIcone}`)
         return ''
       }
+    },
+    abrirPainelNotificacoes() {
+      console.log('Painel de notificações aberto')
     },
   },
 }
 </script>
 
 <style scoped>
-.container-sidebar {
+.container-barra-lateral {
   position: relative;
 }
 
@@ -134,7 +146,7 @@ export default {
   background: linear-gradient(180deg, #004b9d 0%, #0078c8 100%);
   color: #d7dadd;
   font-family: 'Inter', sans-serif;
-  padding: 16px 0;
+  padding: 16px 0 8px 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -149,12 +161,11 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 8px;
 }
 
-.cabecalho {
+.header {
   margin-bottom: 8px;
-  padding: 0 8px;
+  padding: 0 12px;
 }
 
 .barra-superior {
@@ -335,24 +346,6 @@ ul {
   padding: 16px 8px 0;
 }
 
-.logo-rodape {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 5px;
-}
-
-.imagem-grupo {
-  max-width: 80%;
-  height: auto;
-  transition: opacity 0.3s ease;
-}
-
-.imagem-grupo:hover {
-  opacity: 0.8;
-}
-
-/* Logo mini quando sidebar está colapsada */
 .logo-mini {
   position: fixed;
   top: 8px;
@@ -385,21 +378,18 @@ ul {
   transform: scale(1.1);
 }
 
-/* Transições da Sidebar */
-.deslizar-sidebar-enter-active {
+/* Transições da Barra Lateral */
+.deslizar-barra-enter-active,
+.deslizar-barra-leave-active {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.deslizar-sidebar-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.deslizar-sidebar-enter {
+.deslizar-barra-enter {
   transform: translateX(-100%);
   opacity: 0;
 }
 
-.deslizar-sidebar-leave-to {
+.deslizar-barra-leave-to {
   transform: translateX(-100%);
   opacity: 0;
 }
@@ -461,7 +451,7 @@ ul {
     padding: 0 6px;
   }
 
-  .cabecalho {
+  .header {
     padding: 0 6px;
   }
 

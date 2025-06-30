@@ -1,14 +1,14 @@
 <template>
-  <layout-sidebar-header
-    :show-header-date="false"
-    :show-header-notification="true"
-  >
+  <layout-sidebar v-slot="{ sidebarExpanded }">
     <div class="caixa-entrada-container">
       <!-- Header Fixo -->
       <div class="header-fixo">
         <div class="header-content">
           <!-- Título -->
-          <div class="flex pt-3 pb-1">
+          <div
+            class="flex pt-3 pb-1"
+            :class="{ 'adicionar-espaco': !sidebarExpanded }"
+          >
             <h1 class="text-xl font-semibold text-gray-700 m-0">
               {{ tituloAtual }}
             </h1>
@@ -342,11 +342,11 @@
         </div>
       </div>
     </div>
-  </layout-sidebar-header>
+  </layout-sidebar>
 </template>
 
 <script>
-import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
+import LayoutSidebar from '@/layouts/LayoutSidebar.vue'
 import GdFilterBar from '@/components/ui/GdFilterBar.vue'
 import GdFilterBarBadge from '@/components/ui/GdFilterBarBadge.vue'
 import GdCardList from '@/components/ui/GdCardList.vue'
@@ -361,7 +361,7 @@ import handIcon from '@/assets/icons/hand.svg'
 export default {
   name: 'GdCaixaEntrada',
   components: {
-    LayoutSidebarHeader,
+    LayoutSidebar,
     GdFilterBar,
     GdFilterBarBadge,
     GdCardList,
@@ -635,6 +635,10 @@ export default {
 </script>
 
 <style scoped>
+.adicionar-espaco {
+  padding-left: 50px;
+}
+
 .caixa-entrada-container {
   display: flex;
   flex-direction: column;
