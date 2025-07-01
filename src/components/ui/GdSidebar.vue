@@ -6,7 +6,11 @@
           <!-- Superior -->
           <div class="header">
             <div class="barra-superior">
-              <div class="logo">
+              <div
+                class="logo"
+                @click="navegar('/inicio')"
+                style="cursor: pointer"
+              >
                 <img :src="caminhoLogo" alt="GeoDoc Logo" class="imagem-logo" />
               </div>
               <button class="botao-colapsar" @click.stop="alternarSidebar">
@@ -116,7 +120,7 @@ export default {
       // Método vazio para evitar expansão acidental
     },
     navegar(rota) {
-      if (rota) {
+      if (rota && this.$route.path !== rota) {
         this.$router.push(rota)
       }
     },

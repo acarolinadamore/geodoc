@@ -13,7 +13,7 @@ export const cardService = {
           console.log('🔍 SERVICE - Iniciando getCards com filtros:', filtros)
           console.log('🔍 SERVICE - Total de cards:', cardsData.length)
 
-          // PRIMEIRO FILTRO: Tipo de Caixa (GdFilterBar)
+          // PRIMEIRO FILTRO: Tipo de Caixa (FiltroPaginaMarcador)
           if (filtros.tipoCaixa && filtros.tipoCaixa !== 'todos') {
             dadosFiltrados = dadosFiltrados.filter(card => {
               switch (filtros.tipoCaixa) {
@@ -41,7 +41,7 @@ export const cardService = {
             })
           }
 
-          // SEGUNDO FILTRO: Modelos de Documento (GdFilterBarBadge) - SELEÇÃO MÚLTIPLA
+          // SEGUNDO FILTRO: Modelos de Documento (FiltroModeloDocumento) - SELEÇÃO MÚLTIPLA
           if (
             filtros.modelos &&
             Array.isArray(filtros.modelos) &&
@@ -271,7 +271,7 @@ export const cardService = {
       todos: todosCards.length,
     }
 
-    // Contadores para tipos de caixa (GdFilterBar)
+    // Contadores para tipos de caixa (FiltroPaginaMarcador)
     contadores['a-configurar'] = todosCards.filter(
       card =>
         card.documento?.status === 'rascunho' &&
@@ -303,7 +303,7 @@ export const cardService = {
       lembretes: contadores.lembretes,
     })
 
-    // Contadores para modelos (GdFilterBarBadge) - baseado na caixa atual
+    // Contadores para modelos (FiltroModeloDocumento) - baseado na caixa atual
     let cardsDaCaixaAtual = todosCards
 
     // CORREÇÃO: Só filtra se não for "todos"

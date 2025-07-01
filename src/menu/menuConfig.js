@@ -7,7 +7,7 @@ export default [
       { name: 'Pasta Digital', route: '/inicio', icon: 'folder.svg' },
       {
         name: 'Documentos',
-        route: '/novo-documento',
+        route: '/inicio',
         icon: 'document.svg',
       },
     ],

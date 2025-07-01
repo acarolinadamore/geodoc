@@ -16,16 +16,16 @@
 
           <!-- Filtros -->
           <div class="flex flex-col gap-1">
-            <!-- Filtro 1: Tipo de Caixa COM CONTADORES -->
-            <GdFilterBar
+            <!-- Filtro 1: Tipo de Caixa/Páginas/Marcadores COM CONTADORES -->
+            <FiltroPaginaMarcador
               :initial-tabs="abasTipoCaixaComContadores"
               :initial-active-tab-id="cardsState.filtros.tipoCaixa || 'todos'"
               @atualizar-aba="alterarTipoCaixa"
               @adicionar-marcador="adicionarMarcador"
             />
 
-            <!-- Filtro 2: Modelos da Caixa Atual COM SELEÇÃO MÚLTIPLA -->
-            <GdFilterBarBadge
+            <!-- Filtro 2: Modelos de Documento COM SELEÇÃO MÚLTIPLA -->
+            <FiltroModeloDocumento
               :initial-tabs="modelosDaCaixaAtual"
               :selected-tabs="cardsState.filtros.modelos || ['todos']"
               :multiple-selection="true"
@@ -45,7 +45,7 @@
                 :initial-value="cardsState.filtros.busca"
                 @search-changed="alterarFiltroBusca"
                 @clear="limparFiltroBusca"
-                class="w-full lg:w-auto"
+                class="w-full lg:w-auto flex-1 lg:flex-none"
               />
               <GdDatePicker
                 :value="intervaloDataLocal"
@@ -60,7 +60,7 @@
             >
               <GdButton
                 label="Atribuir Documentos em Lotes"
-                icon="fa-users"
+                icon="fa-list"
                 variant="filled"
                 bg-color="#1a82d9"
                 text-color="#fff"
@@ -90,6 +90,7 @@
               />
               <GdButton
                 label="Agrupar"
+                icon="fa-users"
                 variant="filled"
                 bg-color="#1a82d9"
                 text-color="#ffffff"
@@ -102,7 +103,7 @@
 
           <!-- Indicadores de Filtros Ativos -->
           <div
-            v-if="possuiFiltrosAtivos()"
+            v-if="possuiFiltrosAtivos"
             class="flex justify-between items-center p-2 bg-gray-50 border border-gray-200 rounded-md gap-3"
             role="status"
             aria-live="polite"
@@ -180,7 +181,7 @@
           <div class="flex items-center gap-4 py-2">
             <div class="flex gap-2 items-center">
               <GdCheckboxDropdown
-                :checked-all="todosCardsSelecionados()"
+                :checked-all="todosCardsSelecionados"
                 :actions="acoesCheckbox"
                 @toggle-all="alternarTodosCards"
                 @action="executarAcaoCheckbox"
@@ -235,7 +236,7 @@
             <p class="mb-5 text-gray-600">{{ cardsState.error }}</p>
             <div class="flex gap-3 justify-center flex-wrap">
               <button
-                @click="buscarCards($cardService)"
+                @click="carregarCards"
                 class="px-4 py-2 rounded-md border-0 cursor-pointer font-medium transition-all text-sm bg-red-600 text-white hover:bg-red-700"
               >
                 Tentar novamente
@@ -251,7 +252,7 @@
 
           <!-- Estados Vazios -->
           <div
-            v-else-if="cardsState.cards.length === 0 && !possuiFiltrosAtivos()"
+            v-else-if="cardsState.cards.length === 0 && !possuiFiltrosAtivos"
             class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
           >
             <div class="text-5xl mb-4">📄</div>
@@ -264,7 +265,7 @@
           </div>
 
           <div
-            v-else-if="cardsState.cards.length === 0 && possuiFiltrosAtivos()"
+            v-else-if="cardsState.cards.length === 0 && possuiFiltrosAtivos"
             class="flex flex-col items-center justify-center p-10 text-gray-600 text-center"
           >
             <div class="text-5xl mb-4">🔍</div>
@@ -347,8 +348,8 @@
 
 <script>
 import LayoutSidebar from '@/layouts/LayoutSidebar.vue'
-import GdFilterBar from '@/components/ui/GdFilterBar.vue'
-import GdFilterBarBadge from '@/components/ui/GdFilterBarBadge.vue'
+import FiltroPaginaMarcador from '@/components/ui/FiltroPaginaMarcador.vue'
+import FiltroModeloDocumento from '@/components/ui/FiltroModeloDocumento.vue'
 import GdCardList from '@/components/ui/GdCardList.vue'
 import GdCheckboxDropdown from '@/components/ui/GdCheckboxDropdown.vue'
 import GdEnviarParaDropdown from '@/components/ui/GdEnviarParaDropdown.vue'
@@ -362,8 +363,8 @@ export default {
   name: 'GdCaixaEntrada',
   components: {
     LayoutSidebar,
-    GdFilterBar,
-    GdFilterBarBadge,
+    FiltroPaginaMarcador,
+    FiltroModeloDocumento,
     GdCardList,
     GdCheckboxDropdown,
     GdEnviarParaDropdown,
@@ -372,18 +373,24 @@ export default {
     GdDatePicker,
   },
 
+  setup() {
+    return useCards()
+  },
+
   data() {
     return {
-      intervaloDataLocal: null,
       handIcon,
-      showDebug: false,
+      intervaloDataLocal: null,
+      tituloAtual: 'Caixa de Entrada',
       abasTipoCaixa: [
         { id: 'todos', label: 'Todos' },
         { id: 'a-configurar', label: 'A Configurar' },
         { id: 'recebidos', label: 'Recebidos' },
         { id: 'solicitados', label: 'Solicitados' },
         { id: 'lembretes', label: 'Lembretes' },
+        // Marcadores pessoais serão inseridos dinamicamente aqui
       ],
+      marcadoresPessoais: [], // Lista de marcadores pessoais
       modelosDisponiveis: [
         { id: 'todos', label: 'Todos', color: '#1a82d9' },
         {
@@ -424,149 +431,324 @@ export default {
         { label: 'Agrupar', value: 'agrupar' },
         { label: 'Cancelar', value: 'cancelar' },
       ],
-      opcoesEnviarPara: [
-        { label: 'Diretoria', value: 'diretoria', color: '#2563eb' },
-        { label: 'Negócios', value: 'negocios', color: '#16a34a' },
-        { label: 'Financeiro', value: 'financeiro', color: '#f59e0b' },
-        { label: 'RH', value: 'rh', color: '#ef4444' },
-        { label: 'Jurídico', value: 'juridico', color: '#8b5cf6' },
-        { label: 'Operações', value: 'operacoes', color: '#06b6d4' },
-      ],
     }
-  },
-
-  setup() {
-    return useCards()
   },
 
   computed: {
     cardsState() {
       return this.state
     },
-    tituloAtual() {
-      const titulos = {
-        todos: 'Caixa de Entrada',
-        'a-configurar': 'A Configurar',
-        recebidos: 'Recebidos',
-        solicitados: 'Solicitados',
-        lembretes: 'Lembretes',
-      }
-      return titulos[this.cardsState.filtros.tipoCaixa] || 'Caixa de Entrada'
-    },
+
     abasTipoCaixaComContadores() {
+      // Usa contagemOriginais para mostrar os totais nas abas
+      const contadores = this.cardsState.contagemOriginais || {}
+
       return this.abasTipoCaixa.map(aba => ({
         ...aba,
-        count: this.cardsState.contadores[aba.id] || 0,
+        count: contadores[aba.id] || 0,
       }))
     },
+
     modelosDaCaixaAtual() {
-      return this.modelosDisponiveis.map(modelo => ({
+      // Se estamos em "todos", mostra TODOS os modelos disponíveis
+      if (this.cardsState.filtros.tipoCaixa === 'todos') {
+        return this.modelosDisponiveis.map(modelo => ({
+          ...modelo,
+          count:
+            modelo.id === 'todos'
+              ? this.cardsState.total || 0
+              : this.cardsState.contadores[modelo.id] || 0,
+        }))
+      }
+
+      // Para outras caixas, filtra apenas modelos com documentos
+      const contadores = this.cardsState.contadores || {}
+
+      const modelosFiltrados = this.modelosDisponiveis.filter(modelo => {
+        if (modelo.id === 'todos') return true
+
+        // Verifica se existe contador para este modelo na caixa atual
+        const chaveModelo = modelo.id
+        return contadores[chaveModelo] && contadores[chaveModelo] > 0
+      })
+
+      return modelosFiltrados.map(modelo => ({
         ...modelo,
         count:
           modelo.id === 'todos'
-            ? this.cardsState.total
-            : this.cardsState.contadores[modelo.id] || 0,
+            ? contadores['todos-modelos'] || 0
+            : contadores[modelo.id] || 0,
       }))
     },
+
+    opcoesEnviarPara() {
+      const opcoes = []
+
+      // Se não estamos em "todos", adiciona opção de voltar para caixa de entrada
+      if (this.cardsState.filtros.tipoCaixa !== 'todos') {
+        opcoes.push({
+          label: 'Caixa de Entrada',
+          value: 'todos',
+          color: '#1a82d9',
+        })
+      }
+
+      // Adiciona marcadores pessoais, excluindo a página atual
+      const marcadoresOpcoes = this.marcadoresPessoais
+        .filter(m => m.id !== this.cardsState.filtros.tipoCaixa)
+        .map(m => ({
+          label: m.label,
+          value: m.id,
+          color: '#2563eb', // Cor padrão para marcadores
+        }))
+
+      return [...opcoes, ...marcadoresOpcoes]
+    },
+
     modelosSelecionadosTexto() {
       if (
         !this.cardsState.filtros.modelos ||
+        this.cardsState.filtros.modelos.length === 0 ||
         this.cardsState.filtros.modelos.includes('todos')
-      )
-        return null
-      const nomes = this.cardsState.filtros.modelos
-        .map(id => this.modelosDisponiveis.find(m => m.id === id)?.label)
+      ) {
+        return ''
+      }
+
+      const labels = this.cardsState.filtros.modelos
+        .map(id => {
+          const modelo = this.modelosDisponiveis.find(m => m.id === id)
+          return modelo ? modelo.label : id
+        })
         .filter(Boolean)
-      if (nomes.length === 0) return null
-      if (nomes.length === 1) return nomes[0]
-      if (nomes.length <= 3) return nomes.join(', ')
-      return `${nomes.slice(0, 2).join(', ')} e mais ${nomes.length - 2}`
+
+      return labels.join(', ')
     },
+
     paginasVisiveis() {
-      const pages = []
-      const start = Math.max(1, this.cardsState.filtros.page - 2)
-      const end = Math.min(
-        this.cardsState.totalPages,
-        this.cardsState.filtros.page + 2
-      )
-      for (let i = start; i <= end; i++) pages.push(i)
-      return pages
+      const total = this.cardsState.totalPages || 1
+      const atual = this.cardsState.filtros.page || 1
+      const paginas = []
+
+      const inicio = Math.max(1, atual - 2)
+      const fim = Math.min(total, atual + 2)
+
+      for (let i = inicio; i <= fim; i++) {
+        paginas.push(i)
+      }
+
+      return paginas
     },
   },
 
   async mounted() {
-    if (this.$cardService) {
-      await this.buscarCards(this.$cardService)
-    } else {
-      console.error('$cardService não está disponível!')
+    console.log('🚀 GdCaixaEntrada mounted')
+    console.log('📦 $cardService:', this.$cardService)
+    console.log('📦 $marcadoresService:', this.$marcadoresService)
+
+    try {
+      // Carrega marcadores primeiro
+      await this.carregarMarcadoresPessoais()
+      console.log('📌 Marcadores carregados:', this.marcadoresPessoais)
+      console.log('📌 Abas atualizadas:', this.abasTipoCaixa)
+
+      // Depois carrega contadores e cards
+      await this.carregarContagemOriginais(this.$cardService)
+      await this.carregarCards()
+    } catch (error) {
+      console.error('❌ Erro no mounted da Caixa de Entrada:', error)
     }
   },
 
   methods: {
+    async carregarMarcadoresPessoais() {
+      try {
+        console.log('🔄 Carregando marcadores pessoais...')
+        const marcadores = await this.$marcadoresService.listar()
+        console.log('✅ Marcadores recebidos:', marcadores)
+
+        this.marcadoresPessoais = marcadores
+
+        // Adiciona marcadores às abas de tipo de caixa
+        marcadores.forEach(m => {
+          const jaExiste = this.abasTipoCaixa.some(aba => aba.id === m.id)
+          if (!jaExiste) {
+            console.log('➕ Adicionando marcador às abas:', m)
+            this.abasTipoCaixa.push({ id: m.id, label: m.label })
+          }
+        })
+      } catch (error) {
+        console.error('Erro ao carregar marcadores pessoais:', error)
+      }
+    },
+
+    async carregarCards() {
+      await this.buscarCards(this.$cardService)
+    },
+
     async alterarTipoCaixa(tipoCaixa) {
       this.alterarFiltros({ tipoCaixa, modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
+
+      // Atualiza título baseado na aba selecionada
+      const aba = this.abasTipoCaixa.find(a => a.id === tipoCaixa)
+      if (aba) {
+        if (
+          [
+            'todos',
+            'a-configurar',
+            'recebidos',
+            'solicitados',
+            'lembretes',
+          ].includes(tipoCaixa)
+        ) {
+          this.tituloAtual = 'Caixa de Entrada'
+        } else {
+          this.tituloAtual = `Marcador: ${aba.label}`
+        }
+      }
     },
+
     async alterarFiltroModelo(modeloId) {
       this.toggleModelo(modeloId)
       await this.buscarCards(this.$cardService)
     },
+
     async alterarFiltroBusca(busca) {
       this.alterarFiltros({ busca })
       await this.buscarCards(this.$cardService)
     },
-    async alterarFiltroData(event) {
-      const { date } = event
-      let dataInicio = null,
-        dataFim = null
-      if (Array.isArray(date) && date.length === 2) {
-        ;[dataInicio, dataFim] = date
-      } else if (date instanceof Date) {
-        dataInicio = dataFim = date
-      }
-      this.alterarFiltros({ dataInicio, dataFim })
+
+    async alterarFiltroData(intervalo) {
+      this.intervaloDataLocal = intervalo
+      this.alterarFiltros({
+        dataInicio: intervalo?.start || null,
+        dataFim: intervalo?.end || null,
+      })
       await this.buscarCards(this.$cardService)
     },
+
     async limparFiltroBusca() {
       this.alterarFiltros({ busca: '' })
       await this.buscarCards(this.$cardService)
     },
+
     async limparFiltroData() {
       this.intervaloDataLocal = null
       this.alterarFiltros({ dataInicio: null, dataFim: null })
       await this.buscarCards(this.$cardService)
     },
+
     async limparFiltroModelos() {
       this.alterarFiltros({ modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
     },
+
     async limparTodosFiltros() {
       this.intervaloDataLocal = null
       this.limparFiltros()
       await this.buscarCards(this.$cardService)
     },
-    async alterarPagina(page) {
-      this.alterarFiltros({ page })
+
+    async alterarPagina(novaPagina) {
+      this.alterarFiltros({ page: novaPagina })
       await this.buscarCards(this.$cardService)
     },
-    alternarTodosCards() {
-      this.todosCardsSelecionados()
-        ? this.deselectAllVisible()
-        : this.selectAllVisible()
-    },
-    async aprovarSelecionados() {
-      if (this.cardsState.cardsSelecionados.length === 0) return
+
+    async adicionarMarcador(marcador) {
       try {
-        const res = await this.$cardService.aprovarCards(
-          this.cardsState.cardsSelecionados
-        )
-        this.showToast(res.message, 'success')
-        this.clearSelections()
-        await this.buscarCards(this.$cardService)
+        // Salva o marcador no service
+        await this.$marcadoresService.adicionar(marcador)
+
+        // Atualiza a lista local
+        const jaExiste = this.abasTipoCaixa.some(aba => aba.id === marcador.id)
+        if (!jaExiste) {
+          this.abasTipoCaixa.push({ id: marcador.id, label: marcador.label })
+        }
+
+        // Atualiza lista de marcadores pessoais
+        this.marcadoresPessoais = await this.$marcadoresService.listar()
+
+        // Recarrega contadores
+        await this.carregarContagemOriginais(this.$cardService)
       } catch (error) {
-        this.showToast('Erro ao aprovar cards', 'error')
+        console.error('Erro ao adicionar marcador:', error)
       }
     },
+
+    async enviarPara(marcadorId) {
+      if (this.cardsState.cardsSelecionados.length === 0) {
+        alert('Selecione pelo menos um documento para enviar')
+        return
+      }
+
+      try {
+        const quantidadeDocs = this.cardsState.cardsSelecionados.length
+
+        // Move os cards para o marcador
+        await this.$cardService.moverParaMarcador(
+          this.cardsState.cardsSelecionados,
+          marcadorId
+        )
+
+        // Limpa seleção
+        this.clearSelections()
+
+        // Recarrega os cards e contadores
+        await this.carregarContagemOriginais(this.$cardService)
+        await this.carregarCards()
+
+        // Feedback ao usuário
+        const marcador = this.marcadoresPessoais.find(m => m.id === marcadorId)
+        const nomeDestino = marcador ? marcador.label : marcadorId
+
+        alert(
+          `${quantidadeDocs} documento${quantidadeDocs > 1 ? 's' : ''} enviado${
+            quantidadeDocs > 1 ? 's' : ''
+          } para "${nomeDestino}"`
+        )
+      } catch (error) {
+        console.error('Erro ao enviar para marcador:', error)
+        alert('Erro ao enviar documentos para o marcador')
+      }
+    },
+
+    alternarTodosCards(selecionado) {
+      if (selecionado) {
+        this.selectAllVisible()
+      } else {
+        this.clearSelections()
+      }
+    },
+
+    executarAcaoCheckbox(acao) {
+      switch (acao) {
+        case 'aprovar':
+          this.aprovarSelecionados()
+          break
+        case 'atribuir-mim':
+          this.atribuirAMim()
+          break
+        case 'agrupar':
+          this.agruparSelecionados()
+          break
+        case 'marcar-nao-lido':
+          console.log(
+            'Marcar como não lido:',
+            this.cardsState.cardsSelecionados
+          )
+          break
+        case 'cancelar':
+          this.clearSelections()
+          break
+      }
+    },
+
+    // Métodos de ação dos botões
+    async atribuirEmLotes() {
+      console.log('Atribuir em lotes:', this.cardsState.cardsSelecionados)
+      // Implementar lógica
+    },
+
     async atribuirAMim() {
       if (this.cardsState.cardsSelecionados.length === 0) return
       try {
@@ -581,6 +763,21 @@ export default {
         this.showToast('Erro ao atribuir cards', 'error')
       }
     },
+
+    async aprovarSelecionados() {
+      if (this.cardsState.cardsSelecionados.length === 0) return
+      try {
+        const res = await this.$cardService.aprovarCards(
+          this.cardsState.cardsSelecionados
+        )
+        this.showToast(res.message, 'success')
+        this.clearSelections()
+        await this.buscarCards(this.$cardService)
+      } catch (error) {
+        this.showToast('Erro ao aprovar cards', 'error')
+      }
+    },
+
     async agruparSelecionados() {
       if (this.cardsState.cardsSelecionados.length === 0) return
       try {
@@ -595,40 +792,28 @@ export default {
         this.showToast('Erro ao agrupar cards', 'error')
       }
     },
-    atribuirEmLotes() {
-      console.log('Atribuir em lotes:', this.cardsState.cardsSelecionados)
-    },
-    executarAcaoCheckbox(acao) {
-      const actions = {
-        aprovar: this.aprovarSelecionados,
-        'atribuir-mim': this.atribuirAMim,
-        agrupar: this.agruparSelecionados,
-      }
-      actions[acao]?.()
-    },
+
     executarAcaoModelo({ action, modelo, cardIds }) {
       console.log('Ação do modelo:', { action, modelo, cardIds })
+      // Implementar lógica
     },
-    enviarPara(destino) {
-      console.log('Enviar para:', destino, this.cardsState.cardsSelecionados)
-    },
-    adicionarMarcador(marcador) {
-      this.abasTipoCaixa.push({ id: marcador.id, label: marcador.label })
-    },
-    formatarIntervaloData(dataInicio, dataFim) {
-      const formatar = data => {
-        if (!data) return ''
+
+    formatarIntervaloData(inicio, fim) {
+      if (!inicio || !fim) return ''
+
+      const formatarData = data => {
         const d = new Date(data)
-        return `${String(d.getDate()).padStart(2, '0')}/${String(
-          d.getMonth() + 1
-        ).padStart(2, '0')}`
+        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}/${d.getFullYear()}`
       }
-      const inicioF = formatar(dataInicio),
-        fimF = formatar(dataFim)
-      return inicioF === fimF ? inicioF : `${inicioF} - ${fimF}`
+
+      return `${formatarData(inicio)} - ${formatarData(fim)}`
     },
+
     showToast(message, type = 'info') {
       console.log(`Toast ${type}:`, message)
+      // Implementar toast real
     },
   },
 }
@@ -693,19 +878,6 @@ export default {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-.debug-contadores {
-  background: #f0f0f0;
-  border: 2px solid #ff0000;
-  padding: 10px;
-  margin: 10px 0;
-  font-size: 12px;
-}
-.debug-contadores pre {
-  background: white;
-  padding: 5px;
-  border-radius: 4px;
-  overflow-x: auto;
 }
 @media (max-width: 1024px) and (min-width: 769px) {
   .header-cards-title {

@@ -1,5 +1,5 @@
 <template>
-  <div class="gd-filter-bar-badge-component">
+  <div class="filtro-modelo-documento-component">
     <div
       class="tabs-container"
       ref="tabsContainer"
@@ -51,22 +51,11 @@
 
 <script>
 export default {
-  name: 'GdFilterBarBadge',
+  name: 'FiltroModeloDocumento',
   props: {
     initialTabs: {
       type: Array,
-      default: () => [
-        { id: 'todos', label: 'Todos', count: 15, color: '#1a82d9' },
-        {
-          id: 'aConfigurar',
-          label: 'A Configurar',
-          count: 3,
-          color: '#f59e0b',
-        },
-        { id: 'recebidos', label: 'Recebidos', count: 8, color: '#10b981' },
-        { id: 'solicitados', label: 'Solicitados', count: 2, color: '#8b5cf6' },
-        { id: 'lembretes', label: 'Lembretes', count: 1, color: '#ef4444' },
-      ],
+      default: () => [],
     },
     selectedTabs: {
       type: Array,
@@ -74,12 +63,13 @@ export default {
     },
     multipleSelection: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
+  emits: ['filter-change'],
   data() {
     return {
-      tabs: JSON.parse(JSON.stringify(this.initialTabs)),
+      tabs: [],
       selectedTabIds: [...this.selectedTabs],
       estaArrastando: false,
       inicioX: 0,
@@ -92,6 +82,7 @@ export default {
         this.tabs = JSON.parse(JSON.stringify(novasTabs))
       },
       deep: true,
+      immediate: true,
     },
     selectedTabs: {
       handler(newSelectedTabs) {
@@ -116,16 +107,6 @@ export default {
 
     definirTabAtiva(tabId) {
       if (!this.estaArrastando) {
-        console.log('🔄 GdFilterBarBadge - Clique na aba:', tabId)
-        console.log(
-          '🔄 GdFilterBarBadge - Seleção múltipla:',
-          this.multipleSelection
-        )
-        console.log(
-          '🔄 GdFilterBarBadge - Tabs selecionadas antes:',
-          this.selectedTabIds
-        )
-
         if (this.multipleSelection) {
           // Lógica de seleção múltipla
           if (tabId === 'todos') {
@@ -154,12 +135,7 @@ export default {
           this.selectedTabIds = [tabId]
         }
 
-        console.log(
-          '🔄 GdFilterBarBadge - Tabs selecionadas depois:',
-          this.selectedTabIds
-        )
-        console.log('📤 GdFilterBarBadge - Emitindo filter-change:', tabId)
-
+        // Emite o evento com o id clicado
         this.$emit('filter-change', tabId)
       }
     },
@@ -191,7 +167,7 @@ export default {
 </script>
 
 <style scoped>
-.gd-filter-bar-badge-component {
+.filtro-modelo-documento-component {
   display: flex;
   align-items: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,

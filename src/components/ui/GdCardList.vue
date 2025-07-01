@@ -189,7 +189,6 @@ export default {
         'Conciliação Bancária': [
           { label: 'Atribuir todos', value: 'atribuir' },
           { label: 'Aprovar todos', value: 'aprovar' },
-          { label: 'Processar conciliação', value: 'processar' },
         ],
       }
 

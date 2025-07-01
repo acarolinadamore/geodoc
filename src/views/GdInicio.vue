@@ -1,9 +1,6 @@
 <template>
-  <layout-sidebar-header
-    :show-header-date="true"
-    :show-header-notification="true"
-  >
-    <div class="inicio-container">
+  <layout-sidebar>
+    <div class="inicio-container p-6">
       <!-- Seção de Boas-vindas -->
       <div class="welcome-section">
         <div class="welcome-title">
@@ -110,16 +107,16 @@
         </div>
       </div>
     </div>
-  </layout-sidebar-header>
+  </layout-sidebar>
 </template>
 
 <script>
-import LayoutSidebarHeader from '@/layouts/LayoutSidebarHeader.vue'
+import LayoutSidebar from '@/layouts/LayoutSidebar.vue'
 
 export default {
   name: 'GdInicio',
   components: {
-    LayoutSidebarHeader,
+    LayoutSidebar,
   },
   data() {
     return {

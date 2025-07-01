@@ -1,5 +1,5 @@
 <template>
-  <div class="gd-filter-bar-component">
+  <div class="filtro-pagina-marcador-component">
     <div
       class="tabs-container"
       ref="tabsContainer"
@@ -85,17 +85,11 @@
 
 <script>
 export default {
-  name: 'GdFilterBar',
+  name: 'FiltroPaginaMarcador',
   props: {
     initialTabs: {
       type: Array,
-      default: () => [
-        { id: 'todos', label: 'Todos' },
-        { id: 'a-configurar', label: 'A Configurar' },
-        { id: 'recebidos', label: 'Recebidos' },
-        { id: 'solicitados', label: 'Solicitados' },
-        { id: 'lembretes', label: 'Lembretes' },
-      ],
+      default: () => [],
     },
     initialActiveTabId: {
       type: String,
@@ -105,7 +99,7 @@ export default {
   emits: ['atualizar-aba', 'adicionar-marcador'],
   data() {
     return {
-      tabs: JSON.parse(JSON.stringify(this.initialTabs)),
+      tabs: [],
       activeTabId: this.initialActiveTabId,
       estaArrastando: false,
       inicioX: 0,
@@ -128,6 +122,7 @@ export default {
         }
       },
       deep: true,
+      immediate: true,
     },
     initialActiveTabId(novoId) {
       this.activeTabId = novoId
@@ -150,12 +145,8 @@ export default {
   },
   methods: {
     definirTabAtiva(tabId) {
-      console.log('🔄 GdFilterBar - Clique na aba:', tabId)
-
       if (!this.estaArrastando) {
         this.activeTabId = tabId
-
-        console.log('📤 GdFilterBar - Emitindo evento atualizar-aba:', tabId)
         this.$emit('atualizar-aba', tabId)
       }
     },
@@ -173,21 +164,25 @@ export default {
     adicionarMarcador() {
       if (!this.novoNomeMarcador.trim()) return
 
+      // Gera um id único baseado no nome do marcador (sem espaços, lowercase)
+      const id = this.novoNomeMarcador.trim().toLowerCase().replace(/\s+/g, '-')
+
       const novaTab = {
-        id: `marcador_${Date.now()}`,
+        id: id,
         label: this.novoNomeMarcador.trim(),
+      }
+
+      // Verifica se já existe
+      const jaExiste = this.tabs.some(tab => tab.id === novaTab.id)
+      if (jaExiste) {
+        alert('Já existe um marcador com esse nome!')
+        return
       }
 
       this.tabs.push(novaTab)
       this.activeTabId = novaTab.id
       this.mostrarModal = false
       this.novoNomeMarcador = ''
-
-      console.log(
-        '📤 GdFilterBar - Emitindo atualizar-aba para novo marcador:',
-        novaTab.id
-      )
-      console.log('📤 GdFilterBar - Emitindo adicionar-marcador:', novaTab)
 
       this.$emit('atualizar-aba', novaTab.id)
       this.$emit('adicionar-marcador', novaTab)
@@ -220,7 +215,7 @@ export default {
 </script>
 
 <style scoped>
-.gd-filter-bar-component {
+.filtro-pagina-marcador-component {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -486,7 +481,7 @@ export default {
 
 /* Responsivo */
 @media (max-width: 768px) {
-  .gd-filter-bar-component {
+  .filtro-pagina-marcador-component {
     gap: 4px;
   }
 

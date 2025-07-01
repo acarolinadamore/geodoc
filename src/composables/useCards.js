@@ -1,4 +1,4 @@
-// composables/useCards.js - Versão com seleção múltipla
+// composables/useCards.js - Versão corrigida com contadores separados
 import Vue from 'vue'
 
 // Estado global reativo usando Vue.observable (Vue 2)
@@ -8,7 +8,7 @@ const state = Vue.observable({
   error: null,
   filtros: {
     tipoCaixa: 'todos', // Filtro de tipo de caixa
-    modelos: ['todos'], // NOVO: Array para seleção múltipla de modelos
+    modelos: ['todos'], // Array para seleção múltipla de modelos
     busca: '',
     dataInicio: null,
     dataFim: null,
@@ -16,7 +16,8 @@ const state = Vue.observable({
     limit: 20,
   },
   cardsSelecionados: [],
-  contadores: {},
+  contadores: {}, // Contadores filtrados (para lógica interna)
+  contagemOriginais: {}, // NOVO: Contadores originais/totais (para exibição nas abas)
   total: 0,
   totalPages: 0,
 })
@@ -50,12 +51,44 @@ export function useCards() {
       state.cards = response.cards
       state.total = response.total
       state.totalPages = response.totalPages
+
+      // Contadores filtrados (para lógica interna)
       state.contadores = response.contadores
+
+      // NOVO: Preservar contadores originais
+      // Se é o primeiro carregamento (sem filtros ativos), salva como originais
+      if (
+        !possuiFiltrosAtivos() ||
+        Object.keys(state.contagemOriginais).length === 0
+      ) {
+        state.contagemOriginais = { ...response.contadores }
+      }
     } catch (error) {
       state.error = error.message || 'Erro ao carregar documentos'
       console.error('Erro ao buscar cards:', error)
     } finally {
       state.loading = false
+    }
+  }
+
+  // NOVA FUNÇÃO: Carregar contadores originais explicitamente
+  async function carregarContagemOriginais(cardService) {
+    try {
+      // Faz uma busca sem filtros para obter contadores originais
+      const filtrosSemFiltro = {
+        tipoCaixa: 'todos',
+        modelos: ['todos'],
+        busca: '',
+        dataInicio: null,
+        dataFim: null,
+        page: 1,
+        limit: 1, // Só precisamos dos contadores, não dos cards
+      }
+
+      const response = await cardService.getCards(filtrosSemFiltro)
+      state.contagemOriginais = { ...response.contadores }
+    } catch (error) {
+      console.error('Erro ao carregar contagem originais:', error)
     }
   }
 
@@ -115,7 +148,7 @@ export function useCards() {
     state.error = null
   }
 
-  // NOVA FUNÇÃO: Toggle modelo na seleção múltipla
+  // Toggle modelo na seleção múltipla
   function toggleModelo(modeloId) {
     const modelos = [...state.filtros.modelos]
 
@@ -157,6 +190,7 @@ export function useCards() {
 
     // Actions
     buscarCards,
+    carregarContagemOriginais, // NOVA FUNÇÃO
     alterarFiltros,
     limparFiltros,
     toggleCardSelection,
@@ -164,6 +198,6 @@ export function useCards() {
     deselectAllVisible,
     clearSelections,
     limparErro,
-    toggleModelo, // NOVA FUNÇÃO
+    toggleModelo,
   }
 }
