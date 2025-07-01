@@ -1,10 +1,8 @@
 <template>
   <layout-sidebar v-slot="{ sidebarExpanded }">
     <div class="caixa-entrada-container">
-      <!-- Header Fixo -->
       <div class="header-fixo">
         <div class="header-content">
-          <!-- Título -->
           <div
             class="flex pt-3 pb-1"
             :class="{ 'adicionar-espaco': !sidebarExpanded }"
@@ -13,18 +11,13 @@
               {{ tituloAtual }}
             </h1>
           </div>
-
-          <!-- Filtros -->
           <div class="flex flex-col gap-1">
-            <!-- Filtro 1: Tipo de Caixa/Páginas/Marcadores COM CONTADORES -->
             <FiltroPaginaMarcador
               :initial-tabs="abasTipoCaixaComContadores"
               :initial-active-tab-id="cardsState.filtros.tipoCaixa || 'todos'"
               @atualizar-aba="alterarTipoCaixa"
               @adicionar-marcador="adicionarMarcador"
             />
-
-            <!-- Filtro 2: Modelos de Documento COM SELEÇÃO MÚLTIPLA -->
             <FiltroModeloDocumento
               :initial-tabs="modelosDaCaixaAtual"
               :selected-tabs="cardsState.filtros.modelos || ['todos']"
@@ -32,12 +25,9 @@
               @filter-change="alterarFiltroModelo"
             />
           </div>
-
-          <!-- Controles Simplificados -->
           <div
             class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mt-2"
           >
-            <!-- Search e DatePicker -->
             <div
               class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto order-1 lg:order-2"
             >
@@ -53,8 +43,6 @@
                 class="w-full lg:w-auto"
               />
             </div>
-
-            <!-- Botões de Ação -->
             <div
               class="flex gap-2 flex-wrap w-full lg:w-auto order-2 lg:order-1"
             >
@@ -100,7 +88,6 @@
               />
             </div>
           </div>
-
           <!-- Indicadores de Filtros Ativos -->
           <div
             v-if="possuiFiltrosAtivos"
@@ -123,7 +110,6 @@
                   ×
                 </button>
               </span>
-
               <span
                 v-if="
                   cardsState.filtros.dataInicio && cardsState.filtros.dataFim
@@ -146,7 +132,6 @@
                   ×
                 </button>
               </span>
-
               <!-- Indicador de modelos selecionados -->
               <span
                 v-if="modelosSelecionadosTexto"
@@ -163,7 +148,6 @@
                 </button>
               </span>
             </div>
-
             <button
               @click="limparTodosFiltros"
               class="px-2 py-1 bg-transparent border border-red-600 text-red-600 rounded text-xs cursor-pointer hover:bg-red-600 hover:text-white transition-all"

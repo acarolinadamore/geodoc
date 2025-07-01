@@ -1,109 +1,160 @@
 <template>
-  <layout-sidebar>
-    <div class="inicio-container p-6">
-      <!-- Seção de Boas-vindas -->
-      <div class="welcome-section">
-        <div class="welcome-title">
-          <span class="wave">👋</span>
-          <h1>Bem-vindo, <strong>Melanie</strong></h1>
+  <layout-sidebar v-slot="{ sidebarExpanded }">
+    <div class="min-h-screen space-y-6 bg-inicio">
+      <!-- Seção Boas-Vindas -->
+      <div class="bg-white shadow-sm flex flex-col gap-1">
+        <div
+          class="flex items-center space-x-1 px-3 pt-3"
+          :class="{ 'adicionar-espaco': !sidebarExpanded }"
+        >
+          <span class="text-3xl">👋</span>
+          <h1 class="text-3xl font-semibold text-gray-800">
+            Bem-vinda, <strong>Melanie</strong>
+          </h1>
         </div>
-        <p class="welcome-subtitle"></p>
-        <p class="text-left">Ao seu sistema de Gestão de Processos internos</p>
+        <p class="text-gray-600 px-6 pb-6 text-left">
+          Ao seu sistema de Gestão de Processos internos
+        </p>
       </div>
-
-      <!-- Grid de Cards -->
-      <div class="cards-grid">
-        <div class="card card-yellow">
-          <div class="card-header">
-            <h3>Pendentes</h3>
-            <v-icon name="sync" class="icon-white" />
+      <!-- Container Painel Cards -->
+      <div
+        class="px-6 grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 container-cards"
+      >
+        <!-- Card Pendentes -->
+        <div
+          class="relative rounded-xl p-6 text-left text-white bg-yellow-400 shadow hover:shadow-md transition-all max-h-[160px] overflow-hidden"
+        >
+          <div class="mb-4">
+            <h3 class="text-lg font-medium">Pendentes</h3>
           </div>
-          <div class="card-number">2</div>
-          <div class="card-content">
-            <div class="card-item">Folha de Pagamento / Abril 2025</div>
-            <div class="card-item">Contrato Prestador / Jurídico</div>
-          </div>
-        </div>
-
-        <div class="card card-white">
-          <div class="card-header">
-            <h3>A Configurar</h3>
-            <v-icon name="sync" class="icon-gray" />
-          </div>
-          <div class="card-number">2</div>
-          <div class="card-content">
-            <div class="card-item blue">Folha de Pagamento / Abril 2025</div>
-            <div class="card-item blue">Contrato Prestador / Jurídico</div>
-          </div>
-        </div>
-
-        <div class="card card-white">
-          <div class="card-header">
-            <h3>Aguardando Resposta</h3>
-            <v-icon name="sync" class="icon-gray" />
-          </div>
-          <div class="card-number">5</div>
-          <div class="card-content">
-            <div class="card-item blue">Folha de Pagamento / Abril 2025</div>
-            <div class="card-item blue">Contrato Prestador / Jurídico</div>
-            <div class="card-item blue">
-              Relatório de Indicadores / Financeiro
-            </div>
-          </div>
-        </div>
-
-        <div class="card card-white">
-          <div class="card-header">
-            <h3>Últimos Acessos</h3>
-            <v-icon name="sync" class="icon-gray" />
-          </div>
-          <div class="card-content recent-access">
-            <div class="card-item blue clickable">
-              Folha de Pagamento / Abril 2025
-            </div>
-            <div class="card-item blue clickable">
-              Contrato Prestador / Jurídico
-            </div>
-            <div class="card-item blue clickable">
-              Relatório de Indicadores / Financeiro
-            </div>
-            <div class="card-item blue clickable">
-              Folha de Pagamento / Abril 2025
-            </div>
-            <div class="card-item blue clickable">
-              Contrato Prestador / Jurídico
-            </div>
-            <div class="card-item blue clickable">
-              Relatório de Indicadores / Financeiro
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Seção de Busca -->
-      <div class="search-section">
-        <div class="search-card">
-          <h2>Busca Rápida de Documento</h2>
-          <p class="search-description">
-            Encontre rapidamente documentos pelo título, número, unidade ou
-            etapa. Use os filtros para refinar sua busca.
-          </p>
-          <div class="search-input-container">
-            <v-icon name="search" class="search-icon" />
-            <input
-              type="text"
-              placeholder="Buscar documentos..."
-              class="search-input"
-              v-model="searchQuery"
-            />
-            <button
-              v-if="searchQuery"
-              @click="clearSearch"
-              class="clear-button"
+          <div class="text-4xl font-bold text-left">2</div>
+          <a
+            href="/painel/pendentes"
+            class="absolute top-4 right-4 w-7 h-7 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 flex items-center justify-center transition-all"
+            title="Ver detalhes"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 text-black"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
-              <v-icon name="times" />
-            </button>
+              <path
+                fill-rule="evenodd"
+                d="M5.293 14.707a1 1 0 010-1.414L13.586 5H9a1 1 0 110-2h7a1 1 0 011 1v7a1 1 0 11-2 0V6.414l-8.293 8.293a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <!-- Outros Cards -->
+        <div
+          v-for="card in cards"
+          :key="card.titulo"
+          class="relative rounded-xl p-5 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800 text-left max-h-[160px] overflow-hidden"
+        >
+          <div class="mb-4">
+            <h3 class="text-lg font-medium">{{ card.titulo }}</h3>
           </div>
+          <div class="text-4xl font-bold text-left">{{ card.valor }}</div>
+          <a
+            :href="card.link"
+            class="absolute top-4 right-4 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all"
+            title="Ver detalhes"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 text-gray-700"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 14.707a1 1 0 010-1.414L13.586 5H9a1 1 0 110-2h7a1 1 0 011 1v7a1 1 0 11-2 0V6.414l-8.293 8.293a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <!-- Últimos Documentos e Lembretes lado a lado -->
+      <div class="flex flex-col md:flex-row gap-6 mx-6">
+        <!-- Últimos Documentos -->
+        <div
+          class="flex-1 rounded-xl p-6 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800"
+        >
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-medium text-left">
+              Últimos Documentos Acessados
+            </h3>
+            <v-icon name="sync" class="w-5 h-5 text-gray-500" />
+          </div>
+          <div class="flex flex-col gap-1 text-left">
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Folha de Pagamento / Abril 2025
+            </div>
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Contrato Prestador / Jurídico
+            </div>
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Relatório de Indicadores / Financeiro
+            </div>
+          </div>
+        </div>
+
+        <!-- Lembretes -->
+        <div
+          class="flex-1 rounded-xl p-6 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800"
+        >
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-medium text-left">Lembretes</h3>
+            <v-icon name="bell" class="w-5 h-5 text-gray-500" />
+          </div>
+          <div class="flex flex-col gap-1 text-left">
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Documento pendente assinatura
+            </div>
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Folha de Pagamento / Maio 2025
+            </div>
+            <div
+              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
+            >
+              Relatório de Progresso / Projeto X
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--  Busca -->
+      <div
+        class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mx-6 space-y-4 container-busca"
+      >
+        <h2 class="text-xl font-semibold text-gray-800 text-left">
+          Busca Rápida de Documento
+        </h2>
+        <p class="text-gray-600 text-sm text-left">
+          Encontre rapidamente documentos pelo título, número, unidade ou etapa.
+          Use os filtros para refinar sua busca.
+        </p>
+        <div class="w-full">
+          <gd-search-bar
+            v-model="busca"
+            placeholder="Buscar documentos..."
+            @search-changed="busca = $event"
+            @clear="busca = ''"
+            class="w-full"
+          />
         </div>
       </div>
     </div>
@@ -112,249 +163,57 @@
 
 <script>
 import LayoutSidebar from '@/layouts/LayoutSidebar.vue'
+import GdSearchBar from '@/components/ui/GdSearchBar.vue'
 
 export default {
   name: 'GdInicio',
   components: {
     LayoutSidebar,
+    GdSearchBar,
   },
   data() {
     return {
-      searchQuery: '',
+      busca: '',
+      cards: [
+        {
+          titulo: 'A Configurar',
+          valor: 2,
+          link: '/painel/configurar',
+        },
+        {
+          titulo: 'Recebidos',
+          valor: 8,
+          link: '/painel/recebidos',
+        },
+        {
+          titulo: 'Solicitados',
+          valor: 4,
+          link: '/painel/solicitados',
+        },
+      ],
     }
   },
   methods: {
-    clearSearch() {
-      this.searchQuery = ''
+    limparBusca() {
+      this.busca = ''
     },
   },
 }
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
-.inicio-container {
-  min-height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Welcome Section */
-.welcome-section {
-  margin-bottom: 32px;
-}
-
-.welcome-title {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.wave {
-  font-size: 32px;
-  margin-right: 8px;
-}
-
-.welcome-title h1 {
-  font-size: 32px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.welcome-subtitle {
-  color: #6b7280;
-  margin: 0;
-}
-
-.text-left {
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Cards Grid */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.card {
-  border-radius: 12px;
-  padding: 24px;
+.search-container {
   position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.card-yellow {
-  background-color: #fbbf24;
-  color: white;
-}
-
-.card-white {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.card-header h3 {
-  font-size: 18px;
-  font-weight: 500;
-  margin: 0;
-  color: inherit;
-}
-
-.card-white .card-header h3 {
-  color: #1f2937;
-}
-
-.card-number {
-  font-size: 48px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  color: inherit;
-}
-
-.card-white .card-number {
-  color: #1f2937;
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.card-item {
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.card-item.blue {
-  color: #2563eb;
-}
-
-.card-item.clickable {
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.card-item.clickable:hover {
-  color: #1d4ed8;
-}
-
-.recent-access {
-  gap: 12px;
-}
-
-/* Icons */
-.icon-white {
-  width: 20px;
-  height: 20px;
-  color: white;
-}
-
-.icon-gray {
-  width: 20px;
-  height: 20px;
-  color: #6b7280;
-}
-
-/* Search Section */
-.search-section {
-  margin-bottom: 24px;
-}
-
-.search-card {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.search-card h2 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.search-description {
-  color: #6b7280;
-  margin: 0 0 16px 0;
-}
-
-.search-input-container {
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  width: 20px;
-  height: 20px;
-}
-
-.search-input {
+  display: inline-block;
   width: 100%;
-  padding: 12px 12px 12px 44px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: all 0.2s ease;
+  max-width: 100%;
 }
 
-.search-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.bg-inicio {
+  background-color: #f5f7fa;
 }
 
-.clear-button {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-  transition: color 0.2s ease;
-}
-
-.clear-button:hover {
-  color: #6b7280;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-title h1 {
-    font-size: 24px;
-  }
+.adicionar-espaco {
+  padding-left: 50px;
 }
 </style>
