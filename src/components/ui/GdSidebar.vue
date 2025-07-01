@@ -17,7 +17,10 @@
                 <i class="fas fa-chevron-left"></i>
               </button>
             </div>
-            <button class="botao-novo-documento">
+            <button
+              class="botao-novo-documento"
+              @click="navegar('/novo-documento')"
+            >
               <i class="lni lni-pencil"></i>
               <span>Novo Documento</span>
             </button>

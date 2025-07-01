@@ -1,20 +1,22 @@
 <template>
   <layout-sidebar v-slot="{ sidebarExpanded }">
-    <div class="min-h-screen space-y-6 bg-inicio">
+    <div class="min-h-screen space-y-6">
       <!-- Seção Boas-Vindas -->
-      <div class="bg-white shadow-sm flex flex-col gap-1">
+      <div class="bg-white sombra flex flex-col gap-1 pl-6 pb-4">
         <div
-          class="flex items-center space-x-1 px-3 pt-3"
+          class="flex items-center space-x-1 pt-3"
           :class="{ 'adicionar-espaco': !sidebarExpanded }"
         >
-          <span class="text-3xl">👋</span>
-          <h1 class="text-3xl font-semibold text-gray-800">
+          <span class="text-2xl">👋</span>
+          <h1 class="text-2xl font-semibold text-gray-800">
             Bem-vinda, <strong>Melanie</strong>
           </h1>
         </div>
-        <p class="text-gray-600 px-6 pb-6 text-left">
-          Ao seu sistema de Gestão de Processos internos
-        </p>
+        <div>
+          <p class="text-gray-600 text-left">
+            Ao seu sistema de Gestão de Processos internos
+          </p>
+        </div>
       </div>
       <!-- Container Painel Cards -->
       <div
@@ -214,6 +216,10 @@ export default {
 }
 
 .adicionar-espaco {
-  padding-left: 50px;
+  padding-left: 40px;
+}
+
+.sombra {
+  box-shadow: 0 1.5px 5px 0.5px rgba(65, 65, 65, 0.09);
 }
 </style>
