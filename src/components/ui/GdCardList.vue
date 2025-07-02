@@ -1,45 +1,77 @@
 <template>
   <div class="card-list-container">
     <div class="grupos-container">
-      <!-- Agrupamento por Modelo -->
-      <div
-        v-for="(grupo, modelo) in cardsAgrupados"
-        :key="modelo"
-        class="grupo-modelo"
-      >
-        <!-- Cabeçalho do Modelo com Checkbox Dropdown -->
-        <div class="header-modelo">
-          <!-- Coluna 1: Dropdown alinhado com checkboxes dos cards -->
-          <div class="coluna-dropdown">
-            <GdCheckboxDropdown
-              :checked-all="temModeloSelecionado(modelo)"
-              :actions="obterAcoesModelo(modelo)"
-              @toggle-all="alternarModelo(modelo)"
-              @action="manipularAcaoModelo($event, modelo)"
-            />
+      <!-- Modo agrupado por Modelo -->
+      <template v-if="ordenacao === 'modelos'">
+        <div
+          v-for="(grupo, modelo) in cardsAgrupados"
+          :key="modelo"
+          class="grupo-modelo"
+        >
+          <!-- Cabeçalho do Modelo com Checkbox Dropdown -->
+          <div class="header-modelo">
+            <!-- Coluna 1: Dropdown alinhado com checkboxes dos cards -->
+            <div class="coluna-dropdown">
+              <GdCheckboxDropdown
+                :checked-all="temModeloSelecionado(modelo)"
+                :actions="obterAcoesModelo(modelo)"
+                @toggle-all="alternarModelo(modelo)"
+                @action="manipularAcaoModelo($event, modelo)"
+              />
+            </div>
+
+            <!-- Coluna 2: Info do modelo -->
+            <div class="coluna-info-modelo">
+              <div
+                class="circle-modelo"
+                :style="{ backgroundColor: obterCorModelo(modelo) }"
+              >
+                {{ obterIniciaisModelo(modelo) }}
+              </div>
+              <div class="info-texto">
+                <h3 class="titulo-grupo">{{ modelo }}</h3>
+                <span class="contador-modelo">
+                  ({{ grupo.length }} item{{ grupo.length !== 1 ? 's' : '' }})
+                </span>
+              </div>
+            </div>
           </div>
 
-          <!-- Coluna 2: Info do modelo -->
-          <div class="coluna-info-modelo">
-            <div
-              class="circle-modelo"
-              :style="{ backgroundColor: obterCorModelo(modelo) }"
-            >
-              {{ obterIniciaisModelo(modelo) }}
-            </div>
-            <div class="info-texto">
-              <h3 class="titulo-grupo">{{ modelo }}</h3>
-              <span class="contador-modelo">
-                ({{ grupo.length }} item{{ grupo.length !== 1 ? 's' : '' }})
-              </span>
+          <!-- Cards do Modelo -->
+          <div class="cards-container">
+            <div v-for="card in grupo" :key="card.id" class="card-row">
+              <!-- Coluna 1: Checkbox alinhado com dropdown -->
+              <div class="coluna-checkbox">
+                <input
+                  type="checkbox"
+                  :checked="selectedCards.includes(card.id)"
+                  @change="alternarSelecaoCard(card.id)"
+                  class="form-checkbox h-4 w-4 rounded checkbox-custom"
+                />
+              </div>
+
+              <!-- Coluna 2: Card -->
+              <div class="coluna-card">
+                <GdCard
+                  :card="card"
+                  :selected="selectedCards.includes(card.id)"
+                  @toggle-selection="alternarSelecaoCard"
+                />
+              </div>
             </div>
           </div>
         </div>
+      </template>
 
-        <!-- Cards do Modelo -->
-        <div class="cards-container">
-          <div v-for="card in grupo" :key="card.id" class="card-row">
-            <!-- Coluna 1: Checkbox alinhado com dropdown -->
+      <!-- Modo ordenado por Vencimento -->
+      <template v-else-if="ordenacao === 'vencimento'">
+        <div class="lista-simples">
+          <div
+            v-for="card in cardsOrdenadosPorVencimento"
+            :key="card.id"
+            class="card-row"
+          >
+            <!-- Coluna 1: Checkbox -->
             <div class="coluna-checkbox">
               <input
                 type="checkbox"
@@ -49,23 +81,43 @@
               />
             </div>
 
-            <!-- Coluna 2: Card -->
+            <!-- Coluna 2: Card com indicador de urgência -->
             <div class="coluna-card">
-              <GdCard
-                :card="card"
-                :selected="selectedCards.includes(card.id)"
-                @toggle-selection="alternarSelecaoCard"
-              />
+              <div class="card-com-urgencia">
+                <div
+                  v-if="obterStatusVencimento(card) === 'vencido'"
+                  class="indicador-vencimento vencido"
+                >
+                  <span class="icone-alerta">⚠️</span>
+                  <span>Vencido há {{ obterDiasVencido(card) }} dias</span>
+                </div>
+                <div
+                  v-else-if="obterStatusVencimento(card) === 'hoje'"
+                  class="indicador-vencimento hoje"
+                >
+                  <span class="icone-alerta">⏰</span>
+                  <span>Vence hoje</span>
+                </div>
+                <div
+                  v-else-if="obterStatusVencimento(card) === 'proximo'"
+                  class="indicador-vencimento proximo"
+                >
+                  <span class="icone-alerta">📅</span>
+                  <span>Vence em {{ obterDiasParaVencer(card) }} dias</span>
+                </div>
+                <GdCard
+                  :card="card"
+                  :selected="selectedCards.includes(card.id)"
+                  @toggle-selection="alternarSelecaoCard"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
 
       <!-- Separador que toca o sidebar - fora dos grupos -->
-      <div
-        v-if="Object.keys(cardsAgrupados).length > 0"
-        class="separador-modelo"
-      ></div>
+      <div v-if="cards.length > 0" class="separador-modelo"></div>
     </div>
   </div>
 </template>
@@ -94,21 +146,22 @@ export default {
         return []
       },
     },
+    ordenacao: {
+      type: String,
+      default: 'modelos',
+    },
   },
 
   computed: {
     cardsAgrupados: function () {
-      console.log('🔄 GdCardList - cardsAgrupados executando')
-      console.log('📦 Cards recebidos:', this.cards)
+      if (this.ordenacao !== 'modelos') return {}
 
       if (!this.cards || !Array.isArray(this.cards)) {
-        console.log('❌ Cards não é array válido')
         return {}
       }
 
       var grupos = this.cards.reduce(function (grupos, card) {
         var modelo = card?.documento?.modelo || 'Sem Modelo'
-        console.log('📋 Card modelo:', modelo, 'Card:', card)
 
         if (!grupos[modelo]) {
           grupos[modelo] = []
@@ -117,8 +170,29 @@ export default {
         return grupos
       }, {})
 
-      console.log('📊 Grupos finais:', grupos)
       return grupos
+    },
+
+    cardsOrdenadosPorVencimento: function () {
+      if (!this.cards || !Array.isArray(this.cards)) {
+        return []
+      }
+
+      // Cria uma cópia do array para não mutar o original
+      var cardsOrdenados = [...this.cards]
+
+      // Ordena por vencimento (mais vencidos primeiro)
+      cardsOrdenados.sort(function (a, b) {
+        var dataA = a.vencimento
+          ? new Date(a.vencimento)
+          : new Date('9999-12-31')
+        var dataB = b.vencimento
+          ? new Date(b.vencimento)
+          : new Date('9999-12-31')
+        return dataA - dataB
+      })
+
+      return cardsOrdenados
     },
   },
 
@@ -138,7 +212,6 @@ export default {
         return self.selectedCards.includes(id)
       })
 
-      // ✅ CORRIGIDO - Usar o mesmo 'self' sem redeclarar
       cardsDoModelo.forEach(function (cardId) {
         var estaAtualmenteSelecionado = self.selectedCards.includes(cardId)
         if (todosSelecionados && estaAtualmenteSelecionado) {
@@ -236,6 +309,42 @@ export default {
         .substring(0, 2)
         .toUpperCase()
     },
+
+    obterStatusVencimento: function (card) {
+      if (!card.vencimento) return null
+
+      var hoje = new Date()
+      hoje.setHours(0, 0, 0, 0)
+
+      var vencimento = new Date(card.vencimento)
+      vencimento.setHours(0, 0, 0, 0)
+
+      var diffTime = vencimento - hoje
+      var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      if (diffDays < 0) return 'vencido'
+      if (diffDays === 0) return 'hoje'
+      if (diffDays <= 7) return 'proximo'
+      return null
+    },
+
+    obterDiasVencido: function (card) {
+      if (!card.vencimento) return 0
+
+      var hoje = new Date()
+      var vencimento = new Date(card.vencimento)
+      var diffTime = hoje - vencimento
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    },
+
+    obterDiasParaVencer: function (card) {
+      if (!card.vencimento) return 0
+
+      var hoje = new Date()
+      var vencimento = new Date(card.vencimento)
+      var diffTime = vencimento - hoje
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    },
   },
 }
 </script>
@@ -324,7 +433,8 @@ export default {
   white-space: nowrap;
 }
 
-.cards-container {
+.cards-container,
+.lista-simples {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -356,6 +466,43 @@ export default {
   background-color: #489be1 !important;
   border-color: #489be1 !important;
   color: white !important;
+}
+
+/* Estilos para ordenação por vencimento */
+.card-com-urgencia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.indicador-vencimento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.indicador-vencimento.vencido {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.indicador-vencimento.hoje {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.indicador-vencimento.proximo {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.icone-alerta {
+  font-size: 14px;
 }
 
 @media (max-width: 1023px) {
@@ -423,7 +570,8 @@ export default {
     gap: 16px;
   }
 
-  .cards-container {
+  .cards-container,
+  .lista-simples {
     gap: 8px;
   }
 

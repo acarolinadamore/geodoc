@@ -47,7 +47,6 @@ import GdHeader from '@/components/ui/GdHeader.vue'
 import StatusCard from '@/components/ui/StatusCard.vue'
 import GdButton from '@/components/ui/GdButton.vue'
 import GdHeadingExemplo from '@/views/exemplos/GdHeadingExemplo.vue'
-import GdHeaderExemplo from '@/views/exemplos/GdHeaderExemplo.vue'
 import GdButtonExemplo from '@/views/exemplos/GdButtonExemplo.vue'
 import GdSidebar from '@/components/ui/GdSidebar.vue'
 import GdSidebarExemplo from './exemplos/GdSidebarExemplo.vue'
@@ -100,7 +99,6 @@ export default {
     GdHeader,
     StatusCard,
     GdHeadingExemplo,
-    GdHeaderExemplo,
     GdButtonExemplo,
     GdSidebar,
     GdSidebarExemplo,
@@ -114,7 +112,6 @@ export default {
       tabs: [
         { id: 'button', label: 'Button', component: GdButtonExemplo },
         { id: 'heading', label: 'Heading', component: GdHeadingExemplo },
-        { id: 'header', label: 'Header', component: GdHeaderExemplo },
         { id: 'sidebar', label: 'Sidebar', component: GdSidebarExemplo },
         {
           id: 'filterbar',

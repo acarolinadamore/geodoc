@@ -37,11 +37,17 @@
                 @clear="limparFiltroBusca"
                 class="w-full lg:w-auto flex-1 lg:flex-none"
               />
-              <GdDatePicker
-                :value="intervaloDataLocal"
-                @change="alterarFiltroData"
-                class="w-full lg:w-auto"
-              />
+              <div class="flex gap-2">
+                <GdDatePicker
+                  :value="intervaloDataLocal"
+                  @change="alterarFiltroData"
+                  class="w-full lg:w-auto"
+                />
+                <GdDropdownOrdenarPor
+                  v-model="ordenacaoAtual"
+                  @change="alterarOrdenacao"
+                />
+              </div>
             </div>
             <div
               class="flex gap-2 flex-wrap w-full lg:w-auto order-2 lg:order-1"
@@ -111,19 +117,11 @@
                 </button>
               </span>
               <span
-                v-if="
-                  cardsState.filtros.dataInicio && cardsState.filtros.dataFim
-                "
+                v-if="filtroDataTexto"
                 class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs"
               >
                 <span class="sr-only">Filtro de data ativo:</span>
-                📅
-                {{
-                  formatarIntervaloData(
-                    cardsState.filtros.dataInicio,
-                    cardsState.filtros.dataFim
-                  )
-                }}
+                📅 {{ filtroDataTexto }}
                 <button
                   @click="limparFiltroData"
                   class="bg-transparent border-0 text-white cursor-pointer text-sm p-0.5 hover:bg-white hover:bg-opacity-20 rounded"
@@ -160,13 +158,14 @@
 
         <div class="separador-linha"></div>
 
-        <!-- Header dos Cards -->
-        <div class="header-cards-title">
+        <!-- Header dos Cards - só aparece quando ordenado por modelo -->
+        <div v-if="ordenacaoAtual === 'modelos'" class="header-cards-title">
           <div class="flex items-center gap-4 py-2">
             <div class="flex gap-2 items-center">
               <GdCheckboxDropdown
                 :checked-all="todosCardsSelecionados"
                 :actions="acoesCheckbox"
+                :selected-count="cardsState.cardsSelecionados.length"
                 @toggle-all="alternarTodosCards"
                 @action="executarAcaoCheckbox"
               />
@@ -188,6 +187,25 @@
               <div class="flex-1">
                 <span>Ações</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header simplificado quando ordenado por vencimento -->
+        <div v-else class="header-cards-title-simples">
+          <div class="flex items-center gap-4 py-2">
+            <div class="flex gap-2 items-center">
+              <GdCheckboxDropdown
+                :checked-all="todosCardsSelecionados"
+                :actions="acoesCheckbox"
+                :selected-count="cardsState.cardsSelecionados.length"
+                @toggle-all="alternarTodosCards"
+                @action="executarAcaoCheckbox"
+              />
+              <GdEnviarParaDropdown
+                :markers="opcoesEnviarPara"
+                @select-marker="enviarPara"
+              />
             </div>
           </div>
         </div>
@@ -276,6 +294,7 @@
             "
             :cards="cardsState.cards"
             :selected-cards="cardsState.cardsSelecionados"
+            :ordenacao="ordenacaoAtual"
             @toggle-card-selection="toggleCardSelection"
             @modelo-action="executarAcaoModelo"
           />
@@ -340,6 +359,7 @@ import GdEnviarParaDropdown from '@/components/ui/GdEnviarParaDropdown.vue'
 import GdButton from '@/components/ui/GdButton.vue'
 import GdSearchBar from '@/components/ui/GdSearchBar.vue'
 import GdDatePicker from '@/components/ui/GdDatePicker.vue'
+import GdDropdownOrdenarPor from '@/components/ui/GdDropdownOrdenarPor.vue'
 import { useCards } from '@/composables/useCards'
 import handIcon from '@/assets/icons/hand.svg'
 
@@ -355,6 +375,7 @@ export default {
     GdButton,
     GdSearchBar,
     GdDatePicker,
+    GdDropdownOrdenarPor,
   },
 
   setup() {
@@ -366,15 +387,15 @@ export default {
       handIcon,
       intervaloDataLocal: null,
       tituloAtual: 'Caixa de Entrada',
+      ordenacaoAtual: 'modelos',
       abasTipoCaixa: [
         { id: 'todos', label: 'Todos' },
         { id: 'a-configurar', label: 'A Configurar' },
         { id: 'recebidos', label: 'Recebidos' },
         { id: 'solicitados', label: 'Solicitados' },
         { id: 'lembretes', label: 'Lembretes' },
-        // Marcadores pessoais serão inseridos dinamicamente aqui
       ],
-      marcadoresPessoais: [], // Lista de marcadores pessoais
+      marcadoresPessoais: [],
       modelosDisponiveis: [
         { id: 'todos', label: 'Todos', color: '#1a82d9' },
         {
@@ -409,11 +430,12 @@ export default {
         },
       ],
       acoesCheckbox: [
-        { label: 'Aprovar', value: 'aprovar' },
-        { label: 'Atribuir a Mim', value: 'atribuir-mim' },
         { label: 'Marcar como não lido', value: 'marcar-nao-lido' },
-        { label: 'Agrupar', value: 'agrupar' },
+        { label: 'Aprovar', value: 'aprovar' },
+        { label: 'Identificar Somar Âncoras', value: 'identificar-ancoras' },
         { label: 'Cancelar', value: 'cancelar' },
+        { label: 'Vincular Modelo', value: 'vincular-modelo' },
+        { label: 'Vincular Pasta Digital', value: 'vincular-pasta' },
       ],
     }
   },
@@ -423,8 +445,15 @@ export default {
       return this.state
     },
 
+    todosCardsSelecionados() {
+      return (
+        this.cardsState.cards.length > 0 &&
+        this.cardsState.cardsSelecionados.length ===
+          this.cardsState.cards.length
+      )
+    },
+
     abasTipoCaixaComContadores() {
-      // Usa contagemOriginais para mostrar os totais nas abas
       const contadores = this.cardsState.contagemOriginais || {}
 
       return this.abasTipoCaixa.map(aba => ({
@@ -434,7 +463,6 @@ export default {
     },
 
     modelosDaCaixaAtual() {
-      // Se estamos em "todos", mostra TODOS os modelos disponíveis
       if (this.cardsState.filtros.tipoCaixa === 'todos') {
         return this.modelosDisponiveis.map(modelo => ({
           ...modelo,
@@ -445,13 +473,10 @@ export default {
         }))
       }
 
-      // Para outras caixas, filtra apenas modelos com documentos
       const contadores = this.cardsState.contadores || {}
 
       const modelosFiltrados = this.modelosDisponiveis.filter(modelo => {
         if (modelo.id === 'todos') return true
-
-        // Verifica se existe contador para este modelo na caixa atual
         const chaveModelo = modelo.id
         return contadores[chaveModelo] && contadores[chaveModelo] > 0
       })
@@ -468,7 +493,6 @@ export default {
     opcoesEnviarPara() {
       const opcoes = []
 
-      // Se não estamos em "todos", adiciona opção de voltar para caixa de entrada
       if (this.cardsState.filtros.tipoCaixa !== 'todos') {
         opcoes.push({
           label: 'Caixa de Entrada',
@@ -477,13 +501,12 @@ export default {
         })
       }
 
-      // Adiciona marcadores pessoais, excluindo a página atual
       const marcadoresOpcoes = this.marcadoresPessoais
         .filter(m => m.id !== this.cardsState.filtros.tipoCaixa)
         .map(m => ({
           label: m.label,
           value: m.id,
-          color: '#2563eb', // Cor padrão para marcadores
+          color: '#2563eb',
         }))
 
       return [...opcoes, ...marcadoresOpcoes]
@@ -508,6 +531,23 @@ export default {
       return labels.join(', ')
     },
 
+    filtroDataTexto() {
+      if (this.cardsState.filtros.filterType === 'day') {
+        return `Dia ${this.cardsState.filtros.day}`
+      } else if (this.cardsState.filtros.filterType === 'dayMonth') {
+        return `${this.cardsState.filtros.day}/${this.cardsState.filtros.month}`
+      } else if (
+        this.cardsState.filtros.dataInicio &&
+        this.cardsState.filtros.dataFim
+      ) {
+        return this.formatarIntervaloData(
+          this.cardsState.filtros.dataInicio,
+          this.cardsState.filtros.dataFim
+        )
+      }
+      return ''
+    },
+
     paginasVisiveis() {
       const total = this.cardsState.totalPages || 1
       const atual = this.cardsState.filtros.page || 1
@@ -526,16 +566,9 @@ export default {
 
   async mounted() {
     console.log('🚀 GdCaixaEntrada mounted')
-    console.log('📦 $cardService:', this.$cardService)
-    console.log('📦 $marcadoresService:', this.$marcadoresService)
 
     try {
-      // Carrega marcadores primeiro
       await this.carregarMarcadoresPessoais()
-      console.log('📌 Marcadores carregados:', this.marcadoresPessoais)
-      console.log('📌 Abas atualizadas:', this.abasTipoCaixa)
-
-      // Depois carrega contadores e cards
       await this.carregarContagemOriginais(this.$cardService)
       await this.carregarCards()
     } catch (error) {
@@ -546,17 +579,12 @@ export default {
   methods: {
     async carregarMarcadoresPessoais() {
       try {
-        console.log('🔄 Carregando marcadores pessoais...')
         const marcadores = await this.$marcadoresService.listar()
-        console.log('✅ Marcadores recebidos:', marcadores)
-
         this.marcadoresPessoais = marcadores
 
-        // Adiciona marcadores às abas de tipo de caixa
         marcadores.forEach(m => {
           const jaExiste = this.abasTipoCaixa.some(aba => aba.id === m.id)
           if (!jaExiste) {
-            console.log('➕ Adicionando marcador às abas:', m)
             this.abasTipoCaixa.push({ id: m.id, label: m.label })
           }
         })
@@ -573,7 +601,6 @@ export default {
       this.alterarFiltros({ tipoCaixa, modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
 
-      // Atualiza título baseado na aba selecionada
       const aba = this.abasTipoCaixa.find(a => a.id === tipoCaixa)
       if (aba) {
         if (
@@ -602,12 +629,32 @@ export default {
       await this.buscarCards(this.$cardService)
     },
 
-    async alterarFiltroData(intervalo) {
-      this.intervaloDataLocal = intervalo
-      this.alterarFiltros({
-        dataInicio: intervalo?.start || null,
-        dataFim: intervalo?.end || null,
-      })
+    async alterarFiltroData(dadosData) {
+      if (!dadosData) {
+        this.limparFiltroData()
+        return
+      }
+
+      if (dadosData.filterType) {
+        // Filtro parcial (dia ou dia/mês)
+        this.alterarFiltros({
+          filterType: dadosData.filterType,
+          day: dadosData.day,
+          month: dadosData.month,
+          dataInicio: null,
+          dataFim: null,
+        })
+      } else {
+        // Filtro de data completa
+        this.intervaloDataLocal = dadosData
+        this.alterarFiltros({
+          dataInicio: dadosData.start,
+          dataFim: dadosData.end,
+          filterType: null,
+          day: null,
+          month: null,
+        })
+      }
       await this.buscarCards(this.$cardService)
     },
 
@@ -618,7 +665,13 @@ export default {
 
     async limparFiltroData() {
       this.intervaloDataLocal = null
-      this.alterarFiltros({ dataInicio: null, dataFim: null })
+      this.alterarFiltros({
+        dataInicio: null,
+        dataFim: null,
+        filterType: null,
+        day: null,
+        month: null,
+      })
       await this.buscarCards(this.$cardService)
     },
 
@@ -638,21 +691,20 @@ export default {
       await this.buscarCards(this.$cardService)
     },
 
+    alterarOrdenacao(novaOrdenacao) {
+      this.ordenacaoAtual = novaOrdenacao
+    },
+
     async adicionarMarcador(marcador) {
       try {
-        // Salva o marcador no service
         await this.$marcadoresService.adicionar(marcador)
 
-        // Atualiza a lista local
         const jaExiste = this.abasTipoCaixa.some(aba => aba.id === marcador.id)
         if (!jaExiste) {
           this.abasTipoCaixa.push({ id: marcador.id, label: marcador.label })
         }
 
-        // Atualiza lista de marcadores pessoais
         this.marcadoresPessoais = await this.$marcadoresService.listar()
-
-        // Recarrega contadores
         await this.carregarContagemOriginais(this.$cardService)
       } catch (error) {
         console.error('Erro ao adicionar marcador:', error)
@@ -668,20 +720,15 @@ export default {
       try {
         const quantidadeDocs = this.cardsState.cardsSelecionados.length
 
-        // Move os cards para o marcador
         await this.$cardService.moverParaMarcador(
           this.cardsState.cardsSelecionados,
           marcadorId
         )
 
-        // Limpa seleção
         this.clearSelections()
-
-        // Recarrega os cards e contadores
         await this.carregarContagemOriginais(this.$cardService)
         await this.carregarCards()
 
-        // Feedback ao usuário
         const marcador = this.marcadoresPessoais.find(m => m.id === marcadorId)
         const nomeDestino = marcador ? marcador.label : marcadorId
 
@@ -709,28 +756,35 @@ export default {
         case 'aprovar':
           this.aprovarSelecionados()
           break
-        case 'atribuir-mim':
-          this.atribuirAMim()
-          break
-        case 'agrupar':
-          this.agruparSelecionados()
-          break
         case 'marcar-nao-lido':
           console.log(
             'Marcar como não lido:',
             this.cardsState.cardsSelecionados
           )
           break
+        case 'identificar-ancoras':
+          console.log(
+            'Identificar e somar âncoras:',
+            this.cardsState.cardsSelecionados
+          )
+          break
         case 'cancelar':
           this.clearSelections()
+          break
+        case 'vincular-modelo':
+          console.log('Vincular modelo:', this.cardsState.cardsSelecionados)
+          break
+        case 'vincular-pasta':
+          console.log(
+            'Vincular pasta digital:',
+            this.cardsState.cardsSelecionados
+          )
           break
       }
     },
 
-    // Métodos de ação dos botões
     async atribuirEmLotes() {
       console.log('Atribuir em lotes:', this.cardsState.cardsSelecionados)
-      // Implementar lógica
     },
 
     async atribuirAMim() {
@@ -779,7 +833,6 @@ export default {
 
     executarAcaoModelo({ action, modelo, cardIds }) {
       console.log('Ação do modelo:', { action, modelo, cardIds })
-      // Implementar lógica
     },
 
     formatarIntervaloData(inicio, fim) {
@@ -797,7 +850,6 @@ export default {
 
     showToast(message, type = 'info') {
       console.log(`Toast ${type}:`, message)
-      // Implementar toast real
     },
   },
 }
@@ -835,7 +887,8 @@ export default {
   width: 100%;
   margin: 0;
 }
-.header-cards-title {
+.header-cards-title,
+.header-cards-title-simples {
   padding: 0 16px;
   border-bottom: 1px solid #e5e7eb;
 }

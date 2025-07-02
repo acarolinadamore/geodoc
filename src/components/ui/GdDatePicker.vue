@@ -1,6 +1,6 @@
 <template>
   <div class="gd-date-picker" :class="{ 'is-expanded': isInputVisible }">
-    <div class="date-input-wrapper">
+    <div class="date-input-wrapper" @click="aoClicarWrapper">
       <input
         v-show="isInputVisible"
         ref="entradaData"
@@ -10,6 +10,7 @@
         @input="aoDigitarData"
         @blur="aoPerderFoco"
         @keydown.enter.prevent="aoApertarEnter"
+        @click.stop
       />
       <svg
         class="calendar-icon"
@@ -19,7 +20,6 @@
         fill="none"
         stroke="currentColor"
         stroke-width="2"
-        @click="togglePicker"
       >
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -28,7 +28,7 @@
       </svg>
       <button
         v-if="isInputVisible && valorExibicao"
-        @click="limpar"
+        @click.stop="limpar"
         class="clear-button"
         type="button"
         title="Limpar data"
@@ -50,7 +50,7 @@ export default {
   name: 'GdDatePicker',
   props: {
     value: {
-      type: [String, Array, Date],
+      type: Object,
       default: null,
     },
   },
@@ -62,6 +62,7 @@ export default {
       isInputVisible: false,
       digitandoManualmente: false,
       debounceTimer: null,
+      datasRange: [],
     }
   },
   mounted() {
@@ -74,6 +75,16 @@ export default {
     clearTimeout(this.debounceTimer)
   },
   methods: {
+    aoClicarWrapper(event) {
+      if (
+        event.target.tagName === 'INPUT' ||
+        event.target.tagName === 'BUTTON'
+      ) {
+        return
+      }
+      this.togglePicker()
+    },
+
     togglePicker() {
       if (!this.isInputVisible) {
         this.isInputVisible = true
@@ -85,13 +96,14 @@ export default {
         this.seletorData.show()
       }
     },
+
     inicializarSeletorData() {
       this.seletorData = new AirDatepicker(this.$refs.entradaData, {
-        range: false, // Changed to false to allow single date selection
-        multipleDates: false, // Ensure multiple dates are disabled
+        range: true,
+        multipleDates: false,
         multipleDatesSeparator: ' - ',
         dateFormat: 'dd/MM/yyyy',
-        autoClose: true,
+        autoClose: false,
         position: 'bottom right',
         offset: 5,
         locale: {
@@ -141,33 +153,59 @@ export default {
         },
         onSelect: ({ date }) => {
           this.digitandoManualmente = false
-          // Handle both single date and array cases
-          const selectedDate = Array.isArray(date) ? date[0] : date
-          this.valorExibicao = this.formatarDataUnica(selectedDate)
-          this.erroFormato = ''
-          this.$emit('change', {
-            date: selectedDate,
-            formattedDate: this.valorExibicao,
-          })
-        },
-        onHide: () => {
-          if (!this.valorExibicao) {
-            this.isInputVisible = false
+          this.datasRange = date || []
+
+          if (this.datasRange.length === 1) {
+            this.valorExibicao = this.formatarDataUnica(this.datasRange[0])
+          } else if (this.datasRange.length === 2) {
+            this.valorExibicao = `${this.formatarDataUnica(
+              this.datasRange[0]
+            )} - ${this.formatarDataUnica(this.datasRange[1])}`
           }
-          this.$emit('close')
+
+          this.erroFormato = ''
+        },
+        onHide: isFinished => {
+          if (isFinished) {
+            if (this.datasRange.length === 1) {
+              this.$emit('change', {
+                start: this.datasRange[0],
+                end: this.datasRange[0],
+              })
+            } else if (this.datasRange.length === 2) {
+              this.$emit('change', {
+                start: this.datasRange[0],
+                end: this.datasRange[1],
+              })
+            }
+
+            if (!this.valorExibicao) {
+              this.isInputVisible = false
+            }
+          }
         },
       })
 
       if (this.value) {
-        // Handle incoming value (could be single date or array)
-        const dateToSelect = Array.isArray(this.value)
-          ? this.value[0]
-          : this.value
-        this.seletorData.selectDate(dateToSelect)
-        this.valorExibicao = this.formatarDataUnica(dateToSelect)
+        if (this.value.start) {
+          const dates = [this.value.start]
+          if (this.value.end && this.value.end !== this.value.start) {
+            dates.push(this.value.end)
+          }
+          this.seletorData.selectDate(dates)
+          this.datasRange = dates
+          if (dates.length === 1) {
+            this.valorExibicao = this.formatarDataUnica(dates[0])
+          } else {
+            this.valorExibicao = `${this.formatarDataUnica(
+              dates[0]
+            )} - ${this.formatarDataUnica(dates[1])}`
+          }
+        }
         this.isInputVisible = true
       }
     },
+
     aoDigitarData(event) {
       this.digitandoManualmente = true
       clearTimeout(this.debounceTimer)
@@ -179,6 +217,9 @@ export default {
       if (valor.length > 0) valorFormatado = valor.substring(0, 2)
       if (valor.length >= 3) valorFormatado += '/' + valor.substring(2, 4)
       if (valor.length >= 5) valorFormatado += '/' + valor.substring(4, 8)
+      if (valor.length >= 9) valorFormatado += ' - ' + valor.substring(8, 10)
+      if (valor.length >= 11) valorFormatado += '/' + valor.substring(10, 12)
+      if (valor.length >= 13) valorFormatado += '/' + valor.substring(12, 16)
 
       this.valorExibicao = valorFormatado
       this.$nextTick(() => {
@@ -189,6 +230,7 @@ export default {
         this.dispararFiltro()
       }, 400)
     },
+
     aoPerderFoco() {
       clearTimeout(this.debounceTimer)
       if (this.digitandoManualmente) {
@@ -200,11 +242,13 @@ export default {
         }
       }, 150)
     },
+
     aoApertarEnter() {
       clearTimeout(this.debounceTimer)
       this.dispararFiltro()
       this.seletorData.hide()
     },
+
     dispararFiltro() {
       this.digitandoManualmente = false
       if (!this.valorExibicao.trim()) {
@@ -212,31 +256,77 @@ export default {
         return
       }
 
-      const dataProcessada = this.processarDataParcial(this.valorExibicao)
-      if (dataProcessada.valida) {
+      const partes = this.valorExibicao.split(' - ')
+      const primeiraParte = partes[0].trim()
+
+      if (primeiraParte.length <= 2 && /^\d{1,2}$/.test(primeiraParte)) {
         this.erroFormato = ''
-        const date = dataProcessada.data
-        this.seletorData.selectDate(date)
-        this.valorExibicao = this.formatarDataUnica(date)
         this.$emit('change', {
-          date: date,
-          formattedDate: this.valorExibicao,
+          filterType: 'day',
+          day: primeiraParte.padStart(2, '0'),
         })
-      } else {
-        this.erroFormato = 'Data inválida'
+        return
+      }
+
+      if (
+        primeiraParte.length <= 5 &&
+        /^\d{1,2}\/\d{1,2}$/.test(primeiraParte)
+      ) {
+        const [dia, mes] = primeiraParte.split('/')
+        this.erroFormato = ''
+        this.$emit('change', {
+          filterType: 'dayMonth',
+          day: dia.padStart(2, '0'),
+          month: mes.padStart(2, '0'),
+        })
+        return
+      }
+
+      if (partes.length === 1) {
+        const dataProcessada = this.processarDataCompleta(primeiraParte)
+        if (dataProcessada.valida) {
+          this.erroFormato = ''
+          this.datasRange = [dataProcessada.data]
+          this.seletorData.selectDate(dataProcessada.data)
+          this.valorExibicao = this.formatarDataUnica(dataProcessada.data)
+          this.$emit('change', {
+            start: dataProcessada.data,
+            end: dataProcessada.data,
+          })
+        } else {
+          this.erroFormato = 'Data inválida'
+        }
+      } else if (partes.length === 2) {
+        const data1 = this.processarDataCompleta(partes[0].trim())
+        const data2 = this.processarDataCompleta(partes[1].trim())
+
+        if (data1.valida && data2.valida) {
+          this.erroFormato = ''
+          this.datasRange = [data1.data, data2.data]
+          this.seletorData.selectDate([data1.data, data2.data])
+          this.valorExibicao = `${this.formatarDataUnica(
+            data1.data
+          )} - ${this.formatarDataUnica(data2.data)}`
+          this.$emit('change', {
+            start: data1.data,
+            end: data2.data,
+          })
+        } else {
+          this.erroFormato = 'Data inválida'
+        }
       }
     },
-    processarDataParcial(valor) {
+
+    processarDataCompleta(valor) {
       const valorLimpo = valor.replace(/\D/g, '')
       const hoje = new Date()
       const anoAtual = hoje.getFullYear()
-      const mesAtual = hoje.getMonth()
 
       let dia, mes, ano
 
-      if (valorLimpo.length >= 1) {
+      if (valorLimpo.length >= 4) {
         dia = parseInt(valorLimpo.substring(0, 2), 10)
-        mes = parseInt(valorLimpo.substring(2, 4), 10) || mesAtual + 1
+        mes = parseInt(valorLimpo.substring(2, 4), 10)
         ano = parseInt(valorLimpo.substring(4, 8), 10) || anoAtual
 
         if (
@@ -249,22 +339,25 @@ export default {
         ) {
           const data = new Date(ano, mes - 1, dia)
           if (data.getDate() === dia && data.getMonth() === mes - 1) {
-            return { valida: true, data: data }
+            return { valida: true, data }
           }
         }
       }
       return { valida: false }
     },
+
     limpar(naoFocar = false) {
       clearTimeout(this.debounceTimer)
       if (this.seletorData) this.seletorData.clear()
       this.valorExibicao = ''
       this.erroFormato = ''
-      this.$emit('change', { date: null, formattedDate: '' })
+      this.datasRange = []
+      this.$emit('change', null)
       if (!naoFocar) {
         this.$refs.entradaData.focus()
       }
     },
+
     formatarDataUnica(data) {
       if (!(data instanceof Date)) return ''
       const dia = String(data.getDate()).padStart(2, '0')
@@ -272,26 +365,30 @@ export default {
       const ano = data.getFullYear()
       return `${dia}/${mes}/${ano}`
     },
-    formatarValorExibicao(date) {
-      if (!date) return ''
-      if (Array.isArray(date)) {
-        if (date.length === 0) return ''
-        return this.formatarDataUnica(date[0])
-      }
-      return this.formatarDataUnica(date)
-    },
   },
+
   watch: {
     value(novoValor) {
       if (this.digitandoManualmente) return
-      if (novoValor) {
-        const dateToSelect = Array.isArray(novoValor) ? novoValor[0] : novoValor
-        this.seletorData.selectDate(dateToSelect)
-        this.valorExibicao = this.formatarDataUnica(dateToSelect)
+      if (novoValor && novoValor.start) {
+        const dates = [novoValor.start]
+        if (novoValor.end && novoValor.end !== novoValor.start) {
+          dates.push(novoValor.end)
+        }
+        this.seletorData.selectDate(dates)
+        this.datasRange = dates
+        if (dates.length === 1) {
+          this.valorExibicao = this.formatarDataUnica(dates[0])
+        } else {
+          this.valorExibicao = `${this.formatarDataUnica(
+            dates[0]
+          )} - ${this.formatarDataUnica(dates[1])}`
+        }
         this.isInputVisible = true
       } else {
         this.seletorData.clear()
         this.valorExibicao = ''
+        this.datasRange = []
         this.isInputVisible = false
       }
     },
@@ -309,7 +406,7 @@ export default {
 }
 
 .gd-date-picker.is-expanded {
-  width: 160px;
+  width: 200px;
 }
 
 .date-input-wrapper {
@@ -329,7 +426,6 @@ export default {
 
 .gd-date-picker.is-expanded .date-input-wrapper {
   justify-content: flex-start;
-  cursor: default;
 }
 
 .date-input-wrapper:hover {
@@ -343,7 +439,7 @@ export default {
 }
 
 .date-input {
-  width: 100px;
+  width: 140px;
   padding: 0 4px;
   border: none;
   outline: none;
@@ -352,6 +448,7 @@ export default {
   background-color: transparent;
   color: #374151;
   min-width: 0;
+  cursor: text;
 }
 
 .calendar-icon {
