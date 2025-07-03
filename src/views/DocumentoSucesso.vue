@@ -20,19 +20,19 @@
         </p>
 
         <div class="space-y-4">
-          <GdButton
+          <Button
             variant="primary"
             size="large"
             @click="configureDocument"
             class="w-full max-w-xs"
           >
             Configurar Documento
-          </GdButton>
+          </Button>
 
           <div>
-            <GdButton variant="link" @click="goToInbox">
+            <Button variant="link" @click="goToInbox">
               Ir para Caixa de Entrada
-            </GdButton>
+            </Button>
           </div>
         </div>
       </div>
@@ -41,16 +41,12 @@
 </template>
 
 <script>
-import GdHeader from '../components/ui/GdHeader.vue'
-import GdButton from '../components/ui/GdButton.vue'
-import GdHeading from '../components/ui/GdHeading.vue'
+import Button from '@/components/Button.vue'
 
 export default {
   name: 'DocumentoSuccesso',
   components: {
-    GdHeader,
-    GdButton,
-    GdHeading,
+    Button,
   },
   methods: {
     configureDocument() {

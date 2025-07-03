@@ -3,25 +3,22 @@ import VueRouter from 'vue-router'
 
 import NovoDocumento from '../views/NovoDocumento.vue'
 import DocumentoSucesso from '../views/DocumentoSucesso.vue'
-import GdInicio from '../views/GdInicio.vue'
-import LoginView from '../views/LoginView.vue'
-import BoasVindas from '@/views/BoasVindas.vue'
-import ComponentesExemplo from '@/views/ComponentesExemplo.vue'
-import GdCaixaEntrada from '@/views/GdCaixaEntrada.vue'
-import GdEnviados from '@/views/GdEnviados.vue'
+import Inicio from '../views/Inicio.vue'
+import Login from '../views/Login.vue'
+import CaixaEntrada from '@/views/CaixaEntrada.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'boasVindas',
-    component: BoasVindas,
+    name: 'inicio',
+    component: Inicio,
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
+    component: Login,
   },
   {
     path: '/novo-documento',
@@ -35,7 +32,7 @@ const routes = [
   {
     path: '/caixa-entrada',
     name: 'CaixaEntrada',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'todos',
       titulo: 'Caixa de Entrada',
@@ -45,7 +42,7 @@ const routes = [
   {
     path: '/recebidos',
     name: 'Recebidos',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'recebidos',
       titulo: 'Recebidos',
@@ -55,7 +52,7 @@ const routes = [
   {
     path: '/configurar',
     name: 'Configurar',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'configurar',
       titulo: 'Configurar',
@@ -65,7 +62,7 @@ const routes = [
   {
     path: '/solicitados',
     name: 'Solicitados',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'solicitados',
       titulo: 'Solicitados',
@@ -75,7 +72,7 @@ const routes = [
   {
     path: '/lembretes',
     name: 'Lembretes',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'lembretes',
       titulo: 'Lembretes',
@@ -89,7 +86,7 @@ const routes = [
   {
     path: '/marcador/:marcadorId',
     name: 'MarcadorPersonalizado',
-    component: GdCaixaEntrada,
+    component: CaixaEntrada,
     meta: {
       tipoAba: 'marcador',
       titulo: null, // Será definido dinamicamente
@@ -110,18 +107,8 @@ const routes = [
   },
   {
     path: '/inicio',
-    name: 'GdInicio',
-    component: GdInicio,
-  },
-  {
-    path: '/enviados',
-    name: 'GdEnviados',
-    component: GdEnviados,
-  },
-  {
-    path: '/exemplo',
-    name: 'ComponentesExemplo',
-    component: ComponentesExemplo,
+    name: 'Inicio',
+    component: Inicio,
   },
 
   // ========================================

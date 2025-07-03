@@ -1,5 +1,5 @@
 <template>
-  <layout-sidebar v-slot="{ sidebarExpanded }">
+  <layout-menu-lateral v-slot="{ sidebarExpanded }">
     <div class="min-h-screen bg-cinza space-y-6 pb-12">
       <!-- Header -->
       <div
@@ -70,16 +70,16 @@
         </div>
       </div>
     </div>
-  </layout-sidebar>
+  </layout-menu-lateral>
 </template>
 
 <script>
-import LayoutSidebar from '@/layouts/LayoutSidebar.vue'
+import LayoutMenuLateral from '@/layouts/LayoutMenuLateral.vue'
 
 export default {
   name: 'NovoDocumento',
   components: {
-    LayoutSidebar,
+    LayoutMenuLateral,
   },
 }
 </script>

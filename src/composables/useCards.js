@@ -1,4 +1,3 @@
-// composables/useCards.js - Versão corrigida com contadores separados
 import Vue from 'vue'
 
 // Estado global reativo usando Vue.observable (Vue 2)
@@ -7,8 +6,8 @@ const state = Vue.observable({
   loading: false,
   error: null,
   filtros: {
-    tipoCaixa: 'todos', // Filtro de tipo de caixa
-    modelos: ['todos'], // Array para seleção múltipla de modelos
+    tipoCaixa: 'todos',
+    modelos: ['todos'],
     busca: '',
     dataInicio: null,
     dataFim: null,
@@ -16,14 +15,13 @@ const state = Vue.observable({
     limit: 20,
   },
   cardsSelecionados: [],
-  contadores: {}, // Contadores filtrados (para lógica interna)
-  contagemOriginais: {}, // NOVO: Contadores originais/totais (para exibição nas abas)
+  contadores: {},
+  contagemOriginais: {},
   total: 0,
   totalPages: 0,
 })
 
 export function useCards() {
-  // Computed properties usando Vue 2 style
   const possuiFiltrosAtivos = () => {
     return !!(
       state.filtros.busca ||
@@ -63,7 +61,6 @@ export function useCards() {
         contadores: response.contadores,
       })
 
-      // NOVO: Preservar contadores originais
       // Se é o primeiro carregamento (sem filtros ativos), salva como originais
       if (
         !possuiFiltrosAtivos() ||
@@ -80,7 +77,7 @@ export function useCards() {
     }
   }
 
-  // NOVA FUNÇÃO: Carregar contadores originais explicitamente
+  // Carregar contadores originais explicitamente
   async function carregarContagemOriginais(cardService) {
     try {
       console.log('🔄 Carregando contagem originais...')
@@ -93,7 +90,7 @@ export function useCards() {
         dataInicio: null,
         dataFim: null,
         page: 1,
-        limit: 1, // Só precisamos dos contadores, não dos cards
+        limit: 1,
       }
 
       const response = await cardService.getCards(filtrosSemFiltro)
@@ -236,7 +233,7 @@ export function useCards() {
 
     // Actions
     buscarCards,
-    carregarContagemOriginais, // NOVA FUNÇÃO
+    carregarContagemOriginais,
     alterarFiltros,
     limparFiltros,
     toggleCardSelection,
