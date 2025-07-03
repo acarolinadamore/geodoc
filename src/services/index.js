@@ -158,7 +158,7 @@ const cardsData = [
   {
     id: 5,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {
@@ -196,7 +196,7 @@ const cardsData = [
   {
     id: 6,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {
@@ -232,7 +232,7 @@ const cardsData = [
   {
     id: 7,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {
@@ -269,7 +269,7 @@ const cardsData = [
   {
     id: 8,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {
@@ -305,7 +305,7 @@ const cardsData = [
   {
     id: 9,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {
@@ -343,7 +343,7 @@ const cardsData = [
   {
     id: 10,
     remetente: {
-      nome: 'Eu Mesmo',
+      nome: 'Eu',
       funcao: 'Usuário Atual',
     },
     documento: {

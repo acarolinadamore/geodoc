@@ -113,12 +113,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 16px;
+  padding: 2px 8px;
   border-radius: 2px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: white;
-  min-height: 36px;
+  min-height: 32px;
   width: 100%;
   text-align: center;
 }

@@ -14,7 +14,7 @@
       </div>
 
       <!-- Etapas -->
-      <div class="flex items-center">
+      <div class="flex items-start">
         <span class="card-span w-24 text-right flex-shrink-0">Etapa</span>
         <div class="ml-3">
           <CardResumoEtapas :etapas="documento.etapas" />
@@ -22,7 +22,7 @@
       </div>
 
       <!-- Pasta Digital -->
-      <div class="flex items-center">
+      <div class="flex items-start">
         <span class="card-span w-24 text-right flex-shrink-0"
           >Pasta Digital</span
         >

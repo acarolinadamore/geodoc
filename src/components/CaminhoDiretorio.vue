@@ -156,7 +156,7 @@ export default {
   color: #3f98d4;
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.6;
   word-break: break-word;
   hyphens: auto;
 }

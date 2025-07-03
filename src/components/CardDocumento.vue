@@ -174,27 +174,27 @@ export default {
   }
 
   .card-column-data {
-    width: 12%;
+    flex: 0 0 14%;
     min-width: 120px;
   }
 
   .card-column-remetente {
-    width: 10%;
-    min-width: 120px;
+    flex: 0 0 8%;
+    min-width: 100px;
   }
 
   .card-column-documento {
-    width: 40%;
+    flex: 0 0 35%;
     min-width: 320px;
   }
 
   .card-column-ancora {
-    width: 25%;
+    flex: 0 0 25%;
     min-width: 250px;
   }
 
   .card-column-acoes {
-    width: 13%;
+    flex: 0 0 13%;
     min-width: 130px;
     gap: 8px;
     padding-top: 0;

@@ -1,29 +1,41 @@
 <template>
-  <div class="etapas-container">
+  <div class="fluxo-etapas-container">
     <!-- Se não há etapas, mostrar mensagem -->
     <div v-if="!etapas || etapas.length === 0" class="sem-etapas">
       Sem etapas
     </div>
 
-    <!-- Lista de etapas com nomes -->
-    <div v-else class="flex items-center space-x-1">
-      <div
+    <!-- Lista de etapas -->
+    <ul v-else class="passos-lista">
+      <li
         v-for="(etapa, indice) in etapas"
-        :key="`etapa-${indice}`"
-        :class="[
-          'etapa-item',
-          {
-            'etapa-completed': etapa.status === 'completed',
-            'etapa-current': etapa.status === 'current',
-            'etapa-pending': etapa.status === 'pending',
-          },
-        ]"
-        :title="`${etapa.nome} - ${getStatusText(etapa.status)}`"
+        :key="etapa.nome"
+        class="passo-item"
       >
-        <div class="etapa-indicator"></div>
-        <span class="etapa-nome">{{ etapa.nome }}</span>
-      </div>
-    </div>
+        <div class="passo-conteudo">
+          <div :class="obterClasseCirculo(etapa.status)">
+            <img
+              v-if="etapa.status === 'completed'"
+              src="@/assets/icons/green-check.svg"
+              alt="Concluído"
+              class="icone-concluido"
+            />
+            <span v-else :class="['numero', obterClasseNumero(etapa.status)]">
+              {{ indice + 1 }}
+            </span>
+          </div>
+          <span :class="['nome', obterClasseNome(etapa.status)]">
+            {{ etapa.nome }}
+          </span>
+        </div>
+        <img
+          v-if="indice < etapas.length - 1"
+          src="@/assets/icons/right-arrow.svg"
+          alt="Próxima etapa"
+          class="icone-seta"
+        />
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -44,94 +56,153 @@ export default {
     console.log('  - primeira etapa:', this.etapas?.[0])
   },
   methods: {
-    getStatusText(status) {
-      const statusMap = {
+    obterClasseCirculo(status) {
+      switch (status) {
+        case 'completed':
+          return 'circle circle--outlined passo-concluido status-completed'
+        case 'current':
+          return 'circle circle--filled passo-atual status-current'
+        case 'pending':
+        default:
+          return 'circle circle--filled passo-pendente status-pending'
+      }
+    },
+
+    obterClasseNumero(status) {
+      switch (status) {
+        case 'completed':
+          return 'numero--concluido'
+        case 'current':
+          return 'numero--atual'
+        case 'pending':
+        default:
+          return 'numero--pendente'
+      }
+    },
+
+    obterClasseNome(status) {
+      switch (status) {
+        case 'completed':
+          return 'nome--concluido'
+        case 'current':
+          return 'nome--atual'
+        case 'pending':
+        default:
+          return 'nome--pendente'
+      }
+    },
+
+    obterTextoStatus(status) {
+      const mapeamentoStatus = {
         completed: 'Concluída',
         current: 'Em andamento',
         pending: 'Pendente',
       }
-      return statusMap[status] || 'Desconhecido'
+      return mapeamentoStatus[status] || 'Desconhecido'
     },
   },
 }
 </script>
 
 <style scoped>
-.etapas-container {
-  display: flex;
-  align-items: center;
-  min-height: 20px;
+.fluxo-etapas-container {
+  width: 100%;
 }
 
 .sem-etapas {
-  font-size: 11px;
+  font-size: 0.75rem;
   color: #9ca3af;
   font-style: italic;
 }
 
-.etapa-item {
+.passos-lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.passo-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 12px;
-  background-color: #f3f4f6;
-  max-width: 120px;
+  margin-bottom: 4px;
 }
 
-.etapa-indicator {
-  width: 6px;
-  height: 6px;
+.passo-conteudo {
+  display: flex;
+  align-items: center;
+}
+
+.circle {
+  min-width: 16px;
+  min-height: 16px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.etapa-nome {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
+.circle--outlined {
+  border: 1px solid #37c989;
+  background-color: #fff;
 }
 
-.etapa-completed .etapa-indicator {
-  background-color: #10b981;
+.passo-atual.status-current.circle--filled {
+  background-color: #1a82d9;
 }
 
-.etapa-current .etapa-indicator {
-  background-color: #f59e0b;
+.passo-pendente.status-pending.circle--filled {
+  background-color: #f3f3f3;
 }
 
-.etapa-pending .etapa-indicator {
-  background-color: #d1d5db;
+.icone-concluido {
+  width: 14px;
+  height: 14px;
 }
 
-.etapa-completed {
-  background-color: #ecfdf5;
-  color: #065f46;
+.numero {
+  font-size: 10px;
+  font-weight: 500;
 }
 
-.etapa-current {
-  background-color: #fffbeb;
-  color: #92400e;
+.numero--concluido {
+  color: #37c989;
 }
 
-.etapa-pending {
-  background-color: #f9fafb;
-  color: #6b7280;
+.numero--atual {
+  color: #fff;
 }
 
-/* Responsivo */
-@media (max-width: 1280px) {
-  .etapa-item {
-    font-size: 10px;
-    padding: 1px 4px;
-    max-width: 100px;
-  }
+.numero--pendente {
+  color: #b7b7b7;
+}
 
-  .etapa-indicator {
-    width: 5px;
-    height: 5px;
-  }
+.nome {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.nome--concluido {
+  color: #37c989;
+  font-weight: 400;
+}
+
+.nome--atual {
+  color: #1a82d9;
+  font-weight: bold;
+}
+
+.nome--pendente {
+  color: #b7b7b7;
+  font-weight: 400;
+}
+
+.icone-seta {
+  width: 16px;
+  height: 16px;
 }
 </style>

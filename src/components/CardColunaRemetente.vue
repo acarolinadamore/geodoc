@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-2 ml-3 text-left flex flex-col justify-center h-full">
+  <div class="mb-2 text-left flex flex-col justify-center h-full">
     <p class="gd-text-black remetente">{{ remetente.nome }}</p>
     <p class="card-span">{{ remetente.funcao }}</p>
   </div>
