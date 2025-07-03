@@ -158,12 +158,11 @@
 
         <div class="separador-linha"></div>
 
-        <!-- Header dos Cards - só aparece quando ordenado por modelo -->
         <div v-if="ordenacaoAtual === 'modelos'" class="header-cards-title">
           <div class="flex items-center gap-4 py-2">
             <div class="flex gap-2 items-center">
               <GdCheckboxDropdown
-                :checked-all="todosCardsSelecionados"
+                :checked-all="checkboxPrincipalMarcado"
                 :actions="acoesCheckbox"
                 :selected-count="cardsState.cardsSelecionados.length"
                 @toggle-all="alternarTodosCards"
@@ -295,7 +294,7 @@
             :cards="cardsState.cards"
             :selected-cards="cardsState.cardsSelecionados"
             :ordenacao="ordenacaoAtual"
-            @toggle-card-selection="toggleCardSelection"
+            @toggle-card-selection="manipularSelecaoCard"
             @modelo-action="executarAcaoModelo"
           />
 
@@ -388,6 +387,10 @@ export default {
       intervaloDataLocal: null,
       tituloAtual: 'Caixa de Entrada',
       ordenacaoAtual: 'modelos',
+
+      // NOVO: controle manual do estado do checkbox principal
+      checkboxPrincipalMarcado: false,
+
       abasTipoCaixa: [
         { id: 'todos', label: 'Todos' },
         { id: 'a-configurar', label: 'A Configurar' },
@@ -430,11 +433,12 @@ export default {
         },
       ],
       acoesCheckbox: [
-        { label: 'Marcar como não lido', value: 'marcar-nao-lido' },
         { label: 'Aprovar', value: 'aprovar' },
-        { label: 'Identificar Somar Âncoras', value: 'identificar-ancoras' },
-        { label: 'Cancelar', value: 'cancelar' },
-        { label: 'Vincular Modelo', value: 'vincular-modelo' },
+        { label: 'Atualizar Fluxo', value: 'atualizar-fluxo' },
+        { label: 'Cancelar Documento', value: 'cancelar-documento' },
+        { label: 'Identificar', value: 'identificar' },
+        { label: 'Somar Âncoras', value: 'somar-ancoras' },
+        { label: 'Vincular Modelo Documento', value: 'vincular-modelo' },
         { label: 'Vincular Pasta Digital', value: 'vincular-pasta' },
       ],
     }
@@ -445,12 +449,20 @@ export default {
       return this.state
     },
 
+    // TESTE: FORÇAR SEMPRE FALSE PARA DEBUG
     todosCardsSelecionados() {
-      return (
-        this.cardsState.cards.length > 0 &&
-        this.cardsState.cardsSelecionados.length ===
-          this.cardsState.cards.length
-      )
+      console.log('🔍 [COMPUTED] todosCardsSelecionados chamado:', {
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        cardsStateCards: this.cardsState?.cards?.length || 0,
+        cardsStateSelecionados: this.cardsState?.cardsSelecionados?.length || 0,
+        state: this.state,
+      })
+
+      // TEMPORÁRIO: FORÇAR FALSE PARA TESTAR
+      console.log('🔍 [COMPUTED] FORÇANDO RETORNO FALSE')
+      return false
+
+      // ORIGINAL: return this.checkboxPrincipalMarcado
     },
 
     abasTipoCaixaComContadores() {
@@ -463,31 +475,46 @@ export default {
     },
 
     modelosDaCaixaAtual() {
+      const contagemOriginais = this.cardsState.contagemOriginais || {}
+      const contagemFiltrada = this.cardsState.contadores || {}
+
+      const modelosVisiveis = []
+
+      let totalParaTodos
       if (this.cardsState.filtros.tipoCaixa === 'todos') {
-        return this.modelosDisponiveis.map(modelo => ({
-          ...modelo,
-          count:
-            modelo.id === 'todos'
-              ? this.cardsState.total || 0
-              : this.cardsState.contadores[modelo.id] || 0,
-        }))
+        totalParaTodos =
+          contagemOriginais['todos'] || this.cardsState.total || 0
+      } else {
+        totalParaTodos = this.cardsState.total || 0
       }
 
-      const contadores = this.cardsState.contadores || {}
-
-      const modelosFiltrados = this.modelosDisponiveis.filter(modelo => {
-        if (modelo.id === 'todos') return true
-        const chaveModelo = modelo.id
-        return contadores[chaveModelo] && contadores[chaveModelo] > 0
+      modelosVisiveis.push({
+        id: 'todos',
+        label: 'Todos',
+        color: '#1a82d9',
+        count: totalParaTodos,
       })
 
-      return modelosFiltrados.map(modelo => ({
-        ...modelo,
-        count:
-          modelo.id === 'todos'
-            ? contadores['todos-modelos'] || 0
-            : contadores[modelo.id] || 0,
-      }))
+      this.modelosDisponiveis.forEach(modelo => {
+        if (modelo.id !== 'todos') {
+          let count
+
+          if (this.cardsState.filtros.tipoCaixa === 'todos') {
+            count = contagemOriginais[modelo.id] || 0
+          } else {
+            count = contagemFiltrada[modelo.id] || 0
+          }
+
+          if (count > 0) {
+            modelosVisiveis.push({
+              ...modelo,
+              count: count,
+            })
+          }
+        }
+      })
+
+      return modelosVisiveis
     },
 
     opcoesEnviarPara() {
@@ -513,22 +540,24 @@ export default {
     },
 
     modelosSelecionadosTexto() {
+      const filtrosModelos = this.cardsState.filtros.modelos || ['todos']
+
       if (
-        !this.cardsState.filtros.modelos ||
-        this.cardsState.filtros.modelos.length === 0 ||
-        this.cardsState.filtros.modelos.includes('todos')
+        filtrosModelos.length === 0 ||
+        (filtrosModelos.length === 1 && filtrosModelos.includes('todos'))
       ) {
         return ''
       }
 
-      const labels = this.cardsState.filtros.modelos
+      const labels = filtrosModelos
+        .filter(id => id !== 'todos')
         .map(id => {
           const modelo = this.modelosDisponiveis.find(m => m.id === id)
           return modelo ? modelo.label : id
         })
         .filter(Boolean)
 
-      return labels.join(', ')
+      return labels.length > 0 ? labels.join(', ') : ''
     },
 
     filtroDataTexto() {
@@ -548,6 +577,14 @@ export default {
       return ''
     },
 
+    possuiFiltrosAtivos() {
+      return !!(
+        this.cardsState.filtros.busca ||
+        this.filtroDataTexto ||
+        this.modelosSelecionadosTexto
+      )
+    },
+
     paginasVisiveis() {
       const total = this.cardsState.totalPages || 1
       const atual = this.cardsState.filtros.page || 1
@@ -565,18 +602,102 @@ export default {
   },
 
   async mounted() {
-    console.log('🚀 GdCaixaEntrada mounted')
+    console.log('🚀 [MOUNTED] === INÍCIO DO DEBUG COMPLETO ===')
+
+    // ESTADO ABSOLUTO INICIAL
+    console.log('🔍 [MOUNTED] ESTADO ABSOLUTO INICIAL:', {
+      checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+      todosCardsSelecionados: this.todosCardsSelecionados,
+      cardsState: this.cardsState,
+      state: this.state,
+      useCardsState: this.state?.cardsSelecionados || 'undefined',
+    })
 
     try {
+      // GARANTIR que checkbox inicia desmarcado
+      this.checkboxPrincipalMarcado = false
+      console.log('✅ [MOUNTED] checkboxPrincipalMarcado definido como FALSE')
+
+      // Verificar estado do useCards ANTES de limpar
+      console.log('🔍 [MOUNTED] Estado useCards ANTES da limpeza:', {
+        state: this.state,
+        cardsSelecionados: this.state?.cardsSelecionados || 'undefined',
+        cardsLength: this.state?.cards?.length || 0,
+      })
+
+      // FORÇAR limpeza total
+      if (this.clearSelections) {
+        this.clearSelections()
+        console.log('🧹 [MOUNTED] clearSelections() executado')
+      }
+
+      if (this.cardsState?.cardsSelecionados) {
+        this.cardsState.cardsSelecionados.splice(0)
+        console.log('🧹 [MOUNTED] Array cardsSelecionados limpo manualmente')
+      }
+
+      // Verificar se realmente limpou
+      console.log('🔍 [MOUNTED] Estado APÓS limpeza:', {
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        cardsStateSelecionados: this.cardsState?.cardsSelecionados?.length || 0,
+        todosCardsSelecionados: this.todosCardsSelecionados,
+      })
+
       await this.carregarMarcadoresPessoais()
       await this.carregarContagemOriginais(this.$cardService)
       await this.carregarCards()
+
+      // Estado FINAL
+      console.log('📊 [MOUNTED] Estado FINAL:', {
+        cards: this.cardsState.cards.length,
+        selecionados: this.cardsState.cardsSelecionados.length,
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        todosCardsSelecionados: this.todosCardsSelecionados,
+      })
+
+      // FORÇAR RESET COMO ÚLTIMO RECURSO
+      this.forcarResetCompleto()
+
+      console.log('🏁 [MOUNTED] === FIM DO DEBUG COMPLETO ===')
     } catch (error) {
-      console.error('❌ Erro no mounted da Caixa de Entrada:', error)
+      console.error('❌ [MOUNTED] Erro:', error)
     }
   },
 
   methods: {
+    // MÉTODO DE RESET FORÇADO
+    forcarResetCompleto() {
+      console.log('🚨 [RESET] FORÇANDO RESET COMPLETO...')
+
+      // 1. Resetar estado manual
+      this.checkboxPrincipalMarcado = false
+
+      // 2. Limpar arrays de seleção de todas as formas possíveis
+      if (this.cardsState?.cardsSelecionados) {
+        this.cardsState.cardsSelecionados.length = 0
+        this.cardsState.cardsSelecionados.splice(0)
+      }
+
+      if (this.state?.cardsSelecionados) {
+        this.state.cardsSelecionados.length = 0
+        this.state.cardsSelecionados.splice(0)
+      }
+
+      // 3. Chamar métodos de limpeza se existirem
+      if (this.clearSelections) {
+        this.clearSelections()
+      }
+
+      // 4. Forçar atualização reativa
+      this.$forceUpdate()
+
+      console.log('✅ [RESET] Reset completo finalizado:', {
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        cardsStateSelecionados: this.cardsState?.cardsSelecionados?.length || 0,
+        todosCardsSelecionados: this.todosCardsSelecionados,
+      })
+    },
+
     async carregarMarcadoresPessoais() {
       try {
         const marcadores = await this.$marcadoresService.listar()
@@ -594,49 +715,102 @@ export default {
     },
 
     async carregarCards() {
+      console.log('🔍 [CARDS] === INÍCIO carregarCards ===')
+
+      // ANTES de buscar
+      console.log('📊 [CARDS] Estado ANTES da busca:', {
+        filtros: this.cardsState.filtros,
+        cardsSelecionados: this.cardsState.cardsSelecionados.length,
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+      })
+
       await this.buscarCards(this.$cardService)
+
+      // DEPOIS de buscar
+      console.log('📊 [CARDS] Estado DEPOIS da busca:', {
+        cardsCarregados: this.cardsState.cards.length,
+        cardsSelecionados: this.cardsState.cardsSelecionados.length,
+        primeiroCard: this.cardsState.cards[0] || 'nenhum',
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+      })
+
+      // Resetar checkbox ao carregar novos cards
+      this.checkboxPrincipalMarcado = false
+      console.log('✅ [CARDS] Checkbox resetado para FALSE')
+
+      console.log('🏁 [CARDS] === FIM carregarCards ===')
     },
 
     async alterarTipoCaixa(tipoCaixa) {
+      // Reset checkbox quando muda filtro
+      this.checkboxPrincipalMarcado = false
+
       this.alterarFiltros({ tipoCaixa, modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
 
-      const aba = this.abasTipoCaixa.find(a => a.id === tipoCaixa)
-      if (aba) {
-        if (
-          [
-            'todos',
-            'a-configurar',
-            'recebidos',
-            'solicitados',
-            'lembretes',
-          ].includes(tipoCaixa)
-        ) {
-          this.tituloAtual = 'Caixa de Entrada'
-        } else {
+      const titulosEspecificos = {
+        todos: 'Caixa de Entrada',
+        'a-configurar': 'A Configurar',
+        recebidos: 'Recebidos',
+        solicitados: 'Solicitados',
+        lembretes: 'Lembretes',
+      }
+
+      if (titulosEspecificos[tipoCaixa]) {
+        this.tituloAtual = titulosEspecificos[tipoCaixa]
+      } else {
+        const aba = this.abasTipoCaixa.find(a => a.id === tipoCaixa)
+        if (aba) {
           this.tituloAtual = `Marcador: ${aba.label}`
         }
       }
     },
 
     async alterarFiltroModelo(modeloId) {
-      this.toggleModelo(modeloId)
+      // Reset checkbox quando muda filtro
+      this.checkboxPrincipalMarcado = false
+
+      const selecaoAtual = this.cardsState.filtros.modelos || ['todos']
+      let novaSelecao = [...selecaoAtual]
+
+      if (modeloId === 'todos') {
+        novaSelecao = ['todos']
+      } else {
+        novaSelecao = novaSelecao.filter(id => id !== 'todos')
+
+        if (novaSelecao.includes(modeloId)) {
+          novaSelecao = novaSelecao.filter(id => id !== modeloId)
+        } else {
+          novaSelecao.push(modeloId)
+        }
+
+        if (novaSelecao.length === 0) {
+          novaSelecao = ['todos']
+        }
+      }
+
+      this.alterarFiltros({ modelos: novaSelecao })
       await this.buscarCards(this.$cardService)
     },
 
     async alterarFiltroBusca(busca) {
+      // Reset checkbox quando muda filtro
+      this.checkboxPrincipalMarcado = false
+
       this.alterarFiltros({ busca })
       await this.buscarCards(this.$cardService)
     },
 
     async alterarFiltroData(dadosData) {
+      // Reset checkbox quando muda filtro
+      this.checkboxPrincipalMarcado = false
+
       if (!dadosData) {
         this.limparFiltroData()
         return
       }
 
       if (dadosData.filterType) {
-        // Filtro parcial (dia ou dia/mês)
         this.alterarFiltros({
           filterType: dadosData.filterType,
           day: dadosData.day,
@@ -645,7 +819,6 @@ export default {
           dataFim: null,
         })
       } else {
-        // Filtro de data completa
         this.intervaloDataLocal = dadosData
         this.alterarFiltros({
           dataInicio: dadosData.start,
@@ -659,11 +832,13 @@ export default {
     },
 
     async limparFiltroBusca() {
+      this.checkboxPrincipalMarcado = false
       this.alterarFiltros({ busca: '' })
       await this.buscarCards(this.$cardService)
     },
 
     async limparFiltroData() {
+      this.checkboxPrincipalMarcado = false
       this.intervaloDataLocal = null
       this.alterarFiltros({
         dataInicio: null,
@@ -676,22 +851,30 @@ export default {
     },
 
     async limparFiltroModelos() {
+      this.checkboxPrincipalMarcado = false
       this.alterarFiltros({ modelos: ['todos'] })
       await this.buscarCards(this.$cardService)
     },
 
     async limparTodosFiltros() {
+      this.checkboxPrincipalMarcado = false
       this.intervaloDataLocal = null
       this.limparFiltros()
       await this.buscarCards(this.$cardService)
     },
 
+    limparErro() {
+      this.limparErro()
+    },
+
     async alterarPagina(novaPagina) {
+      this.checkboxPrincipalMarcado = false
       this.alterarFiltros({ page: novaPagina })
       await this.buscarCards(this.$cardService)
     },
 
     alterarOrdenacao(novaOrdenacao) {
+      this.checkboxPrincipalMarcado = false
       this.ordenacaoAtual = novaOrdenacao
     },
 
@@ -726,6 +909,7 @@ export default {
         )
 
         this.clearSelections()
+        this.checkboxPrincipalMarcado = false
         await this.carregarContagemOriginais(this.$cardService)
         await this.carregarCards()
 
@@ -743,33 +927,124 @@ export default {
       }
     },
 
+    // MÉTODO PRINCIPAL COM DEBUG COMPLETO
     alternarTodosCards(selecionado) {
+      console.log('🔄 [HEADER] === INÍCIO alternarTodosCards ===')
+      console.log('🔄 [HEADER] Parâmetro recebido:', selecionado)
+      console.log('🔄 [HEADER] Estado ANTES:', {
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        cardsSelecionados: this.cardsState.cardsSelecionados.length,
+        cardsTotal: this.cardsState.cards.length,
+        metodos: {
+          selectAllVisible: typeof this.selectAllVisible,
+          clearSelections: typeof this.clearSelections,
+        },
+      })
+
+      // ATUALIZA o estado manual primeiro
+      this.checkboxPrincipalMarcado = selecionado
+      console.log(
+        '✅ [HEADER] checkboxPrincipalMarcado atualizado para:',
+        this.checkboxPrincipalMarcado
+      )
+
       if (selecionado) {
-        this.selectAllVisible()
+        console.log('✅ [HEADER] Tentando selecionar todos...')
+
+        if (this.selectAllVisible) {
+          console.log('🔧 [HEADER] Executando selectAllVisible()...')
+          this.selectAllVisible()
+          console.log('✅ [HEADER] selectAllVisible() executado')
+        } else {
+          console.log(
+            '🔧 [HEADER] selectAllVisible não disponível, usando fallback...'
+          )
+          const idsParaSelecionar = this.cardsState.cards.map(card => card.id)
+          console.log('📝 [HEADER] IDs para selecionar:', idsParaSelecionar)
+
+          idsParaSelecionar.forEach(id => {
+            if (!this.cardsState.cardsSelecionados.includes(id)) {
+              this.cardsState.cardsSelecionados.push(id)
+              console.log(`✅ [HEADER] Card ${id} adicionado`)
+            }
+          })
+        }
       } else {
-        this.clearSelections()
+        console.log('❌ [HEADER] Tentando deselecionar todos...')
+
+        if (this.clearSelections) {
+          console.log('🔧 [HEADER] Executando clearSelections()...')
+          this.clearSelections()
+          console.log('❌ [HEADER] clearSelections() executado')
+        } else {
+          console.log(
+            '🔧 [HEADER] clearSelections não disponível, usando fallback...'
+          )
+          this.cardsState.cardsSelecionados.splice(0)
+          console.log('❌ [HEADER] Array limpo manualmente')
+        }
+      }
+
+      console.log('📊 [HEADER] Estado FINAL:', {
+        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
+        cardsSelecionados: this.cardsState.cardsSelecionados.length,
+        cardsIds: this.cardsState.cardsSelecionados,
+      })
+      console.log('🏁 [HEADER] === FIM alternarTodosCards ===')
+    },
+
+    // MÉTODO PARA SINCRONIZAR checkbox quando cards são selecionados individualmente
+    sincronizarCheckboxPrincipal() {
+      if (this.cardsState.cards.length > 0) {
+        const idsVisiveis = this.cardsState.cards.map(card => card.id)
+        const todosSelecionados = idsVisiveis.every(id =>
+          this.cardsState.cardsSelecionados.includes(id)
+        )
+
+        if (todosSelecionados && !this.checkboxPrincipalMarcado) {
+          this.checkboxPrincipalMarcado = true
+          console.log(
+            '✅ [SYNC] Checkbox marcado automaticamente - todos selecionados'
+          )
+        } else if (!todosSelecionados && this.checkboxPrincipalMarcado) {
+          this.checkboxPrincipalMarcado = false
+          console.log(
+            '❌ [SYNC] Checkbox desmarcado automaticamente - nem todos selecionados'
+          )
+        }
+      } else {
+        this.checkboxPrincipalMarcado = false
       }
     },
 
+    // MÉTODO MODIFICADO para sincronizar checkbox
+    manipularSelecaoCard(cardId) {
+      console.log('🔄 [CARD] Manipulando seleção do card:', cardId)
+      this.toggleCardSelection(cardId)
+
+      // Sincronizar o checkbox principal após mudança individual
+      this.$nextTick(() => {
+        this.sincronizarCheckboxPrincipal()
+      })
+    },
+
     executarAcaoCheckbox(acao) {
+      console.log('🔧 [ACTION] Executando ação:', acao)
       switch (acao) {
         case 'aprovar':
           this.aprovarSelecionados()
           break
-        case 'marcar-nao-lido':
-          console.log(
-            'Marcar como não lido:',
-            this.cardsState.cardsSelecionados
-          )
+        case 'atualizar-fluxo':
+          console.log('Atualizar fluxo:', this.cardsState.cardsSelecionados)
           break
-        case 'identificar-ancoras':
-          console.log(
-            'Identificar e somar âncoras:',
-            this.cardsState.cardsSelecionados
-          )
+        case 'cancelar-documento':
+          console.log('Cancelar documento:', this.cardsState.cardsSelecionados)
           break
-        case 'cancelar':
-          this.clearSelections()
+        case 'identificar':
+          console.log('Identificar:', this.cardsState.cardsSelecionados)
+          break
+        case 'somar-ancoras':
+          console.log('Somar âncoras:', this.cardsState.cardsSelecionados)
           break
         case 'vincular-modelo':
           console.log('Vincular modelo:', this.cardsState.cardsSelecionados)
@@ -796,6 +1071,7 @@ export default {
         )
         this.showToast(res.message, 'success')
         this.clearSelections()
+        this.checkboxPrincipalMarcado = false
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao atribuir cards', 'error')
@@ -810,6 +1086,7 @@ export default {
         )
         this.showToast(res.message, 'success')
         this.clearSelections()
+        this.checkboxPrincipalMarcado = false
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao aprovar cards', 'error')
@@ -825,6 +1102,7 @@ export default {
         )
         this.showToast(res.message, 'success')
         this.clearSelections()
+        this.checkboxPrincipalMarcado = false
         await this.buscarCards(this.$cardService)
       } catch (error) {
         this.showToast('Erro ao agrupar cards', 'error')
@@ -854,7 +1132,6 @@ export default {
   },
 }
 </script>
-
 <style scoped>
 .adicionar-espaco {
   padding-left: 50px;

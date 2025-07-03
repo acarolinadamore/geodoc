@@ -25,12 +25,60 @@
 
     <div v-if="aberto" class="dropdown-menu">
       <ul class="dropdown-list">
-        <li v-for="action in actionsComContadores" :key="action.value">
-          <button @click="manipularAcao(action.value)" class="dropdown-item">
-            <span>{{ action.label }}</span>
-            <span v-if="action.count" class="contador-acao">{{
-              action.count
+        <!-- Aprovar com contador -->
+        <li>
+          <button @click="manipularAcao('aprovar')" class="dropdown-item">
+            <span>Aprovar</span>
+            <span v-if="selectedCount > 0" class="contador-acao">{{
+              selectedCount
             }}</span>
+          </button>
+        </li>
+
+        <!-- Linha separadora -->
+        <li class="separador"></li>
+
+        <!-- Outras opções -->
+        <li>
+          <button
+            @click="manipularAcao('atualizar-fluxo')"
+            class="dropdown-item"
+          >
+            <span>Atualizar Fluxo</span>
+          </button>
+        </li>
+        <li>
+          <button
+            @click="manipularAcao('cancelar-documento')"
+            class="dropdown-item"
+          >
+            <span>Cancelar Documento</span>
+          </button>
+        </li>
+        <li>
+          <button @click="manipularAcao('identificar')" class="dropdown-item">
+            <span>Identificar</span>
+          </button>
+        </li>
+        <li>
+          <button @click="manipularAcao('somar-ancoras')" class="dropdown-item">
+            <span>Somar Âncoras</span>
+          </button>
+        </li>
+        <li>
+          <button
+            @click="manipularAcao('vincular-modelo')"
+            class="dropdown-item"
+          >
+            <span>Vincular Modelo Documento</span>
+          </button>
+        </li>
+        <li>
+          <button
+            @click="manipularAcao('vincular-pasta')"
+            class="dropdown-item"
+          >
+            <span>Vincular Pasta Digital</span>
           </button>
         </li>
       </ul>
@@ -59,20 +107,6 @@ export default {
     return {
       aberto: false,
     }
-  },
-  computed: {
-    actionsComContadores() {
-      return this.actions.map(action => {
-        if (action.value === 'aprovar' && this.selectedCount > 0) {
-          return {
-            ...action,
-            label: action.label,
-            count: this.selectedCount,
-          }
-        }
-        return action
-      })
-    },
   },
   mounted() {
     document.addEventListener('click', this.fecharAoClicarFora)
@@ -195,10 +229,8 @@ export default {
   font-weight: 500;
 }
 
-/* Separador visual no dropdown */
-.dropdown-list li:nth-child(3)::after {
-  content: '';
-  display: block;
+/* Separador visual */
+.separador {
   height: 1px;
   background-color: #e5e7eb;
   margin: 4px 0;
