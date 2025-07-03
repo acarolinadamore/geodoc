@@ -396,7 +396,7 @@ export default {
         { id: 'a-configurar', label: 'A Configurar' },
         { id: 'recebidos', label: 'Recebidos' },
         { id: 'solicitados', label: 'Solicitados' },
-        { id: 'lembretes', label: 'Lembretes' },
+        { id: 'agendamentos', label: 'Pré-agendamento' },
       ],
       marcadoresPessoais: [],
       modelosDisponiveis: [
@@ -451,18 +451,12 @@ export default {
 
     // TESTE: FORÇAR SEMPRE FALSE PARA DEBUG
     todosCardsSelecionados() {
-      console.log('🔍 [COMPUTED] todosCardsSelecionados chamado:', {
-        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-        cardsStateCards: this.cardsState?.cards?.length || 0,
-        cardsStateSelecionados: this.cardsState?.cardsSelecionados?.length || 0,
-        state: this.state,
-      })
+      const totalCards = this.cardsState?.cards?.length || 0
+      const selecionados = this.cardsState?.cardsSelecionados?.length || 0
 
-      // TEMPORÁRIO: FORÇAR FALSE PARA TESTAR
-      console.log('🔍 [COMPUTED] FORÇANDO RETORNO FALSE')
-      return false
+      if (totalCards === 0) return false
 
-      // ORIGINAL: return this.checkboxPrincipalMarcado
+      return selecionados === totalCards
     },
 
     abasTipoCaixaComContadores() {
@@ -602,65 +596,28 @@ export default {
   },
 
   async mounted() {
-    console.log('🚀 [MOUNTED] === INÍCIO DO DEBUG COMPLETO ===')
-
-    // ESTADO ABSOLUTO INICIAL
-    console.log('🔍 [MOUNTED] ESTADO ABSOLUTO INICIAL:', {
-      checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-      todosCardsSelecionados: this.todosCardsSelecionados,
-      cardsState: this.cardsState,
-      state: this.state,
-      useCardsState: this.state?.cardsSelecionados || 'undefined',
-    })
-
+    if (!this.verificarServices()) {
+      return
+    }
     try {
-      // GARANTIR que checkbox inicia desmarcado
+      // Garantir que checkbox inicia desmarcado
       this.checkboxPrincipalMarcado = false
-      console.log('✅ [MOUNTED] checkboxPrincipalMarcado definido como FALSE')
 
-      // Verificar estado do useCards ANTES de limpar
-      console.log('🔍 [MOUNTED] Estado useCards ANTES da limpeza:', {
-        state: this.state,
-        cardsSelecionados: this.state?.cardsSelecionados || 'undefined',
-        cardsLength: this.state?.cards?.length || 0,
-      })
-
-      // FORÇAR limpeza total
+      // Limpar seleções iniciais
       if (this.clearSelections) {
         this.clearSelections()
-        console.log('🧹 [MOUNTED] clearSelections() executado')
       }
 
-      if (this.cardsState?.cardsSelecionados) {
-        this.cardsState.cardsSelecionados.splice(0)
-        console.log('🧹 [MOUNTED] Array cardsSelecionados limpo manualmente')
-      }
-
-      // Verificar se realmente limpou
-      console.log('🔍 [MOUNTED] Estado APÓS limpeza:', {
-        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-        cardsStateSelecionados: this.cardsState?.cardsSelecionados?.length || 0,
-        todosCardsSelecionados: this.todosCardsSelecionados,
-      })
-
+      // Carregar dados
       await this.carregarMarcadoresPessoais()
       await this.carregarContagemOriginais(this.$cardService)
       await this.carregarCards()
 
-      // Estado FINAL
-      console.log('📊 [MOUNTED] Estado FINAL:', {
-        cards: this.cardsState.cards.length,
-        selecionados: this.cardsState.cardsSelecionados.length,
-        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-        todosCardsSelecionados: this.todosCardsSelecionados,
-      })
-
-      // FORÇAR RESET COMO ÚLTIMO RECURSO
+      // Reset final
       this.forcarResetCompleto()
-
-      console.log('🏁 [MOUNTED] === FIM DO DEBUG COMPLETO ===')
     } catch (error) {
-      console.error('❌ [MOUNTED] Erro:', error)
+      console.error('Erro ao carregar dados:', error)
+      this.showToast('Erro ao carregar dados', 'error')
     }
   },
 
@@ -703,6 +660,7 @@ export default {
         const marcadores = await this.$marcadoresService.listar()
         this.marcadoresPessoais = marcadores
 
+        // Adicionar marcadores às abas se não existirem
         marcadores.forEach(m => {
           const jaExiste = this.abasTipoCaixa.some(aba => aba.id === m.id)
           if (!jaExiste) {
@@ -711,34 +669,23 @@ export default {
         })
       } catch (error) {
         console.error('Erro ao carregar marcadores pessoais:', error)
+        this.showToast('Erro ao carregar marcadores', 'error')
       }
     },
 
     async carregarCards() {
-      console.log('🔍 [CARDS] === INÍCIO carregarCards ===')
+      try {
+        // Resetar checkbox antes de carregar
+        this.checkboxPrincipalMarcado = false
 
-      // ANTES de buscar
-      console.log('📊 [CARDS] Estado ANTES da busca:', {
-        filtros: this.cardsState.filtros,
-        cardsSelecionados: this.cardsState.cardsSelecionados.length,
-        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-      })
+        await this.buscarCards(this.$cardService)
 
-      await this.buscarCards(this.$cardService)
-
-      // DEPOIS de buscar
-      console.log('📊 [CARDS] Estado DEPOIS da busca:', {
-        cardsCarregados: this.cardsState.cards.length,
-        cardsSelecionados: this.cardsState.cardsSelecionados.length,
-        primeiroCard: this.cardsState.cards[0] || 'nenhum',
-        checkboxPrincipalMarcado: this.checkboxPrincipalMarcado,
-      })
-
-      // Resetar checkbox ao carregar novos cards
-      this.checkboxPrincipalMarcado = false
-      console.log('✅ [CARDS] Checkbox resetado para FALSE')
-
-      console.log('🏁 [CARDS] === FIM carregarCards ===')
+        // Garantir que checkbox permanece desmarcado após carregar
+        this.checkboxPrincipalMarcado = false
+      } catch (error) {
+        console.error('Erro ao carregar cards:', error)
+        this.showToast('Erro ao carregar documentos', 'error')
+      }
     },
 
     async alterarTipoCaixa(tipoCaixa) {
@@ -753,7 +700,7 @@ export default {
         'a-configurar': 'A Configurar',
         recebidos: 'Recebidos',
         solicitados: 'Solicitados',
-        lembretes: 'Lembretes',
+        agendamentos: 'Pré-agendamento',
       }
 
       if (titulosEspecificos[tipoCaixa]) {
@@ -892,6 +839,25 @@ export default {
       } catch (error) {
         console.error('Erro ao adicionar marcador:', error)
       }
+    },
+
+    verificarServices() {
+      const servicesNecessarios = [
+        'this.$cardService',
+        'this.$marcadoresService',
+      ]
+
+      const servicesFaltando = servicesNecessarios.filter(service => {
+        return !eval(service)
+      })
+
+      if (servicesFaltando.length > 0) {
+        console.error('Services não encontrados:', servicesFaltando)
+        this.showToast('Erro na inicialização dos services', 'error')
+        return false
+      }
+
+      return true
     },
 
     async enviarPara(marcadorId) {

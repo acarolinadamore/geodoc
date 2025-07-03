@@ -1,4 +1,4 @@
-// src/mocks/data/documentos.js
+// src/data/documentos.js
 
 // ========================================
 // SITUAÇÕES DO DOCUMENTO

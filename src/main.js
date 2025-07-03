@@ -5,10 +5,14 @@ import './assets/styles/tailwind.css'
 import './assets/styles/global.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import LayoutSidebarHeader from '@/layouts/LayoutMenuLateral.vue'
-import { cardService } from '@/services'
+
+// Importar o plugin dos services (que inclui todos os services)
+import ServicesPlugin from '@/services'
+
+// Usar o plugin dos services - isso registra todos os services automaticamente
+Vue.use(ServicesPlugin)
 
 Vue.config.productionTip = false
-Vue.prototype.$cardService = cardService
 
 // Registro automático global de componentes Vue
 const requireComponent = require.context('./components', true, /\.vue$/)

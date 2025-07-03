@@ -1,5 +1,5 @@
 // services/index.js - Versão corrigida com debug melhorado
-import cardsData from '@/mocks/data/cards.json'
+import cardsData from '@/data/cards.json'
 
 // Service melhorado que funciona com filtros
 export const cardService = {
@@ -30,7 +30,7 @@ export const cardService = {
                     card.documento?.status !== 'rascunho' &&
                     card.documento?.status !== 'lembrete'
                   )
-                case 'lembretes':
+                case 'agendamentos':
                   return (
                     card.documento?.status === 'lembrete' &&
                     card.documento?.criadoPorMim === true
@@ -289,7 +289,7 @@ export const cardService = {
         card.documento?.status !== 'lembrete'
     ).length
 
-    contadores['lembretes'] = todosCards.filter(
+    contadores['agendamentos'] = todosCards.filter(
       card =>
         card.documento?.status === 'lembrete' &&
         card.documento?.criadoPorMim === true
@@ -300,7 +300,7 @@ export const cardService = {
       'a-configurar': contadores['a-configurar'],
       recebidos: contadores.recebidos,
       solicitados: contadores.solicitados,
-      lembretes: contadores.lembretes,
+      agendamentos: contadores.agendamentos,
     })
 
     // Contadores para modelos (FiltroModeloDocumento) - baseado na caixa atual
@@ -323,7 +323,7 @@ export const cardService = {
               card.documento?.status !== 'rascunho' &&
               card.documento?.status !== 'lembrete'
             )
-          case 'lembretes':
+          case 'agendamentos':
             return (
               card.documento?.status === 'lembrete' &&
               card.documento?.criadoPorMim === true

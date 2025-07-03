@@ -1,4 +1,4 @@
-// src/mocks/data/modelos.js
+// src/data/modelos.js
 
 // ========================================
 // MODELOS DE DOCUMENTO (baseado no ModeloDocumento.php)

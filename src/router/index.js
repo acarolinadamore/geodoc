@@ -70,12 +70,12 @@ const routes = [
     },
   },
   {
-    path: '/lembretes',
-    name: 'Lembretes',
+    path: '/agendamentos',
+    name: 'Pré-agendamento',
     component: CaixaEntrada,
     meta: {
-      tipoAba: 'lembretes',
-      titulo: 'Lembretes',
+      tipoAba: 'agendamentos',
+      titulo: 'Pré-agendamento',
       isFixa: true,
     },
   },

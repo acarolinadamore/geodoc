@@ -259,7 +259,7 @@
       "unit": "dias"
     },
     "acoes": ["Visualizar", "Lembrar"],
-    "tipoCaixa": "lembretes"
+    "tipoCaixa": "agendamentos"
   },
   {
     "id": 8,

@@ -80,7 +80,7 @@
           </a>
         </div>
       </div>
-      <!-- Últimos Documentos e Lembretes lado a lado -->
+      <!-- Últimos Documentos e Pré-agendamento lado a lado -->
       <div class="flex flex-col md:flex-row gap-6 mx-6">
         <!-- Últimos Documentos -->
         <div
@@ -111,12 +111,12 @@
           </div>
         </div>
 
-        <!-- Lembretes -->
+        <!-- Pré-agendamento -->
         <div
           class="flex-1 rounded-xl p-6 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800"
         >
           <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-medium text-left">Lembretes</h3>
+            <h3 class="text-lg font-medium text-left">Pré-agendamento</h3>
             <v-icon name="bell" class="w-5 h-5 text-gray-500" />
           </div>
           <div class="flex flex-col gap-1 text-left">

@@ -1,4 +1,4 @@
-// src/mocks/data/index.js
+// src/data/index.js
 
 // ========================================
 // CENTRALIZADOR DE DADOS
