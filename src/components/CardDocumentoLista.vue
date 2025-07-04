@@ -24,9 +24,9 @@
             <div class="coluna-info-modelo">
               <div
                 class="circle-modelo"
-                :style="{ backgroundColor: obterCorModelo(modelo) }"
+                :style="{ backgroundColor: coresModelo.obterCorModelo(modelo) }"
               >
-                {{ obterIniciaisModelo(modelo) }}
+                {{ coresModelo.obterIniciaisModelo(modelo) }}
               </div>
               <div class="info-texto">
                 <h3 class="titulo-grupo">{{ modelo }}</h3>
@@ -125,6 +125,7 @@
 <script>
 import CardDocumento from '@/components/CardDocumento.vue'
 import DropdownCheckbox from '@/components/DropdownCheckbox.vue'
+import { useCoresModelo } from '@/composables/useCoresModelo'
 
 export default {
   name: 'CardDocumentoLista',
@@ -150,6 +151,15 @@ export default {
       type: String,
       default: 'modelos',
     },
+  },
+
+  setup() {
+    // Composable para gerenciar cores dos modelos
+    const coresModelo = useCoresModelo()
+
+    return {
+      coresModelo,
+    }
   },
 
   computed: {
@@ -239,7 +249,7 @@ export default {
 
     obterAcoesModelo: function (modelo) {
       var acoesPorModelo = {
-        'Solicitação de Sistema de Gestão': [
+        'Solicitação à Fábrica de Software': [
           { label: 'Atribuir todos', value: 'atribuir' },
           { label: 'Aprovar todos', value: 'aprovar' },
           { label: 'Enviar para desenvolvimento', value: 'desenvolvimento' },
@@ -260,6 +270,10 @@ export default {
           { label: 'Gerar relatório', value: 'relatorio' },
         ],
         'Conciliação Bancária': [
+          { label: 'Atribuir todos', value: 'atribuir' },
+          { label: 'Aprovar todos', value: 'aprovar' },
+        ],
+        'Folha de Pagamento': [
           { label: 'Atribuir todos', value: 'atribuir' },
           { label: 'Aprovar todos', value: 'aprovar' },
         ],
@@ -284,30 +298,6 @@ export default {
         modelo: modelo,
         cardIds: cardsDoModelo,
       })
-    },
-
-    obterCorModelo: function (modelo) {
-      var cores = {
-        'Solicitação de Sistema de Gestão': '#3b82f6',
-        'Solicitação de Orçamento': '#10b981',
-        'Relatório de Progresso': '#f59e0b',
-        'Auditoria de Processo': '#ef4444',
-        'Conciliação Bancária': '#8b5cf6',
-      }
-      return cores[modelo] || '#6b7280'
-    },
-
-    obterIniciaisModelo: function (modelo) {
-      if (!modelo || typeof modelo !== 'string') return 'SM'
-
-      return modelo
-        .split(' ')
-        .map(function (palavra) {
-          return palavra.charAt(0)
-        })
-        .join('')
-        .substring(0, 2)
-        .toUpperCase()
     },
 
     obterStatusVencimento: function (card) {
