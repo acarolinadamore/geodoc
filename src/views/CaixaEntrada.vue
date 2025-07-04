@@ -15,13 +15,13 @@
           <div class="flex flex-col gap-1">
             <FiltroPaginaMarcador
               :initial-tabs="abasTipoCaixaComContadores"
-              :initial-active-tab-id="filtrosCaixa.filtros.tipoCaixa"
+              :initial-active-tab-id="filtrosCaixa.filtros.value.tipoCaixa"
               @atualizar-aba="alterarTipoCaixa"
               @adicionar-marcador="adicionarMarcador"
             />
             <FiltroModeloDocumento
               :initial-tabs="modelosDaCaixaAtual"
-              :selected-tabs="filtrosCaixa.filtros.modelos"
+              :selected-tabs="filtrosCaixa.filtros.value.modelos"
               :multiple-selection="true"
               @filter-change="alterarFiltroModelo"
             />
@@ -39,7 +39,8 @@
                 variant="filled"
                 bg-color="#1a82d9"
                 text-color="#fff"
-                :disabled="!temCardsSelecionados"
+                :disabled="!temCardsSelecionados || loading.atribuicao"
+                :loading="loading.atribuicao"
                 @click="atribuirEmLotes"
                 class="flex-1 lg:flex-none"
               />
@@ -49,7 +50,8 @@
                 variant="outlined"
                 border-color="#37c989"
                 text-color="#37c989"
-                :disabled="!temCardsSelecionados"
+                :disabled="!temCardsSelecionados || loading.atribuicao"
+                :loading="loading.atribuicao"
                 @click="atribuirAMim"
                 class="flex-1 lg:flex-none"
               />
@@ -59,7 +61,8 @@
                 variant="filled"
                 bg-color="#37c989"
                 text-color="#ffffff"
-                :disabled="!temCardsSelecionados"
+                :disabled="!temCardsSelecionados || loading.aprovacao"
+                :loading="loading.aprovacao"
                 @click="aprovarSelecionados"
                 class="flex-1 lg:flex-none"
               />
@@ -69,7 +72,8 @@
                 variant="filled"
                 bg-color="#1a82d9"
                 text-color="#ffffff"
-                :disabled="!temCardsSelecionados"
+                :disabled="!temCardsSelecionados || loading.agrupamento"
+                :loading="loading.agrupamento"
                 @click="agruparSelecionados"
                 class="flex-1 lg:flex-none"
               />
@@ -79,14 +83,14 @@
               class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto order-1 lg:order-2"
             >
               <Searchbar
-                :initial-value="filtrosCaixa.filtros.busca"
+                :initial-value="filtrosCaixa.filtros.value.busca"
                 @search-changed="alterarFiltroBusca"
                 @clear="limparFiltroBusca"
                 class="w-full lg:w-auto flex-1 lg:flex-none"
               />
               <div class="flex gap-2">
                 <DatePicker
-                  :value="filtrosCaixa.intervaloDataLocal"
+                  :value="filtrosCaixa.intervaloDataLocal.value"
                   @change="alterarFiltroData"
                   class="w-full lg:w-auto"
                 />
@@ -99,7 +103,7 @@
           </div>
 
           <IndicadoresFiltros
-            v-if="filtrosCaixa.possuiFiltrosAtivos"
+            v-if="filtrosCaixa.possuiFiltrosAtivos.value"
             :filtros="filtrosAtivos"
             @limpar-filtro="limparFiltroEspecifico"
             @limpar-todos="limparTodosFiltros"
@@ -123,6 +127,21 @@
             @toggle-card-selection="alternarSelecaoCard"
             @modelo-action="executarAcaoModelo"
           />
+
+          <div
+            v-else-if="cardsComposable.state.loading"
+            class="loading-container"
+          >
+            <p>Carregando documentos...</p>
+          </div>
+
+          <div v-else-if="cardsComposable.state.error" class="error-container">
+            <p>{{ cardsComposable.state.error }}</p>
+          </div>
+
+          <div v-else class="empty-container">
+            <p>Nenhum documento encontrado</p>
+          </div>
         </div>
       </div>
     </div>
@@ -130,13 +149,8 @@
 </template>
 
 <script>
-import { computed, ref, watch, onMounted } from 'vue'
-import { useCards } from '@/composables/useCards'
-import { useSelecaoCards } from '@/composables/useSelecaoCards'
-import { useNotificacoes } from '@/composables/useNotificacoes'
-import { useFiltrosCaixa } from '@/composables/useFiltrosCaixa'
-import { useCoresModelo } from '@/composables/useCoresModelo'
-import { cardService } from '@/services/index.js'
+import { ref } from 'vue'
+import { useCaixaEntrada } from '@/composables/useCaixaEntrada'
 
 import LayoutMenuLateral from '@/layouts/LayoutMenuLateral.vue'
 import FiltroPaginaMarcador from '@/components/FiltroPaginaMarcador.vue'
@@ -144,6 +158,9 @@ import FiltroModeloDocumento from '@/components/FiltroModeloDocumento.vue'
 import CardDocumentoLista from '@/components/CardDocumentoLista.vue'
 import Button from '@/components/Button.vue'
 import IndicadoresFiltros from '@/components/IndicadoresFiltros.vue'
+import Searchbar from '@/components/Searchbar.vue'
+import DatePicker from '@/components/DatePicker.vue'
+import DropdownOrdenarPor from '@/components/DropdownOrdenarPor.vue'
 import HandIcon from '@/assets/icons/hand.svg'
 
 export default {
@@ -155,290 +172,30 @@ export default {
     CardDocumentoLista,
     Button,
     IndicadoresFiltros,
+    Searchbar,
+    DatePicker,
+    DropdownOrdenarPor,
   },
 
   setup() {
-    const cardsComposable = useCards()
-    const selecaoCards = useSelecaoCards()
-    const notificacoes = useNotificacoes()
-    const filtrosCaixa = useFiltrosCaixa()
-    const coresModelo = useCoresModelo()
-
-    const ordenacaoAtual = ref('modelos')
-    const marcadoresPessoais = ref([])
     const handIcon = ref(HandIcon)
 
-    const configuracoesEstaticas = {
-      abasTipoCaixa: [
-        { id: 'todos', label: 'Todos' },
-        { id: 'a-configurar', label: 'A Configurar' },
-        { id: 'recebidos', label: 'Recebidos' },
-        { id: 'solicitados', label: 'Solicitados' },
-        { id: 'agendamentos', label: 'Pré-agendamento' },
-      ],
-      titulosEspecificos: {
-        todos: 'Caixa de Entrada',
-        'a-configurar': 'A Configurar',
-        recebidos: 'Recebidos',
-        solicitados: 'Solicitados',
-        agendamentos: 'Pré-agendamento',
-      },
-    }
-
-    const temCards = computed(() => cardsComposable.state.cards.length > 0)
-    const temCardsSelecionados = computed(
-      () => selecaoCards.cardsSelecionados.value.length > 0
-    )
-
-    const tituloAtual = computed(() => {
-      const tipo = filtrosCaixa.filtros.value.tipoCaixa
-      if (configuracoesEstaticas.titulosEspecificos[tipo]) {
-        return configuracoesEstaticas.titulosEspecificos[tipo]
-      }
-      const aba = configuracoesEstaticas.abasTipoCaixa.find(a => a.id === tipo)
-      return aba ? `Marcador: ${aba.label}` : 'Caixa de Entrada'
-    })
-
-    const abasTipoCaixaComContadores = computed(() => {
-      const contagens = cardsComposable.state.contagemTipoCaixa || {}
-      return configuracoesEstaticas.abasTipoCaixa.map(aba => ({
-        ...aba,
-        count: contagens[aba.id] || 0,
-      }))
-    })
-
-    const modelosDaCaixaAtual = computed(() => {
-      const contagens = cardsComposable.state.contagemModelosAtual || {}
-
-      // Sempre inclui "Todos" primeiro
-      const todos = {
-        id: 'todos',
-        label: 'Todos',
-        color: '#1a82d9',
-        count: contagens['todos'] || 0,
-      }
-
-      // Adiciona outros modelos que têm contagem > 0
-      const outrosModelos = coresModelo.modelosDisponiveis.value
-        .filter(modelo => modelo.id !== 'todos')
-        .map(modelo => ({
-          id: modelo.id,
-          label: modelo.nome,
-          color: modelo.cor,
-          count: contagens[modelo.id] || 0,
-        }))
-        .filter(modelo => modelo.count > 0)
-
-      return [todos, ...outrosModelos]
-    })
-
-    const filtrosAtivos = computed(() => {
-      const ativos = []
-      const f = filtrosCaixa.filtros.value
-
-      if (f.busca) {
-        ativos.push({ tipo: 'busca', valor: f.busca, label: `🔍 "${f.busca}"` })
-      }
-
-      if (filtrosCaixa.filtroDataTexto.value) {
-        ativos.push({
-          tipo: 'data',
-          valor: null,
-          label: `📅 ${filtrosCaixa.filtroDataTexto.value}`,
-        })
-      }
-
-      if (filtrosCaixa.modelosSelecionadosTexto.value) {
-        const modelosTexto = filtrosCaixa.modelosSelecionadosTexto.value
-          .split(', ')
-          .map(modelo => modelo.charAt(0).toUpperCase() + modelo.slice(1))
-          .join(', ')
-
-        ativos.push({
-          tipo: 'modelos',
-          valor: null,
-          label: `📋 ${modelosTexto}`,
-        })
-      }
-
-      return ativos
-    })
-
-    watch(
-      () => cardsComposable.state.cards,
-      novosCards => selecaoCards.atualizarCardsVisiveis(novosCards || []),
-      { immediate: true }
-    )
-
-    watch(
-      filtrosCaixa.filtros,
-      async novosFiltros => {
-        await cardsComposable.alterarFiltros(novosFiltros)
-        await carregarCards()
-      },
-      { deep: true }
-    )
-
-    const alterarTipoCaixa = async tipoCaixa => {
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.aplicarFiltros({
-        tipoCaixa,
-        modelos: ['todos'],
-        page: 1,
-      })
-      await cardsComposable.carregarContagemModelosAtual(tipoCaixa)
-    }
-
-    const alterarFiltroModelo = async modeloId => {
-      const selecaoAtual = filtrosCaixa.filtros.value.modelos || ['todos']
-      let novaSelecao = [...selecaoAtual]
-
-      if (modeloId === 'todos') {
-        novaSelecao = ['todos']
-      } else {
-        novaSelecao = novaSelecao.filter(id => id !== 'todos')
-        const index = novaSelecao.indexOf(modeloId)
-
-        if (index > -1) {
-          novaSelecao.splice(index, 1)
-        } else {
-          novaSelecao.push(modeloId)
-        }
-
-        if (novaSelecao.length === 0) {
-          novaSelecao = ['todos']
-        }
-      }
-
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.aplicarFiltros({ modelos: novaSelecao, page: 1 })
-    }
-
-    const alterarFiltroBusca = async busca => {
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.aplicarFiltros({ busca, page: 1 })
-    }
-
-    const alterarFiltroData = async dadosData => {
-      if (!dadosData) {
-        filtrosCaixa.limparFiltro('data')
-        return
-      }
-
-      const novosFiltros = dadosData.filterType
-        ? {
-            filterType: dadosData.filterType,
-            day: dadosData.day,
-            month: dadosData.month,
-            dataInicio: null,
-            dataFim: null,
-            page: 1,
-          }
-        : {
-            dataInicio: dadosData.start,
-            dataFim: dadosData.end,
-            filterType: null,
-            day: null,
-            month: null,
-            page: 1,
-          }
-
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.aplicarFiltros(novosFiltros)
-    }
-
-    const limparFiltroBusca = () => {
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.limparFiltro('busca')
-    }
-
-    const alterarOrdenacao = ordenacao => {
-      ordenacaoAtual.value = ordenacao
-    }
-
-    const limparFiltroEspecifico = tipoFiltro => {
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.limparFiltro(tipoFiltro)
-    }
-
-    const limparTodosFiltros = () => {
-      selecaoCards.resetarSelecoes()
-      filtrosCaixa.limparTodosFiltros()
-    }
-
-    const alternarSelecaoCard = cardId => {
-      selecaoCards.alternarSelecaoCard(cardId)
-    }
-
-    const adicionarMarcador = novoMarcador => {
-      marcadoresPessoais.value.push(novoMarcador)
-      notificacoes.mostrarSucesso('Marcador adicionado com sucesso')
-    }
-
-    const carregarCards = async () => {
-      try {
-        cardsComposable.state.loading = true
-        cardsComposable.state.error = null
-
-        const response = await cardService.getCards(filtrosCaixa.filtros.value)
-
-        if (response.cards) {
-          cardsComposable.state.cards = response.cards
-          cardsComposable.state.total = response.total || 0
-          cardsComposable.state.totalPages = response.totalPages || 1
-
-          if (response.contadores) {
-            cardsComposable.state.contadores = response.contadores
-          }
-        }
-      } catch (error) {
-        cardsComposable.state.error =
-          error.message || 'Erro ao carregar documentos'
-      } finally {
-        cardsComposable.state.loading = false
-      }
-    }
-
-    const atribuirEmLotes = async () => {
-      // TODO: Implementar atribuição em lotes
-    }
-
-    const atribuirAMim = async () => {
-      // TODO: Implementar atribuição individual
-    }
-
-    const aprovarSelecionados = async () => {
-      // TODO: Implementar aprovação em lote
-    }
-
-    const agruparSelecionados = async () => {
-      // TODO: Implementar agrupamento
-    }
-
-    const executarAcaoModelo = async acao => {
-      // TODO: Implementar ações do modelo
-      console.log('Ação do modelo:', acao)
-    }
-
-    onMounted(async () => {
-      await cardsComposable.inicializarContagens()
-      await carregarCards()
-    })
-
-    return {
+    const {
+      // Estados
       cardsComposable,
       selecaoCards,
       filtrosCaixa,
       ordenacaoAtual,
-      marcadoresPessoais,
-      handIcon,
+
+      // Computeds
       temCards,
       temCardsSelecionados,
       tituloAtual,
       abasTipoCaixaComContadores,
       modelosDaCaixaAtual,
       filtrosAtivos,
-      configuracoesEstaticas,
+
+      // Métodos de filtro
       alterarTipoCaixa,
       alterarFiltroModelo,
       alterarFiltroBusca,
@@ -449,7 +206,39 @@ export default {
       limparTodosFiltros,
       alternarSelecaoCard,
       adicionarMarcador,
-      carregarCards,
+
+      // Ações
+      loading,
+      atribuirEmLotes,
+      atribuirAMim,
+      aprovarSelecionados,
+      agruparSelecionados,
+      executarAcaoModelo,
+    } = useCaixaEntrada()
+
+    return {
+      handIcon,
+      cardsComposable,
+      selecaoCards,
+      filtrosCaixa,
+      ordenacaoAtual,
+      temCards,
+      temCardsSelecionados,
+      tituloAtual,
+      abasTipoCaixaComContadores,
+      modelosDaCaixaAtual,
+      filtrosAtivos,
+      alterarTipoCaixa,
+      alterarFiltroModelo,
+      alterarFiltroBusca,
+      alterarFiltroData,
+      limparFiltroBusca,
+      alterarOrdenacao,
+      limparFiltroEspecifico,
+      limparTodosFiltros,
+      alternarSelecaoCard,
+      adicionarMarcador,
+      loading,
       atribuirEmLotes,
       atribuirAMim,
       aprovarSelecionados,
@@ -504,5 +293,23 @@ export default {
 
 .scroll-content {
   padding: 0 16px;
+}
+
+.loading-container,
+.error-container,
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container {
+  color: #dc2626;
+}
+
+.empty-container {
+  color: #6b7280;
 }
 </style>

@@ -1,17 +1,9 @@
-import { cardsAPI } from '@/api/cards'
+// services/cardService.js
+import cardsAPI from '@/api/cards'
 
 class CardService {
   constructor() {
-    this.cards = []
-    this.loading = false
-    this.error = null
-    this.pagination = {
-      currentPage: 1,
-      totalPages: 1,
-      totalItems: 0,
-      itemsPerPage: 10,
-    }
-    this.filters = {
+    this.defaultFilters = {
       status: '',
       modelo: '',
       marcador: '',
@@ -21,355 +13,358 @@ class CardService {
       vencimento: '',
       prioridade: '',
     }
-    this.sort = {
-      field: 'created_at',
-      direction: 'desc',
+  }
+
+  // === MÉTODOS PRINCIPAIS PARA CAIXA DE ENTRADA ===
+
+  // Buscar cards com filtros (adaptado para nova estrutura)
+  async getCards(filtros = {}) {
+    try {
+      const response = await cardsAPI.listar(filtros)
+      return this.formatarRespostaCards(response.data)
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao buscar documentos')
     }
   }
 
-  // Listar cards com filtros e paginação
-  async getCards(params = {}) {
-    this.loading = true
-    this.error = null
-
+  // Buscar contagens por tipo de caixa
+  async getContagemTipoCaixa() {
     try {
-      const queryParams = {
-        page: this.pagination.currentPage,
-        limit: this.pagination.itemsPerPage,
-        ...this.filters,
-        ...this.sort,
-        ...params,
-      }
+      const response = await cardsAPI.buscarContagemTipoCaixa()
+      return response.data
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao buscar contagens por tipo')
+    }
+  }
 
-      const response = await cardsAPI.getAll(queryParams)
-      const { data, pagination } = response.data
+  // Buscar contagens por modelo
+  async getContagemModelos(tipoCaixa) {
+    try {
+      const response = await cardsAPI.buscarContagemModelos(tipoCaixa)
+      return response.data
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao buscar contagem de modelos')
+    }
+  }
 
-      this.cards = data
-      this.pagination = {
-        ...this.pagination,
-        ...pagination,
-      }
+  // === AÇÕES EM LOTE ===
 
+  // Atribuir documentos em lotes
+  async atribuirEmLotes(dados) {
+    try {
+      const response = await cardsAPI.atribuirEmLotes(dados)
       return {
-        success: true,
-        data: this.cards,
-        pagination: this.pagination,
+        sucesso: true,
+        mensagem: response.data.message || 'Documentos atribuídos com sucesso',
+        dados: response.data,
       }
     } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao buscar documentos'
-      return {
-        success: false,
-        error: this.error,
-      }
-    } finally {
-      this.loading = false
+      throw this.tratarErro(error, 'Erro ao atribuir documentos em lotes')
     }
   }
+
+  // Atribuir documentos a mim
+  async atribuirAMim(dados) {
+    try {
+      const response = await cardsAPI.atribuirAMim(dados)
+      return {
+        sucesso: true,
+        mensagem:
+          response.data.message || 'Documentos atribuídos a você com sucesso',
+        dados: response.data,
+      }
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao atribuir documentos')
+    }
+  }
+
+  // Aprovar documentos em lote
+  async aprovarDocumentos(dados) {
+    try {
+      const response = await cardsAPI.aprovarEmLote(dados)
+      return {
+        sucesso: true,
+        mensagem: response.data.message || 'Documentos aprovados com sucesso',
+        dados: response.data,
+      }
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao aprovar documentos')
+    }
+  }
+
+  // Agrupar documentos
+  async agruparDocumentos(dados) {
+    try {
+      const response = await cardsAPI.agruparDocumentos(dados)
+      return {
+        sucesso: true,
+        mensagem: response.data.message || 'Documentos agrupados com sucesso',
+        dados: response.data,
+      }
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao agrupar documentos')
+    }
+  }
+
+  // === AÇÕES INDIVIDUAIS ===
 
   // Buscar card por ID
   async getCardById(id) {
     try {
-      const response = await cardsAPI.getById(id)
+      const response = await cardsAPI.buscarPorId(id)
       return {
-        success: true,
-        data: response.data,
+        sucesso: true,
+        dados: response.data,
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao buscar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao buscar documento')
     }
   }
 
   // Criar novo card
   async createCard(cardData) {
     try {
-      const response = await cardsAPI.create(cardData)
+      const response = await cardsAPI.criar(cardData)
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento criado com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento criado com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao criar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao criar documento')
     }
   }
 
   // Atualizar card
   async updateCard(id, cardData) {
     try {
-      const response = await cardsAPI.update(id, cardData)
-
-      // Atualizar na lista local se existir
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.atualizar(id, cardData)
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento atualizado com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento atualizado com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao atualizar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao atualizar documento')
     }
   }
 
   // Deletar card
   async deleteCard(id) {
     try {
-      await cardsAPI.delete(id)
-
-      // Remover da lista local
-      this.cards = this.cards.filter(card => card.id !== id)
-
+      await cardsAPI.deletar(id)
       return {
-        success: true,
-        message: 'Documento excluído com sucesso',
+        sucesso: true,
+        mensagem: 'Documento excluído com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao excluir documento',
-      }
+      throw this.tratarErro(error, 'Erro ao excluir documento')
     }
   }
 
-  // Aprovar documento
+  // Aprovar documento individual
   async approveCard(id, observacoes = '') {
     try {
-      const response = await cardsAPI.approve(id, { observacoes })
-
-      // Atualizar na lista local
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.aprovarIndividual(id, { observacoes })
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento aprovado com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento aprovado com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao aprovar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao aprovar documento')
     }
   }
 
   // Reprovar documento
   async rejectCard(id, motivo) {
     try {
-      const response = await cardsAPI.reject(id, { motivo })
-
-      // Atualizar na lista local
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.reprovar(id, { motivo })
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento reprovado',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento reprovado',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao reprovar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao reprovar documento')
     }
   }
 
   // Solicitar correção
   async requestCorrection(id, observacoes) {
     try {
-      const response = await cardsAPI.requestCorrection(id, { observacoes })
-
-      // Atualizar na lista local
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.solicitarCorrecao(id, { observacoes })
       return {
-        success: true,
-        data: response.data,
-        message: 'Correção solicitada com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Correção solicitada com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao solicitar correção',
-      }
+      throw this.tratarErro(error, 'Erro ao solicitar correção')
     }
   }
 
   // Arquivar documento
   async archiveCard(id) {
     try {
-      const response = await cardsAPI.archive(id)
-
-      // Atualizar na lista local
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.arquivar(id)
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento arquivado com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento arquivado com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao arquivar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao arquivar documento')
     }
   }
 
   // Desarquivar documento
   async unarchiveCard(id) {
     try {
-      const response = await cardsAPI.unarchive(id)
-
-      // Atualizar na lista local
-      const index = this.cards.findIndex(card => card.id === id)
-      if (index !== -1) {
-        this.cards[index] = response.data
-      }
-
+      const response = await cardsAPI.desarquivar(id)
       return {
-        success: true,
-        data: response.data,
-        message: 'Documento desarquivado com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Documento desarquivado com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao desarquivar documento',
-      }
+      throw this.tratarErro(error, 'Erro ao desarquivar documento')
     }
   }
+
+  // Executar ação do modelo
+  async executarAcaoModelo(acao) {
+    try {
+      const response = await cardsAPI.executarAcaoModelo(acao)
+      return {
+        sucesso: true,
+        dados: response.data,
+        mensagem: response.data.message || 'Ação executada com sucesso',
+      }
+    } catch (error) {
+      throw this.tratarErro(error, 'Erro ao executar ação do modelo')
+    }
+  }
+
+  // === MÉTODOS DE BUSCA E ESTATÍSTICAS ===
 
   // Buscar documentos
   async searchCards(query) {
     try {
-      const response = await cardsAPI.search(query)
+      const response = await cardsAPI.buscar(query)
       return {
-        success: true,
-        data: response.data,
+        sucesso: true,
+        dados: response.data,
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao buscar documentos',
-      }
+      throw this.tratarErro(error, 'Erro ao buscar documentos')
     }
-  }
-
-  // Definir filtros
-  setFilters(filters) {
-    this.filters = { ...this.filters, ...filters }
-  }
-
-  // Limpar filtros
-  clearFilters() {
-    this.filters = {
-      status: '',
-      modelo: '',
-      marcador: '',
-      remetente: '',
-      dataInicio: '',
-      dataFim: '',
-      vencimento: '',
-      prioridade: '',
-    }
-  }
-
-  // Definir ordenação
-  setSort(field, direction = 'asc') {
-    this.sort = { field, direction }
-  }
-
-  // Definir página
-  setPage(page) {
-    this.pagination.currentPage = page
-  }
-
-  // Definir itens por página
-  setItemsPerPage(itemsPerPage) {
-    this.pagination.itemsPerPage = itemsPerPage
-    this.pagination.currentPage = 1 // Reset para primeira página
   }
 
   // Obter estatísticas
   async getStatistics() {
     try {
-      const response = await cardsAPI.getStatistics()
+      const response = await cardsAPI.buscarEstatisticas()
       return {
-        success: true,
-        data: response.data,
+        sucesso: true,
+        dados: response.data,
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao obter estatísticas',
-      }
+      throw this.tratarErro(error, 'Erro ao obter estatísticas')
     }
   }
 
   // Exportar dados
   async exportData(format = 'xlsx', filters = {}) {
     try {
-      const response = await cardsAPI.export(format, filters)
+      const response = await cardsAPI.exportar(format, filters)
       return {
-        success: true,
-        data: response.data,
-        message: 'Dados exportados com sucesso',
+        sucesso: true,
+        dados: response.data,
+        mensagem: 'Dados exportados com sucesso',
       }
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao exportar dados',
-      }
+      throw this.tratarErro(error, 'Erro ao exportar dados')
     }
   }
 
-  // Getters
-  getCards() {
-    return this.cards
+  // === MÉTODOS UTILITÁRIOS ===
+
+  // Montar parâmetros de consulta
+  montarParametrosConsulta(filtros) {
+    // Agora a API já tem um método para montar parâmetros
+    // Removemos este método pois a API cards faz isso internamente
+    return filtros
   }
 
-  getLoading() {
-    return this.loading
+  // Formatar resposta dos cards
+  formatarRespostaCards(dadosResposta) {
+    return {
+      cards: dadosResposta.data || dadosResposta.cards || [],
+      total: dadosResposta.total || 0,
+      totalPages: dadosResposta.totalPages || 1,
+      currentPage: dadosResposta.currentPage || 1,
+      contadores: dadosResposta.contadores || {},
+      contagemTipoCaixa: dadosResposta.contagemTipoCaixa || {},
+      contagemModelosAtual: dadosResposta.contagemModelosAtual || {},
+    }
   }
 
-  getError() {
-    return this.error
+  // Tratar erros de forma consistente
+  tratarErro(error, mensagemPadrao) {
+    const mensagem =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      mensagemPadrao
+
+    // Log para debug
+    console.error('CardService Error:', {
+      mensagem,
+      status: error.response?.status,
+      data: error.response?.data,
+      originalError: error,
+    })
+
+    // Retorna erro estruturado
+    const erro = new Error(mensagem)
+    erro.status = error.response?.status
+    erro.data = error.response?.data
+    return erro
   }
 
-  getPagination() {
-    return this.pagination
+  // === MÉTODOS LEGACY (mantidos para compatibilidade) ===
+
+  // Definir filtros (legacy)
+  setFilters(filters) {
+    console.warn('CardService.setFilters é legacy. Use os novos composables.')
+    return filters
   }
 
-  getFilters() {
-    return this.filters
+  // Limpar filtros (legacy)
+  clearFilters() {
+    console.warn('CardService.clearFilters é legacy. Use os novos composables.')
+    return { ...this.defaultFilters }
   }
 
-  getSort() {
-    return this.sort
+  // Definir ordenação (legacy)
+  setSort(field, direction = 'asc') {
+    console.warn('CardService.setSort é legacy. Use os novos composables.')
+    return { field, direction }
+  }
+
+  // Definir página (legacy)
+  setPage(page) {
+    console.warn('CardService.setPage é legacy. Use os novos composables.')
+    return page
+  }
+
+  // Definir itens por página (legacy)
+  setItemsPerPage(itemsPerPage) {
+    console.warn(
+      'CardService.setItemsPerPage é legacy. Use os novos composables.'
+    )
+    return itemsPerPage
   }
 }
 

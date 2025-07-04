@@ -39,15 +39,13 @@
         <div class="divider"></div>
         <div class="item">Perfil</div>
         <div class="divider"></div>
-        <div class="item">Sair</div>
+        <div class="item" @click="logout">Sair</div>
       </div>
     </transition>
   </div>
 </template>
 
 <script>
-import authService from '@/mocks/services/authService'
-
 export default {
   name: 'DropdownUsuario',
   data() {
@@ -66,10 +64,22 @@ export default {
       return partes.slice(0, 2).join(' ')
     },
   },
+  methods: {
+    logout() {
+      // TODO: Implementar logout quando integrar com backend
+      console.log('Logout executado')
+      // Redirecionar para login
+      this.$router.push('/login')
+    },
+  },
   async created() {
     try {
-      const currentUser = await authService.getCurrentUser()
-      this.user = currentUser
+      // Mock de usuário até integrar com backend
+      this.user = {
+        nome: 'Ana Carolina Silva',
+        email: 'ana.silva@empresa.com',
+        avatar: null,
+      }
     } catch (error) {
       console.error('Erro ao carregar usuário:', error)
     }
