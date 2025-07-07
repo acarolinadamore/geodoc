@@ -67,7 +67,7 @@
       <template v-else-if="ordenacao === 'vencimento'">
         <div class="lista-simples">
           <div
-            v-for="card in cardsOrdenadosPorVencimento"
+            v-for="card in obterCardsOrdenadosPorVencimento()"
             :key="card.id"
             class="card-row"
           >
@@ -81,36 +81,13 @@
               />
             </div>
 
-            <!-- Coluna 2: Card com indicador de urgência -->
+            <!-- Coluna 2: Card limpo -->
             <div class="coluna-card">
-              <div class="card-com-urgencia">
-                <div
-                  v-if="obterStatusVencimento(card) === 'vencido'"
-                  class="indicador-vencimento vencido"
-                >
-                  <span class="icone-alerta">⚠️</span>
-                  <span>Vencido há {{ obterDiasVencido(card) }} dias</span>
-                </div>
-                <div
-                  v-else-if="obterStatusVencimento(card) === 'hoje'"
-                  class="indicador-vencimento hoje"
-                >
-                  <span class="icone-alerta">⏰</span>
-                  <span>Vence hoje</span>
-                </div>
-                <div
-                  v-else-if="obterStatusVencimento(card) === 'proximo'"
-                  class="indicador-vencimento proximo"
-                >
-                  <span class="icone-alerta">📅</span>
-                  <span>Vence em {{ obterDiasParaVencer(card) }} dias</span>
-                </div>
-                <CardDocumento
-                  :card="card"
-                  :selected="selectedCards.includes(card.id)"
-                  @toggle-selection="alternarSelecaoCard"
-                />
-              </div>
+              <CardDocumento
+                :card="card"
+                :selected="selectedCards.includes(card.id)"
+                @toggle-selection="alternarSelecaoCard"
+              />
             </div>
           </div>
         </div>
@@ -182,31 +159,53 @@ export default {
 
       return grupos
     },
+  },
 
-    cardsOrdenadosPorVencimento: function () {
+  methods: {
+    obterCardsOrdenadosPorVencimento() {
       if (!this.cards || !Array.isArray(this.cards)) {
         return []
       }
 
-      // Cria uma cópia do array para não mutar o original
-      var cardsOrdenados = [...this.cards]
+      function converterDataBrasileira(dataStr) {
+        if (!dataStr) return null
+        const partes = dataStr.trim().split('/')
+        if (partes.length !== 3) return null
+        const dia = parseInt(partes[0], 10)
+        const mes = parseInt(partes[1], 10) - 1
+        const ano = parseInt(partes[2], 10)
+        return new Date(ano, mes, dia)
+      }
 
-      // Ordena por vencimento (mais vencidos primeiro)
-      cardsOrdenados.sort(function (a, b) {
-        var dataA = a.vencimento
-          ? new Date(a.vencimento)
-          : new Date('9999-12-31')
-        var dataB = b.vencimento
-          ? new Date(b.vencimento)
-          : new Date('9999-12-31')
-        return dataA - dataB
+      const cardsOrdenados = [...this.cards]
+
+      cardsOrdenados.sort((a, b) => {
+        const hoje = new Date()
+        hoje.setHours(0, 0, 0, 0)
+
+        if (!a.vencimento?.data && !b.vencimento?.data) return 0
+        if (!a.vencimento?.data) return 1
+        if (!b.vencimento?.data) return -1
+
+        const dataA = converterDataBrasileira(a.vencimento.data)
+        const dataB = converterDataBrasileira(b.vencimento.data)
+
+        if (!dataA && !dataB) return 0
+        if (!dataA) return 1
+        if (!dataB) return -1
+
+        dataA.setHours(0, 0, 0, 0)
+        dataB.setHours(0, 0, 0, 0)
+
+        const diasVencidosA = Math.floor((hoje - dataA) / (1000 * 60 * 60 * 24))
+        const diasVencidosB = Math.floor((hoje - dataB) / (1000 * 60 * 60 * 24))
+
+        return diasVencidosB - diasVencidosA
       })
 
       return cardsOrdenados
     },
-  },
 
-  methods: {
     alternarSelecaoCard: function (cardId) {
       this.$emit('toggle-card-selection', cardId)
     },
@@ -301,12 +300,20 @@ export default {
     },
 
     obterStatusVencimento: function (card) {
-      if (!card.vencimento) return null
+      if (!card.vencimento?.data) return null
 
       var hoje = new Date()
       hoje.setHours(0, 0, 0, 0)
 
-      var vencimento = new Date(card.vencimento)
+      // Converte data brasileira
+      const partes = card.vencimento.data.trim().split('/')
+      if (partes.length !== 3) return null
+
+      const dia = parseInt(partes[0], 10)
+      const mes = parseInt(partes[1], 10) - 1
+      const ano = parseInt(partes[2], 10)
+
+      var vencimento = new Date(ano, mes, dia)
       vencimento.setHours(0, 0, 0, 0)
 
       var diffTime = vencimento - hoje
@@ -319,19 +326,39 @@ export default {
     },
 
     obterDiasVencido: function (card) {
-      if (!card.vencimento) return 0
+      if (!card.vencimento?.data) return 0
 
       var hoje = new Date()
-      var vencimento = new Date(card.vencimento)
+
+      // Converte data brasileira
+      const partes = card.vencimento.data.trim().split('/')
+      if (partes.length !== 3) return 0
+
+      const dia = parseInt(partes[0], 10)
+      const mes = parseInt(partes[1], 10) - 1
+      const ano = parseInt(partes[2], 10)
+
+      var vencimento = new Date(ano, mes, dia)
+
       var diffTime = hoje - vencimento
       return Math.floor(diffTime / (1000 * 60 * 60 * 24))
     },
 
     obterDiasParaVencer: function (card) {
-      if (!card.vencimento) return 0
+      if (!card.vencimento?.data) return 0
 
       var hoje = new Date()
-      var vencimento = new Date(card.vencimento)
+
+      // Converte data brasileira
+      const partes = card.vencimento.data.trim().split('/')
+      if (partes.length !== 3) return 0
+
+      const dia = parseInt(partes[0], 10)
+      const mes = parseInt(partes[1], 10) - 1
+      const ano = parseInt(partes[2], 10)
+
+      var vencimento = new Date(ano, mes, dia)
+
       var diffTime = vencimento - hoje
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     },
@@ -363,14 +390,15 @@ export default {
   grid-template-columns: 56px 1fr;
   gap: 16px;
   align-items: center;
-  padding: 8px 0;
+  padding: 8px 16px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .separador-modelo {
   height: 1px;
   background-color: #e5e7eb;
-  width: 100%;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
 }
 
 .coluna-dropdown {
@@ -428,6 +456,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 0 16px;
 }
 
 .card-row {
@@ -507,7 +536,7 @@ export default {
 
   .header-modelo {
     grid-template-columns: 1fr;
-    padding-left: 0;
+    padding: 0 16px;
   }
 
   .coluna-dropdown {

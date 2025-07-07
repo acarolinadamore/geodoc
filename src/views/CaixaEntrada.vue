@@ -94,10 +94,7 @@
                   @change="alterarFiltroData"
                   class="w-full lg:w-auto"
                 />
-                <DropdownOrdenarPor
-                  v-model="ordenacaoAtual"
-                  @change="alterarOrdenacao"
-                />
+                <DropdownOrdenarPor v-model="ordenacaoAtual" />
               </div>
             </div>
           </div>
@@ -110,6 +107,33 @@
           />
         </div>
 
+        <div class="separador-linha"></div>
+        <div class="header-cards-title">
+          <div class="flex items-center gap-4 py-2">
+            <div class="flex gap-2 items-center checkbox-actions-container">
+              <DropdownCheckbox
+                :checked-all="selecaoCards.todosCardsSelecionados.value"
+                :actions="acoesCheckbox"
+                @toggle-all="alternarTodosCards"
+                @action="executarAcaoCheckbox"
+              />
+            </div>
+            <div class="flex title-cards-container items-center">
+              <div class="w-72">
+                <span class="font-medium text-gray-700">Remetente</span>
+              </div>
+              <div class="flex-1">
+                <span class="font-medium text-gray-700">Documento</span>
+              </div>
+              <div class="w-72">
+                <span class="font-medium text-gray-700">Âncora</span>
+              </div>
+              <div class="w-48 text-center">
+                <span class="font-medium text-gray-700">Ações</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="separador-linha"></div>
       </div>
 
@@ -149,9 +173,8 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useCaixaEntrada } from '@/composables/useCaixaEntrada'
-
 import LayoutMenuLateral from '@/layouts/LayoutMenuLateral.vue'
 import FiltroPaginaMarcador from '@/components/FiltroPaginaMarcador.vue'
 import FiltroModeloDocumento from '@/components/FiltroModeloDocumento.vue'
@@ -162,6 +185,7 @@ import Searchbar from '@/components/Searchbar.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import DropdownOrdenarPor from '@/components/DropdownOrdenarPor.vue'
 import HandIcon from '@/assets/icons/hand.svg'
+import DropdownCheckbox from '@/components/DropdownCheckbox.vue'
 
 export default {
   name: 'CaixaEntrada',
@@ -175,6 +199,7 @@ export default {
     Searchbar,
     DatePicker,
     DropdownOrdenarPor,
+    DropdownCheckbox,
   },
 
   setup() {
@@ -189,7 +214,6 @@ export default {
 
       // Computeds
       temCards,
-      temCardsSelecionados,
       tituloAtual,
       abasTipoCaixaComContadores,
       modelosDaCaixaAtual,
@@ -215,6 +239,43 @@ export default {
       agruparSelecionados,
       executarAcaoModelo,
     } = useCaixaEntrada()
+
+    const temCardsSelecionados = computed(
+      () => selecaoCards.cardsSelecionados.value.length > 0
+    )
+
+    const acoesCheckbox = ref([
+      { label: 'Aprovar', value: 'aprovar' },
+      { label: 'Atribuir a Mim', value: 'atribuir-mim' },
+      { label: 'Atribuir em Lotes', value: 'atribuir-lotes' },
+      { label: 'Agrupar', value: 'agrupar' },
+      { label: 'Marcar como Lido', value: 'marcar-lido' },
+    ])
+
+    const alternarTodosCards = () => {
+      const deveSelecionar = !selecaoCards.todosCardsSelecionados.value
+      selecaoCards.alternarTodosCards(deveSelecionar)
+    }
+
+    const executarAcaoCheckbox = acao => {
+      console.log('Ação selecionada:', acao)
+      switch (acao) {
+        case 'aprovar':
+          aprovarSelecionados()
+          break
+        case 'atribuir-mim':
+          atribuirAMim()
+          break
+        case 'atribuir-lotes':
+          atribuirEmLotes()
+          break
+        case 'agrupar':
+          agruparSelecionados()
+          break
+        default:
+          console.log(`Executando ação: ${acao}`)
+      }
+    }
 
     return {
       handIcon,
@@ -244,24 +305,28 @@ export default {
       aprovarSelecionados,
       agruparSelecionados,
       executarAcaoModelo,
+      acoesCheckbox,
+      alternarTodosCards,
+      executarAcaoCheckbox,
     }
   },
 }
 </script>
 
 <style scoped>
-.adicionar-espaco {
-  padding-left: 50px;
-}
-
 .caixa-entrada-container {
   display: flex;
   flex-direction: column;
   height: 100%;
   max-height: 100vh;
-  max-width: 100%;
+  overflow: hidden;
 }
 
+.adicionar-espaco {
+  padding-left: 50px;
+}
+
+/* Header fixo - não rola */
 .header-fixo {
   flex-shrink: 0;
   background-color: white;
@@ -285,16 +350,40 @@ export default {
   margin: 0;
 }
 
+.header-cards-title {
+  padding: 0 16px;
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.checkbox-actions-container {
+  width: 56px;
+  justify-content: flex-start;
+}
+
+.title-cards-container span {
+  color: #b3b3b3;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.title-cards-container {
+  width: 100%;
+  margin-left: 60px;
+  align-items: center;
+}
+
+/* Área de scroll - apenas lista de cards */
 .area-scroll {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  background-color: white;
 }
 
-.scroll-content {
-  padding: 0 16px;
-}
-
+/* Estados de loading, erro e vazio */
 .loading-container,
 .error-container,
 .empty-container {
@@ -311,5 +400,16 @@ export default {
 
 .empty-container {
   color: #6b7280;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .title-cards-container {
+    display: none;
+  }
+
+  .header-cards-title {
+    padding: 0 16px;
+  }
 }
 </style>

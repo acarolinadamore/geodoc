@@ -44,6 +44,11 @@ export const useSelecaoCards = () => {
     }
   }
 
+  const alternarTodos = () => {
+    const deveSelecionar = !todosCardsSelecionados.value
+    alternarTodosCards(deveSelecionar)
+  }
+
   const atualizarCardsVisiveis = cards => {
     cardsVisiveis.value = cards
   }
@@ -58,6 +63,7 @@ export const useSelecaoCards = () => {
     quantidadeSelecionados,
     alternarSelecaoCard,
     alternarTodosCards,
+    alternarTodos,
     limparSelecoes,
     resetarSelecoes,
     atualizarCardsVisiveis,

@@ -19,7 +19,7 @@
     </button>
 
     <div v-if="dropdownAberto" class="dropdown-menu">
-      <div class="dropdown-header">Ordenar por:</div>
+      <div class="dropdown-header text-left">Ordenar por:</div>
       <ul class="dropdown-list">
         <li v-for="opcao in opcoes" :key="opcao.value">
           <button
@@ -146,7 +146,7 @@ export default {
   padding: 8px 16px;
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: #ababac;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid #e5e7eb;
