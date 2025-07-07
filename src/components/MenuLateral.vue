@@ -64,11 +64,7 @@
               :unread="2"
               @abrirNotificacoes="abrirPainelNotificacoes"
             />
-            <DropdownUsuario
-              fullName="Ana Carolina"
-              email="e-mail@com.br"
-              :userImage="fotoUsuario"
-            />
+            <DropdownMultiempresas />
           </div>
         </div>
       </nav>
@@ -90,13 +86,13 @@
 <script>
 import configMenu from '@/menu/menuConfig'
 import Notificacao from '@/components/Notificacao.vue'
-import DropdownUsuario from '@/components/DropdownUsuario.vue'
+import DropdownMultiempresas from '@/components/DropdownMultiempresas.vue'
 
 export default {
   name: 'MenuLateral',
   components: {
     Notificacao,
-    DropdownUsuario,
+    DropdownMultiempresas,
   },
   data() {
     return {
@@ -105,7 +101,6 @@ export default {
       caminhoLogoMini: require('@/assets/logos/g.svg'),
       caminhoGrupoImagetech: require('@/assets/logos/grupoimagetech.png'),
       expandida: true,
-      fotoUsuario: '', // coloque o caminho da foto aqui se tiver
     }
   },
   methods: {
