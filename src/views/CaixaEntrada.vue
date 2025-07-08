@@ -137,9 +137,11 @@
         <div class="separador-linha"></div>
       </div>
 
-      <div class="area-scroll">
+      <div
+        class="area-scroll"
+        :class="{ 'espacamento-vencimento': ordenacaoAtual === 'vencimento' }"
+      >
         <div class="scroll-content">
-          <!-- VOLTA AO ORIGINAL -->
           <CardDocumentoLista
             v-if="
               temCards &&
@@ -207,21 +209,16 @@ export default {
     const handIcon = ref(HandIcon)
 
     const {
-      // Estados
       cardsComposable,
       cardsFiltrados,
       selecaoCards,
       filtrosCaixa,
       ordenacaoAtual,
-
-      // Computeds
       temCards,
       tituloAtual,
       abasTipoCaixaComContadores,
       modelosDaCaixaAtual,
       filtrosAtivos,
-
-      // Métodos de filtro
       alterarTipoCaixa,
       alterarFiltroModelo,
       alterarFiltroBusca,
@@ -232,8 +229,6 @@ export default {
       limparTodosFiltros,
       alternarSelecaoCard,
       adicionarMarcador,
-
-      // Ações
       loading,
       atribuirEmLotes,
       atribuirAMim,
@@ -329,7 +324,6 @@ export default {
   padding-left: 50px;
 }
 
-/* Header fixo - não rola */
 .header-fixo {
   flex-shrink: 0;
   background-color: white;
@@ -378,7 +372,6 @@ export default {
   align-items: center;
 }
 
-/* Área de scroll - apenas lista de cards */
 .area-scroll {
   flex: 1;
   overflow-y: auto;
@@ -386,7 +379,10 @@ export default {
   background-color: white;
 }
 
-/* Estados de loading, erro e vazio */
+.area-scroll.espacamento-vencimento {
+  padding-top: 16px;
+}
+
 .loading-container,
 .error-container,
 .empty-container {
@@ -405,7 +401,6 @@ export default {
   color: #6b7280;
 }
 
-/* Responsividade */
 @media (max-width: 1024px) {
   .title-cards-container {
     display: none;
