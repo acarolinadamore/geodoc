@@ -6,11 +6,7 @@
           <!-- Superior -->
           <div class="header">
             <div class="barra-superior">
-              <div
-                class="logo"
-                @click="navegar('/inicio')"
-                style="cursor: pointer"
-              >
+              <div class="logo" @click="navegar('/')" style="cursor: pointer">
                 <img :src="caminhoLogo" alt="GeoDoc Logo" class="imagem-logo" />
               </div>
               <button class="botao-colapsar" @click.stop="alternarSidebar">
@@ -119,7 +115,12 @@ export default {
     },
     navegar(rota) {
       if (rota && this.$route.path !== rota) {
-        this.$router.push(rota)
+        this.$router.push(rota).catch(err => {
+          // Ignora apenas erros de navegação duplicada
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('Erro de navegação:', err)
+          }
+        })
       }
     },
     obterCaminhoIcone(nomeIcone) {

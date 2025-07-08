@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 
 import NovoDocumento from '../views/NovoDocumento.vue'
 import DocumentoSucesso from '../views/DocumentoSucesso.vue'
-import Inicio from '../views/Inicio.vue'
+import Painel from '../views/Painel.vue'
 import Login from '../views/Login.vue'
 import CaixaEntrada from '@/views/CaixaEntrada.vue'
 
@@ -12,8 +12,8 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'inicio',
-    component: Inicio,
+    name: 'Painel',
+    component: Painel,
   },
   {
     path: '/login',
@@ -104,11 +104,6 @@ const routes = [
     path: '/documento-sucesso',
     name: 'DocumentoSucesso',
     component: DocumentoSucesso,
-  },
-  {
-    path: '/inicio',
-    name: 'Inicio',
-    component: Inicio,
   },
 
   // ========================================

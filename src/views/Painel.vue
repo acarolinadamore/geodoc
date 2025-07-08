@@ -1,7 +1,6 @@
 <template>
   <layout-menu-lateral v-slot="{ sidebarExpanded }">
     <div class="min-h-screen space-y-6">
-      <!-- Seção Boas-Vindas -->
       <div class="bg-white sombra flex flex-col gap-1 pl-6 pb-4">
         <div
           class="flex items-center space-x-1 pt-3"
@@ -18,11 +17,10 @@
           </p>
         </div>
       </div>
-      <!-- Container Painel Cards -->
+
       <div
         class="px-6 grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 container-cards"
       >
-        <!-- Card Pendentes -->
         <div
           class="relative rounded-xl p-6 text-left text-white bg-yellow-400 shadow hover:shadow-md transition-all max-h-[160px] overflow-hidden"
         >
@@ -50,7 +48,6 @@
           </a>
         </div>
 
-        <!-- Outros Cards -->
         <div
           v-for="card in cards"
           :key="card.titulo"
@@ -80,85 +77,16 @@
           </a>
         </div>
       </div>
-      <!-- Últimos Documentos e Pré-agendamento lado a lado -->
-      <div class="flex flex-col md:flex-row gap-6 mx-6">
-        <!-- Últimos Documentos -->
-        <div
-          class="flex-1 rounded-xl p-6 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800"
-        >
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-medium text-left">
-              Últimos Documentos Acessados
-            </h3>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </div>
-          <div class="flex flex-col gap-1 text-left">
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Folha de Pagamento / Abril 2025
-            </div>
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Contrato Prestador / Jurídico
-            </div>
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Relatório de Indicadores / Financeiro
-            </div>
-          </div>
-        </div>
 
-        <!-- Pré-agendamento -->
-        <div
-          class="flex-1 rounded-xl p-6 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-gray-800"
-        >
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-medium text-left">Pré-agendamento</h3>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
-              />
-            </svg>
-          </div>
-          <div class="flex flex-col gap-1 text-left">
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Documento pendente assinatura
-            </div>
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Folha de Pagamento / Maio 2025
-            </div>
-            <div
-              class="text-blue-600 hover:text-blue-800 cursor-pointer text-sm"
-            >
-              Relatório de Progresso / Projeto X
-            </div>
-          </div>
-        </div>
+      <div class="flex flex-col md:flex-row gap-6 mx-6">
+        <card-links
+          titulo="Últimos Documentos Acessados"
+          :links="ultimosDocumentos"
+        />
+
+        <card-links titulo="Pré-agendamento" :links="preAgendamento" />
       </div>
-      <!--  Busca -->
+
       <div
         class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mx-6 space-y-4 container-busca"
       >
@@ -170,13 +98,48 @@
           Use os filtros para refinar sua busca.
         </p>
         <div class="w-full">
-          <search-bar
-            v-model="busca"
-            placeholder="Buscar documentos..."
-            @search-changed="busca = $event"
-            @clear="busca = ''"
-            class="w-full"
-          />
+          <div
+            class="input-busca flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+          >
+            <svg
+              class="w-4 h-4 text-gray-400 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+            <input
+              v-model="busca"
+              type="text"
+              class="flex-1 border-none outline-none"
+              placeholder="Buscar documentos..."
+            />
+            <button
+              v-if="busca"
+              @click="limparBusca"
+              class="ml-2 text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -185,11 +148,13 @@
 
 <script>
 import LayoutMenuLateral from '@/layouts/LayoutMenuLateral.vue'
+import CardLinks from '@/components/CardLinks.vue'
 
 export default {
-  name: 'Inicio',
+  name: 'Painel',
   components: {
     LayoutMenuLateral,
+    CardLinks,
   },
   data() {
     return {
@@ -211,6 +176,40 @@ export default {
           link: '/painel/solicitados',
         },
       ],
+      ultimosDocumentos: [
+        {
+          id: 1,
+          titulo: 'Folha de Pagamento / Abril 2025',
+          url: '/documento/1',
+        },
+        {
+          id: 2,
+          titulo: 'Contrato Prestador / Jurídico',
+          url: '/documento/2',
+        },
+        {
+          id: 3,
+          titulo: 'Relatório de Indicadores / Financeiro',
+          url: '/documento/3',
+        },
+      ],
+      preAgendamento: [
+        {
+          id: 1,
+          titulo: 'Documento pendente assinatura',
+          url: '/documento/pendente/1',
+        },
+        {
+          id: 2,
+          titulo: 'Folha de Pagamento / Maio 2025',
+          url: '/documento/agendado/2',
+        },
+        {
+          id: 3,
+          titulo: 'Relatório de Progresso / Projeto X',
+          url: '/documento/agendado/3',
+        },
+      ],
     }
   },
   methods: {
@@ -222,6 +221,19 @@ export default {
 </script>
 
 <style scoped>
+.input-busca {
+  border-width: 1px;
+  border-color: rgb(209 213 219);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.input-busca:focus-within {
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2);
+}
+
 .search-container {
   position: relative;
   display: inline-block;
