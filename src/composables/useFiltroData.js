@@ -1,4 +1,3 @@
-// composables/useFiltroData.js
 import { ref, computed } from 'vue'
 
 export function useFiltroData() {
@@ -12,7 +11,6 @@ export function useFiltroData() {
     console.log('Aplicando filtro:', filtro)
     console.log('Total de cards:', cards.length)
 
-    // FILTRO PROGRESSIVO DINÂMICO - CORRIGIDO
     if (filtro.filterType === 'progressive') {
       const resultado = cards.filter(card => {
         if (!card.documento?.dataInicio) return false
@@ -50,7 +48,7 @@ export function useFiltroData() {
       return resultado
     }
 
-    // Filtro por dia específico - CORRIGIDO
+    // Filtro por dia específico
     if (filtro.filterType === 'day') {
       const resultado = cards.filter(card => {
         if (!card.documento?.dataInicio) return false
@@ -66,7 +64,7 @@ export function useFiltroData() {
       return resultado
     }
 
-    // Filtro por dia/mês - CORRIGIDO
+    // Filtro por dia/mês
     if (filtro.filterType === 'dayMonth') {
       const resultado = cards.filter(card => {
         if (!card.documento?.dataInicio) return false
@@ -83,7 +81,7 @@ export function useFiltroData() {
       return resultado
     }
 
-    // Filtro "a partir de" - CORRIGIDO
+    // Filtro "a partir de"
     if (filtro.filterType === 'dateFrom' && filtro.start) {
       const dataInicio = new Date(filtro.start)
       dataInicio.setHours(0, 0, 0, 0)
@@ -98,7 +96,7 @@ export function useFiltroData() {
       return resultado
     }
 
-    // Filtro por intervalo fechado - CORRIGIDO
+    // Filtro por intervalo fechado
     if (filtro.filterType === 'dateRange' && filtro.start && filtro.end) {
       const dataInicio = new Date(filtro.start)
       const dataFim = new Date(filtro.end)
@@ -139,7 +137,7 @@ export function useFiltroData() {
       return resultado
     }
 
-    // Filtro por data específica única - CORRIGIDO
+    // Filtro por data específica única
     if (filtro.start && !filtro.filterType) {
       const dataInicio = new Date(filtro.start)
       const dataFim = filtro.end ? new Date(filtro.end) : new Date(filtro.start)

@@ -76,29 +76,43 @@ export default {
   },
   methods: {
     aoClicarFora(event) {
+      // Verifica se o clique foi dentro do componente
       if (this.$el.contains(event.target)) {
         return
       }
 
-      setTimeout(() => {
-        if (this.seletorData && this.seletorData.visible) {
-          const calendarioVisivel = document.querySelector(
-            '.air-datepicker:not([style*="display: none"])'
-          )
-          if (!calendarioVisivel) {
-            this.seletorData.hide()
-          }
-        }
-      }, 100)
+      // Verifica se o clique foi no calendário do air-datepicker
+      const calendarioElement = document.querySelector('.air-datepicker')
+      if (calendarioElement && calendarioElement.contains(event.target)) {
+        return
+      }
+
+      // Se chegou aqui, clicou fora - fecha o calendário
+      if (this.seletorData && this.seletorData.visible) {
+        this.seletorData.hide()
+      }
     },
 
     aoClicarWrapper(event) {
+      // Se clicou no input ou botão de limpar, não faz nada
       if (
         event.target.tagName === 'INPUT' ||
         event.target.tagName === 'BUTTON'
       ) {
         return
       }
+
+      // Se clicou no ícone e o calendário está visível, fecha
+      if (
+        event.target.closest('svg') &&
+        this.seletorData &&
+        this.seletorData.visible
+      ) {
+        this.seletorData.hide()
+        return
+      }
+
+      // Senão, abre/mostra o picker
       this.togglePicker()
     },
 
@@ -109,7 +123,8 @@ export default {
           this.$refs.entradaData.focus()
           this.seletorData.show()
         })
-      } else {
+      } else if (this.seletorData && !this.seletorData.visible) {
+        // Se o input está visível mas o calendário não, mostra
         this.seletorData.show()
       }
     },
@@ -194,28 +209,28 @@ export default {
 
           this.erroFormato = ''
         },
-        onHide: isFinished => {
-          if (isFinished && !this.valorExibicao) {
+        onHide: () => {
+          // Quando o calendário é fechado, verifica se deve esconder o input
+          if (!this.valorExibicao) {
             this.isInputVisible = false
           }
         },
       })
 
-      if (this.value) {
-        if (this.value.start) {
-          const dates = [this.value.start]
-          if (this.value.end && this.value.end !== this.value.start) {
-            dates.push(this.value.end)
-          }
-          this.seletorData.selectDate(dates)
-          this.datasRange = dates
-          if (dates.length === 1) {
-            this.valorExibicao = this.formatarDataUnica(dates[0])
-          } else {
-            this.valorExibicao = `${this.formatarDataUnica(
-              dates[0]
-            )} - ${this.formatarDataUnica(dates[1])}`
-          }
+      // Se tem valor inicial, configura
+      if (this.value && this.value.start) {
+        const dates = [this.value.start]
+        if (this.value.end && this.value.end !== this.value.start) {
+          dates.push(this.value.end)
+        }
+        this.seletorData.selectDate(dates)
+        this.datasRange = dates
+        if (dates.length === 1) {
+          this.valorExibicao = this.formatarDataUnica(dates[0])
+        } else {
+          this.valorExibicao = `${this.formatarDataUnica(
+            dates[0]
+          )} - ${this.formatarDataUnica(dates[1])}`
         }
         this.isInputVisible = true
       }
@@ -285,11 +300,18 @@ export default {
     },
 
     aoPerderFoco() {
+      // Adiciona um delay para permitir cliques no calendário
       setTimeout(() => {
-        if (!this.seletorData.visible && !this.valorExibicao) {
+        // Verifica se o calendário ainda está visível
+        const calendarioVisivel = document.querySelector(
+          '.air-datepicker:not([style*="display: none"])'
+        )
+
+        // Se não tem valor e o calendário não está visível, esconde o input
+        if (!this.valorExibicao && !calendarioVisivel) {
           this.isInputVisible = false
         }
-      }, 150)
+      }, 200)
     },
 
     aoApertarEnter() {
@@ -547,9 +569,5 @@ export default {
 :global(.air-datepicker-body--day-name) {
   color: #1a82d9 !important;
   font-weight: 500 !important;
-}
-
-:global(.air-datepicker-body--day-names) {
-  border-bottom: 1px solid #e5e7eb !important;
 }
 </style>

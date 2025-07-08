@@ -90,7 +90,18 @@
             <h3 class="text-lg font-medium text-left">
               Últimos Documentos Acessados
             </h3>
-            <v-icon name="sync" class="w-5 h-5 text-gray-500" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5 text-gray-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                clip-rule="evenodd"
+              />
+            </svg>
           </div>
           <div class="flex flex-col gap-1 text-left">
             <div
@@ -117,7 +128,16 @@
         >
           <div class="flex justify-between items-start mb-4">
             <h3 class="text-lg font-medium text-left">Pré-agendamento</h3>
-            <v-icon name="bell" class="w-5 h-5 text-gray-500" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5 text-gray-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
+              />
+            </svg>
           </div>
           <div class="flex flex-col gap-1 text-left">
             <div
@@ -150,7 +170,7 @@
           Use os filtros para refinar sua busca.
         </p>
         <div class="w-full">
-          <gd-search-bar
+          <search-bar
             v-model="busca"
             placeholder="Buscar documentos..."
             @search-changed="busca = $event"
