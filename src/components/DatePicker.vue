@@ -12,8 +12,18 @@
         @keydown.enter.prevent="aoApertarEnter"
         @click.stop
       />
+      <button
+        v-if="isInputVisible && valorExibicao"
+        @click.stop="limpar"
+        class="clear-button"
+        type="button"
+        title="Limpar data"
+      >
+        ×
+      </button>
       <svg
         class="calendar-icon"
+        :class="{ 'icon-com-input': isInputVisible }"
         width="18"
         height="18"
         viewBox="0 0 24 24"
@@ -26,15 +36,6 @@
         <line x1="8" y1="2" x2="8" y2="6"></line>
         <line x1="3" y1="10" x2="21" y2="10"></line>
       </svg>
-      <button
-        v-if="isInputVisible && valorExibicao"
-        @click.stop="limpar"
-        class="clear-button"
-        type="button"
-        title="Limpar data"
-      >
-        ×
-      </button>
     </div>
     <div v-if="erroFormato" class="error-message">
       {{ erroFormato }}
@@ -60,21 +61,37 @@ export default {
       valorExibicao: '',
       erroFormato: '',
       isInputVisible: false,
-      digitandoManualmente: false,
-      debounceTimer: null,
       datasRange: [],
     }
   },
   mounted() {
     this.inicializarSeletorData()
+    document.addEventListener('click', this.aoClicarFora)
   },
   beforeDestroy() {
     if (this.seletorData) {
       this.seletorData.destroy()
     }
-    clearTimeout(this.debounceTimer)
+    document.removeEventListener('click', this.aoClicarFora)
   },
   methods: {
+    aoClicarFora(event) {
+      if (this.$el.contains(event.target)) {
+        return
+      }
+
+      setTimeout(() => {
+        if (this.seletorData && this.seletorData.visible) {
+          const calendarioVisivel = document.querySelector(
+            '.air-datepicker:not([style*="display: none"])'
+          )
+          if (!calendarioVisivel) {
+            this.seletorData.hide()
+          }
+        }
+      }, 100)
+    },
+
     aoClicarWrapper(event) {
       if (
         event.target.tagName === 'INPUT' ||
@@ -152,36 +169,34 @@ export default {
           firstDay: 0,
         },
         onSelect: ({ date }) => {
-          this.digitandoManualmente = false
           this.datasRange = date || []
+          console.log('📅 Data(s) selecionada(s):', this.datasRange.length)
 
           if (this.datasRange.length === 1) {
             this.valorExibicao = this.formatarDataUnica(this.datasRange[0])
+            console.log('📅 Primeira data selecionada:', this.valorExibicao)
+            this.$emit('change', {
+              filterType: 'dateFrom',
+              start: this.datasRange[0],
+            })
           } else if (this.datasRange.length === 2) {
             this.valorExibicao = `${this.formatarDataUnica(
               this.datasRange[0]
             )} - ${this.formatarDataUnica(this.datasRange[1])}`
+            console.log('📅 Período selecionado:', this.valorExibicao)
+            this.$emit('change', {
+              filterType: 'dateRange',
+              start: this.datasRange[0],
+              end: this.datasRange[1],
+            })
+            this.seletorData.hide()
           }
 
           this.erroFormato = ''
         },
         onHide: isFinished => {
-          if (isFinished) {
-            if (this.datasRange.length === 1) {
-              this.$emit('change', {
-                start: this.datasRange[0],
-                end: this.datasRange[0],
-              })
-            } else if (this.datasRange.length === 2) {
-              this.$emit('change', {
-                start: this.datasRange[0],
-                end: this.datasRange[1],
-              })
-            }
-
-            if (!this.valorExibicao) {
-              this.isInputVisible = false
-            }
+          if (isFinished && !this.valorExibicao) {
+            this.isInputVisible = false
           }
         },
       })
@@ -207,35 +222,69 @@ export default {
     },
 
     aoDigitarData(event) {
-      this.digitandoManualmente = true
-      clearTimeout(this.debounceTimer)
-
       const input = event.target
       let valor = input.value.replace(/\D/g, '')
-      let valorFormatado = ''
 
+      let valorFormatado = ''
       if (valor.length > 0) valorFormatado = valor.substring(0, 2)
       if (valor.length >= 3) valorFormatado += '/' + valor.substring(2, 4)
       if (valor.length >= 5) valorFormatado += '/' + valor.substring(4, 8)
-      if (valor.length >= 9) valorFormatado += ' - ' + valor.substring(8, 10)
-      if (valor.length >= 11) valorFormatado += '/' + valor.substring(10, 12)
-      if (valor.length >= 13) valorFormatado += '/' + valor.substring(12, 16)
 
       this.valorExibicao = valorFormatado
-      this.$nextTick(() => {
-        input.value = valorFormatado
-      })
+      input.value = valorFormatado
 
-      this.debounceTimer = setTimeout(() => {
-        this.dispararFiltro()
-      }, 400)
+      console.log('⌨️ Digitando:', valorFormatado, '| Números:', valor)
+
+      this.aplicarFiltroProgressivo(valor)
+    },
+
+    aplicarFiltroProgressivo(numeros) {
+      if (!numeros) {
+        console.log('🔄 Limpando filtro')
+        this.$emit('change', null)
+        return
+      }
+
+      console.log('🔍 Filtro progressivo para:', numeros)
+
+      if (numeros.length === 1) {
+        console.log('📅 Filtro por dígito inicial:', numeros)
+        this.$emit('change', {
+          filterType: 'progressive',
+          pattern: numeros,
+        })
+      } else if (numeros.length === 2) {
+        console.log('📅 Filtro por dia específico:', numeros)
+        this.$emit('change', {
+          filterType: 'progressive',
+          pattern: numeros,
+        })
+      } else if (numeros.length <= 4) {
+        const dia = numeros.substring(0, 2)
+        const mes = numeros.substring(2)
+        let pattern = dia
+        if (mes) {
+          pattern += '/' + mes.padStart(2, '0')
+        }
+        console.log('📅 Filtro por dia/mês:', pattern)
+        this.$emit('change', {
+          filterType: 'progressive',
+          pattern: pattern,
+        })
+      } else {
+        const dia = numeros.substring(0, 2)
+        const mes = numeros.substring(2, 4)
+        const ano = numeros.substring(4)
+        const pattern = `${dia}/${mes}/${ano}`
+        console.log('📅 Filtro por data completa:', pattern)
+        this.$emit('change', {
+          filterType: 'progressive',
+          pattern: pattern,
+        })
+      }
     },
 
     aoPerderFoco() {
-      clearTimeout(this.debounceTimer)
-      if (this.digitandoManualmente) {
-        this.dispararFiltro()
-      }
       setTimeout(() => {
         if (!this.seletorData.visible && !this.valorExibicao) {
           this.isInputVisible = false
@@ -244,110 +293,51 @@ export default {
     },
 
     aoApertarEnter() {
-      clearTimeout(this.debounceTimer)
-      this.dispararFiltro()
-      this.seletorData.hide()
-    },
-
-    dispararFiltro() {
-      this.digitandoManualmente = false
-      if (!this.valorExibicao.trim()) {
-        this.limpar(true)
-        return
-      }
-
-      const partes = this.valorExibicao.split(' - ')
-      const primeiraParte = partes[0].trim()
-
-      if (primeiraParte.length <= 2 && /^\d{1,2}$/.test(primeiraParte)) {
-        this.erroFormato = ''
-        this.$emit('change', {
-          filterType: 'day',
-          day: primeiraParte.padStart(2, '0'),
-        })
-        return
-      }
+      console.log('⏎ Enter pressionado:', this.valorExibicao)
 
       if (
-        primeiraParte.length <= 5 &&
-        /^\d{1,2}\/\d{1,2}$/.test(primeiraParte)
+        this.valorExibicao &&
+        /^\d{2}\/\d{2}\/\d{4}$/.test(this.valorExibicao)
       ) {
-        const [dia, mes] = primeiraParte.split('/')
-        this.erroFormato = ''
-        this.$emit('change', {
-          filterType: 'dayMonth',
-          day: dia.padStart(2, '0'),
-          month: mes.padStart(2, '0'),
-        })
-        return
-      }
-
-      if (partes.length === 1) {
-        const dataProcessada = this.processarDataCompleta(primeiraParte)
+        const dataProcessada = this.processarDataCompleta(this.valorExibicao)
         if (dataProcessada.valida) {
-          this.erroFormato = ''
-          this.datasRange = [dataProcessada.data]
-          this.seletorData.selectDate(dataProcessada.data)
-          this.valorExibicao = this.formatarDataUnica(dataProcessada.data)
+          console.log('📅 Data específica válida:', dataProcessada.data)
           this.$emit('change', {
+            filterType: 'dateSpecific',
             start: dataProcessada.data,
             end: dataProcessada.data,
           })
-        } else {
-          this.erroFormato = 'Data inválida'
-        }
-      } else if (partes.length === 2) {
-        const data1 = this.processarDataCompleta(partes[0].trim())
-        const data2 = this.processarDataCompleta(partes[1].trim())
-
-        if (data1.valida && data2.valida) {
-          this.erroFormato = ''
-          this.datasRange = [data1.data, data2.data]
-          this.seletorData.selectDate([data1.data, data2.data])
-          this.valorExibicao = `${this.formatarDataUnica(
-            data1.data
-          )} - ${this.formatarDataUnica(data2.data)}`
-          this.$emit('change', {
-            start: data1.data,
-            end: data2.data,
-          })
-        } else {
-          this.erroFormato = 'Data inválida'
+          this.seletorData.hide()
         }
       }
     },
 
     processarDataCompleta(valor) {
-      const valorLimpo = valor.replace(/\D/g, '')
-      const hoje = new Date()
-      const anoAtual = hoje.getFullYear()
+      const partes = valor.split('/')
+      if (partes.length !== 3) return { valida: false }
 
-      let dia, mes, ano
+      const dia = parseInt(partes[0], 10)
+      const mes = parseInt(partes[1], 10)
+      const ano = parseInt(partes[2], 10)
 
-      if (valorLimpo.length >= 4) {
-        dia = parseInt(valorLimpo.substring(0, 2), 10)
-        mes = parseInt(valorLimpo.substring(2, 4), 10)
-        ano = parseInt(valorLimpo.substring(4, 8), 10) || anoAtual
-
-        if (
-          dia >= 1 &&
-          dia <= 31 &&
-          mes >= 1 &&
-          mes <= 12 &&
-          ano >= 1900 &&
-          ano <= 2100
-        ) {
-          const data = new Date(ano, mes - 1, dia)
-          if (data.getDate() === dia && data.getMonth() === mes - 1) {
-            return { valida: true, data }
-          }
+      if (
+        dia >= 1 &&
+        dia <= 31 &&
+        mes >= 1 &&
+        mes <= 12 &&
+        ano >= 1900 &&
+        ano <= 2100
+      ) {
+        const data = new Date(ano, mes - 1, dia)
+        if (data.getDate() === dia && data.getMonth() === mes - 1) {
+          return { valida: true, data }
         }
       }
       return { valida: false }
     },
 
     limpar(naoFocar = false) {
-      clearTimeout(this.debounceTimer)
+      console.log('🗑️ Limpando filtro')
       if (this.seletorData) this.seletorData.clear()
       this.valorExibicao = ''
       this.erroFormato = ''
@@ -369,7 +359,6 @@ export default {
 
   watch: {
     value(novoValor) {
-      if (this.digitandoManualmente) return
       if (novoValor && novoValor.start) {
         const dates = [novoValor.start]
         if (novoValor.end && novoValor.end !== novoValor.start) {
@@ -406,7 +395,7 @@ export default {
 }
 
 .gd-date-picker.is-expanded {
-  width: 200px;
+  width: 120px;
 }
 
 .date-input-wrapper {
@@ -439,7 +428,7 @@ export default {
 }
 
 .date-input {
-  width: 140px;
+  flex: 1;
   padding: 0 4px;
   border: none;
   outline: none;
@@ -449,18 +438,6 @@ export default {
   color: #374151;
   min-width: 0;
   cursor: text;
-}
-
-.calendar-icon {
-  color: #1a82d9;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  margin: 0 4px;
-  flex-shrink: 0;
-}
-
-.calendar-icon:hover {
-  color: #1565c0;
 }
 
 .clear-button {
@@ -475,12 +452,31 @@ export default {
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
-  margin-left: 4px;
+  margin-right: 4px;
   flex-shrink: 0;
 }
 
 .clear-button:hover {
   color: #ef4444;
+}
+
+.calendar-icon {
+  color: #1a82d9;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.calendar-icon.icon-com-input {
+  margin-left: 4px;
+}
+
+.calendar-icon:not(.icon-com-input) {
+  margin: 0;
+}
+
+.calendar-icon:hover {
+  color: #1565c0;
 }
 
 .error-message {
@@ -546,5 +542,14 @@ export default {
 
 :global(.air-datepicker-nav--action:hover) {
   color: #1a82d9 !important;
+}
+
+:global(.air-datepicker-body--day-name) {
+  color: #1a82d9 !important;
+  font-weight: 500 !important;
+}
+
+:global(.air-datepicker-body--day-names) {
+  border-bottom: 1px solid #e5e7eb !important;
 }
 </style>

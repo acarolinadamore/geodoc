@@ -139,13 +139,14 @@
 
       <div class="area-scroll">
         <div class="scroll-content">
+          <!-- VOLTA AO ORIGINAL -->
           <CardDocumentoLista
             v-if="
               temCards &&
               !cardsComposable.state.loading &&
               !cardsComposable.state.error
             "
-            :cards="cardsComposable.state.cards"
+            :cards="cardsFiltrados"
             :selected-cards="selecaoCards.cardsSelecionados.value"
             :ordenacao="ordenacaoAtual"
             @toggle-card-selection="alternarSelecaoCard"
@@ -208,6 +209,7 @@ export default {
     const {
       // Estados
       cardsComposable,
+      cardsFiltrados,
       selecaoCards,
       filtrosCaixa,
       ordenacaoAtual,
@@ -289,6 +291,7 @@ export default {
       abasTipoCaixaComContadores,
       modelosDaCaixaAtual,
       filtrosAtivos,
+      cardsFiltrados,
       alterarTipoCaixa,
       alterarFiltroModelo,
       alterarFiltroBusca,

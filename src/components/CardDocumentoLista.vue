@@ -1,3 +1,10 @@
+<!-- DEBUG TEMPORÁRIO -->
+<div style="background: red; color: white; padding: 10px; margin: 10px">
+  <strong>🔍 DEBUG:</strong><br>
+  cardsFiltrados.length: {{ cardsFiltrados.length }}<br>
+  cardsComposable.state.cards.length: {{ cardsComposable.state.cards.length }}<br>
+  Usando qual?: {{ cardsFiltrados === cardsComposable.state.cards ? 'MESMO ARRAY' : 'ARRAYS DIFERENTES' }}
+</div>
 <template>
   <div class="card-list-container">
     <div class="grupos-container">

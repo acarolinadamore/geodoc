@@ -5,6 +5,7 @@ import { useNotificacoes } from '@/composables/useNotificacoes'
 import { useFiltrosCaixa } from '@/composables/useFiltrosCaixa'
 import { useCoresModelo } from '@/composables/useCoresModelo'
 import { useAcoesCaixa } from '@/composables/useAcoesCaixa'
+import { useFiltroData } from '@/composables/useFiltroData'
 import { TIPOS_CAIXA } from '@/constants/caixa'
 
 export const useCaixaEntrada = () => {
@@ -19,13 +20,56 @@ export const useCaixaEntrada = () => {
   const filtrosCaixa = useFiltrosCaixa()
   const coresModelo = useCoresModelo()
   const acoesCaixa = useAcoesCaixa(selecaoCards, notificacoes)
+  const { filtroData, aplicarFiltroData, definirFiltroData, limparFiltroData } =
+    useFiltroData()
 
   // Estado local
   const ordenacaoAtual = ref('modelos')
   const marcadoresPessoais = ref([])
 
-  // Computeds
-  const temCards = computed(() => cardsComposable.state.cards.length > 0)
+  // Computeds - VOLTA AO ORIGINAL COM ADIÇÃO DO FILTRO
+  // Computeds - VOLTA AO ORIGINAL COM ADIÇÃO DO FILTRO
+  const cardsFiltrados = computed(() => {
+    let cards = cardsComposable.state.cards || []
+
+    console.log(
+      '🔍 Cards originais:',
+      cards.length,
+      Array.isArray(cards) ? 'Array' : typeof cards
+    )
+
+    // GARANTE que é sempre um array
+    if (!Array.isArray(cards)) {
+      console.error('⚠️ Cards não é array:', cards)
+      return []
+    }
+
+    // APLICA o filtro de data progressivo se existir
+    if (filtroData.value) {
+      cards = aplicarFiltroData(cards, filtroData.value)
+      console.log(
+        '🔍 Cards após filtro:',
+        cards.length,
+        Array.isArray(cards) ? 'Array' : typeof cards
+      )
+
+      // ✨ ADICIONE ESTAS LINHAS AQUI:
+      console.log('🔍 Cards FINAIS que vão para a tela:', cards.length)
+      console.log(
+        '📋 Lista dos cards que vão aparecer:',
+        cards.map(c => {
+          const data = new Date(c.documento.dataInicio)
+          const dia = String(data.getDate()).padStart(2, '0')
+          const mes = String(data.getMonth() + 1).padStart(2, '0')
+          return `${dia}/${mes} - ${c.remetente.nome}`
+        })
+      )
+    }
+
+    return cards
+  })
+
+  const temCards = computed(() => cardsFiltrados.value.length > 0)
 
   const temCardsSelecionados = computed(
     () => selecaoCards.cardsSelecionados.value.length > 0
@@ -113,7 +157,7 @@ export const useCaixaEntrada = () => {
 
   // Watchers
   watch(
-    () => cardsComposable.state.cards,
+    () => cardsFiltrados.value,
     novosCards => selecaoCards.atualizarCardsVisiveis(novosCards || []),
     { immediate: true }
   )
@@ -127,7 +171,7 @@ export const useCaixaEntrada = () => {
     { deep: true }
   )
 
-  // Métodos de filtro
+  // Métodos de filtro - VOLTA AO ORIGINAL
   const alterarTipoCaixa = async tipoCaixa => {
     selecaoCards.resetarSelecoes()
     filtrosCaixa.alterarTipoCaixa(tipoCaixa)
@@ -146,7 +190,14 @@ export const useCaixaEntrada = () => {
 
   const alterarFiltroData = async dadosData => {
     selecaoCards.resetarSelecoes()
-    filtrosCaixa.alterarFiltroData(dadosData)
+
+    // APENAS adiciona suporte ao novo filtro, mantém o antigo funcionando
+    if (dadosData && (dadosData.filterType || dadosData.start)) {
+      definirFiltroData(dadosData)
+    } else {
+      filtrosCaixa.alterarFiltroData(dadosData)
+      limparFiltroData()
+    }
   }
 
   const limparFiltroBusca = () => {
@@ -166,6 +217,7 @@ export const useCaixaEntrada = () => {
   const limparTodosFiltros = () => {
     selecaoCards.resetarSelecoes()
     filtrosCaixa.limparTodosFiltros()
+    limparFiltroData()
   }
 
   const alternarSelecaoCard = cardId => {
@@ -177,7 +229,7 @@ export const useCaixaEntrada = () => {
     notificacoes.mostrarSucesso('Marcador adicionado com sucesso')
   }
 
-  // Carregar dados
+  // Carregar dados - EXATAMENTE COMO ESTAVA
   const carregarCards = async () => {
     try {
       cardsComposable.state.loading = true
@@ -205,7 +257,7 @@ export const useCaixaEntrada = () => {
     }
   }
 
-  // Inicialização
+  // Inicialização - EXATAMENTE COMO ESTAVA
   const inicializar = async () => {
     try {
       // Primeiro carrega as contagens gerais
@@ -228,12 +280,13 @@ export const useCaixaEntrada = () => {
   })
 
   return {
-    // Estados
+    // Estados - VOLTA AO ORIGINAL
     cardsComposable,
     selecaoCards,
     filtrosCaixa,
     ordenacaoAtual,
     marcadoresPessoais,
+    cardsFiltrados,
 
     // Computeds
     temCards,
